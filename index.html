@@ -5979,8 +5979,9 @@ function renderCompare(studies){
   })}</tr>`;
 
   /* ── AI Comparison Settings Bar (prepended before table) ── */
-  html=`<div class="ai-settings-bar" id="aiSettingsBar" style="margin-bottom:1rem">
+  html=`<div class="ai-settings-bar" id="aiSettingsBar" style="margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
     <button class="ai-btn" id="aiQuickBtn" onclick="window.runQuickAI()" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:.4rem 1rem;border-radius:5px;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap">AI Analysis</button>
+    <div id="aiLangBar" style="display:inline-flex;gap:2px;align-items:center">${['🇺🇸,en,EN','🇰🇷,ko,KR','🇯🇵,ja,JP','🇨🇳,zh,CN','🇪🇸,es,ES','🇵🇹,pt,PT','🇩🇪,de,DE','🇫🇷,fr,FR','🇸🇦,ar,AR'].map(x=>{const[f,c,l]=x.split(',');return'<button onclick="window._setAILang(\\x27'+c+'\\x27,this)" data-lang="'+c+'" style="background:'+(c==='en'?'rgba(16,185,129,.2)':'transparent')+';border:'+(c==='en'?'1px solid #10b981':'1px solid transparent')+';border-radius:4px;padding:2px 4px;cursor:pointer;font-size:.85rem;line-height:1" title="'+l+'">'+f+'</button>';}).join('')}</div>
     <span class="ai-status" id="aiQuickStatus" style="font-size:.7rem;color:#94a3b8"></span>
     <span style="font-size:.65rem;color:#718096;margin-left:auto" id="aiQuickInfo">Gemini 2.5 Flash</span>
   </div>`+html;
@@ -7130,6 +7131,16 @@ let _aiMonthlyUsed=JSON.parse(localStorage.getItem('ai_monthly')||'{"month":0,"c
 function _aiCanUse(){const now=new Date().getMonth()+1;if(_aiMonthlyUsed.month!==now){_aiMonthlyUsed={month:now,count:0};localStorage.setItem('ai_monthly',JSON.stringify(_aiMonthlyUsed));}return _aiMonthlyUsed.count<10;}
 function _aiIncrement(){_aiMonthlyUsed.count++;localStorage.setItem('ai_monthly',JSON.stringify(_aiMonthlyUsed));}
 
+window._aiLang='en';
+window._setAILang=function(lang,el){
+  window._aiLang=lang;
+  document.querySelectorAll('#aiLangBar button').forEach(b=>{
+    const active=b.dataset.lang===lang;
+    b.style.background=active?'rgba(16,185,129,.2)':'transparent';
+    b.style.border=active?'1px solid #10b981':'1px solid transparent';
+  });
+};
+
 window.runQuickAI=async function(){
   console.log('[AI] runQuickAI v2 called');
   const btn=document.getElementById('aiQuickBtn');
@@ -7149,7 +7160,7 @@ window.runQuickAI=async function(){
     const res=await fetch(SUPABASE_URL+'/functions/v1/ai-analyze',{
       method:'POST',
       headers:{'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json'},
-      body:JSON.stringify({trials:studies})
+      body:JSON.stringify({trials:studies,lang:window._aiLang||'en'})
     });
     const result=await res.json();
     if(!res.ok)throw new Error(result.error||'AI analysis failed');
