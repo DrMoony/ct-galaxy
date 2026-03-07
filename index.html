@@ -160,7 +160,7 @@
 
 /* ── CI Theme Selector ── */
 .ci-theme-btn{
-  position:fixed;bottom:20px;right:20px;z-index:9999;
+  position:fixed;bottom:20px;left:20px;z-index:9999;
   width:48px;height:48px;border-radius:50%;border:3px solid var(--mint);
   background:var(--dark);color:var(--mint);cursor:pointer;
   font-size:1.3rem;display:flex;align-items:center;justify-content:center;
@@ -168,7 +168,7 @@
 }
 .ci-theme-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(0,0,0,.4)}
 .ci-theme-panel{
-  position:fixed;bottom:80px;right:20px;z-index:9998;
+  position:fixed;bottom:80px;left:20px;z-index:9998;
   width:340px;max-height:70vh;overflow-y:auto;
   background:var(--card);border:2px solid var(--mint);border-radius:8px;
   box-shadow:0 8px 30px rgba(0,0,0,.25);display:none;
@@ -964,17 +964,17 @@ th .col-hide-btn{float:right;margin-top:1px}
       <div class="galaxy-header">
         <h3>MOLECULE GALAXY MAP</h3>
         <div class="galaxy-sort-btns">
-          <button class="galaxy-sort-btn active" data-sort="phase" onclick="setGalaxySort('phase',this)" title="Phase distribution vortex">PHASE VORTEX</button>
-          <button class="galaxy-sort-btn" data-sort="molecule" onclick="setGalaxySort('molecule',this)" title="Drug molecule constellation">MOLECULES</button>
-          <button class="galaxy-sort-btn" data-sort="sponsor" onclick="setGalaxySort('sponsor',this)" title="Sponsor universe">SPONSORS</button>
-          <button class="galaxy-sort-btn" data-sort="country" onclick="setGalaxySort('country',this)" title="Global trial sites">WORLD MAP</button>
+          <button class="galaxy-sort-btn active" data-sort="phase" onclick="setGalaxySort('phase',this)" title="Visualize trials grouped by clinical phase (P1/P2/P3) as orbital bubbles. Bubble size = enrollment count.">PHASE VORTEX</button>
+          <button class="galaxy-sort-btn" data-sort="molecule" onclick="setGalaxySort('molecule',this)" title="Group trials by drug/molecule name. Each bubble = one trial. Click a drug name to see its pipeline detail.">MOLECULES</button>
+          <button class="galaxy-sort-btn" data-sort="sponsor" onclick="setGalaxySort('sponsor',this)" title="Group trials by sponsor company. Shows each sponsor's trial count, phase distribution, and pipeline breadth.">SPONSORS</button>
+          <button class="galaxy-sort-btn" data-sort="country" onclick="setGalaxySort('country',this)" title="Interactive world map showing trial site locations. Color intensity = number of sites per country. Click a country to zoom in.">WORLD MAP</button>
           <span style="border-left:1px solid rgba(0,228,124,.3);height:18px;margin:0 4px"></span>
-          <button class="galaxy-sort-btn" data-sort="trends" onclick="setGalaxySort('trends',this)" title="Historical trial trends">TIME WARP</button>
-          <button class="galaxy-sort-btn" data-sort="enrollment" onclick="setGalaxySort('enrollment',this)" title="Enrollment analytics">HEADCOUNT</button>
-          <button class="galaxy-sort-btn" data-sort="failure" onclick="setGalaxySort('failure',this)" title="Termination & failure rates">GRAVEYARD</button>
-          <button class="galaxy-sort-btn" data-sort="funnel" onclick="setGalaxySort('funnel',this)" title="Phase survival funnel">SURVIVAL FUNNEL</button>
-          <button class="galaxy-sort-btn" data-sort="compare" onclick="setGalaxySort('compare',this)" title="Head-to-head sponsor battle">HEAD-TO-HEAD</button>
-          <button class="galaxy-sort-btn" data-sort="studytype" onclick="setGalaxySort('studytype',this)" title="Trial type breakdown">STUDY TYPE</button>
+          <button class="galaxy-sort-btn" data-sort="trends" onclick="setGalaxySort('trends',this)" title="Timeline chart showing when trials started over time. Reveals acceleration or slowdown in clinical development.">TIME WARP</button>
+          <button class="galaxy-sort-btn" data-sort="enrollment" onclick="setGalaxySort('enrollment',this)" title="Enrollment analytics: total participants, trials by phase, top countries by trial count & sites, and global/regional site rankings.">HEADCOUNT</button>
+          <button class="galaxy-sort-btn" data-sort="failure" onclick="setGalaxySort('failure',this)" title="Termination & failure analysis by phase. Shows completion vs termination rates, top termination reasons, and withdrawn/suspended trials.">GRAVEYARD</button>
+          <button class="galaxy-sort-btn" data-sort="funnel" onclick="setGalaxySort('funnel',this)" title="Phase transition funnel: how many trials survive from Phase 1 → 2 → 3. Shows attrition rate at each stage.">SURVIVAL FUNNEL</button>
+          <button class="galaxy-sort-btn" data-sort="compare" onclick="setGalaxySort('compare',this)" title="Head-to-head comparison of top sponsors: trial counts, phase distribution, enrollment, and therapeutic areas side by side.">HEAD-TO-HEAD</button>
+          <button class="galaxy-sort-btn" data-sort="studytype" onclick="setGalaxySort('studytype',this)" title="Breakdown by study type: Interventional vs Observational, randomization, blinding, and primary purpose categories.">STUDY TYPE</button>
         </div>
         <span class="hint-text">Click body → Details</span>
         <div class="galaxy-filters">
@@ -1087,7 +1087,7 @@ th .col-hide-btn{float:right;margin-top:1px}
   <div class="compare-modal">
     <div class="compare-header">
       <h3 id="compareTitle">TRIAL COMPARISON</h3>
-      <button class="alert-trigger-btn" id="alertCompareBtn" onclick="triggerCompareAlert()" style="margin-right:.5rem" title="Get alerts for drugs in this comparison"><em class="bell">🔔</em> ALERT DRUGS</button>
+      <button class="alert-trigger-btn" id="alertCompareBtn" onclick="triggerCompareAlert()" style="margin-right:.5rem" title="Watch these compared trials for updates"><em class="bell">🔔</em> WATCH TRIALS</button>
         <button class="modal-close" onclick="closeCompare()">X</button>
     </div>
     <div class="compare-body" id="compareBody">
@@ -2543,7 +2543,7 @@ function renderDetail(study){
       <div class="detail-item"><div class="label">Study Type</div><div class="value">${getCategoryBadgeMulti(trialCat.all)}</div></div>
       <div class="detail-item"><div class="label">Status</div><div class="value"><span class="badge ${getStatusBadgeClass(status)}">${formatStatus(status)}</span></div></div>
       <div class="detail-item"><div class="label">Phase</div><div class="value">${escHtml(phases)}</div></div>
-      <div class="detail-item"><div class="label">Sponsor</div><div class="value">${escHtml(sponsor)}</div></div>
+      <div class="detail-item"><div class="label">Sponsor</div><div class="value">${escHtml(sponsor)} <button class="alert-trigger-btn" onclick="event.stopPropagation();triggerSponsorAlert('${sponsor.replace(/'/g,"\\'")}')" style="font-size:.35rem;padding:.2rem .4rem;margin-left:.5rem;vertical-align:middle" title="Alert for all trials by this sponsor"><em class="bell">🔔</em> ALERT</button></div></div>
       <div class="detail-item"><div class="label">Conditions</div><div class="value">${escHtml(conditions)} <span id="icd10badges"></span></div></div>
       <div class="detail-item"><div class="label">Last Updated</div><div class="value">${escHtml(lastUpdate)}</div></div>
       <div class="detail-item"><div class="label">Age</div><div class="value">${escHtml(ageRange)}</div></div>
@@ -4504,6 +4504,8 @@ function renderEnrollmentChart(el,studies){
     if(/^site\s*(#|\d|number)/i.test(n))return true;
     if(/^(local|private)\s*(institution|practice)/i.test(n))return true;
     if(/^(gsk|pfizer|novartis|roche|sanofi|merck|bayer|astrazeneca|lilly|abbvie|amgen|bms|janssen|novo nordisk|takeda|gilead|regeneron)\s*(investigat|study|clinical)/i.test(n))return true;
+    /* Generic pattern: <AnyWord> clinical/study/research site/center */
+    if(/\b(clinical|study|research|investigational)\s*(site|center|centre|facility)\b/i.test(n)&&!/\b(hospital|university|medical center|clinic|institute)\b/i.test(n))return true;
     return false;
   }
   /* Address-based deduplication: normalize facility+city+country as key */
@@ -4588,13 +4590,14 @@ function renderEnrollmentChart(el,studies){
   const avgEnroll=enrolledStudies>0?Math.round(totalEnroll/enrolledStudies):0;
   const medianArr=studies.map(s=>((s.protocolSection?.designModule?.enrollmentInfo||{}).count)||0).filter(v=>v>0).sort((a,b)=>a-b);
   const median=medianArr.length>0?medianArr[Math.floor(medianArr.length/2)]:0;
-  html+=`<div class="ga-grid" style="margin-bottom:1.2rem"><div class="ga-card"><h5>TOTAL TRIALS</h5><div class="ga-stat">${studies.length}</div><div class="ga-stat-label">${enrolledStudies} with enrollment · ${totalSites} sites</div></div>`;
-  html+=`<div class="ga-card"><h5>ENROLLMENT</h5><div class="ga-stat">${totalEnroll.toLocaleString()}</div><div class="ga-stat-label">mean ${avgEnroll.toLocaleString()} · median ${median.toLocaleString()}</div></div></div>`;
+  html+=`<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.8rem;line-height:1.5">Enrollment analytics for your search results. Bar charts show trial distribution by phase and country. Click any bar to see the underlying trials.</div>`;
+  html+=`<div class="ga-grid" style="margin-bottom:1.2rem"><div class="ga-card" title="Total number of trials in your search results and how many report enrollment data"><h5>TOTAL TRIALS</h5><div class="ga-stat">${studies.length}</div><div class="ga-stat-label">${enrolledStudies} with enrollment · ${totalSites} sites</div></div>`;
+  html+=`<div class="ga-card" title="Sum of all enrolled participants across matching trials. Mean and median help gauge typical trial size."><h5>ENROLLMENT</h5><div class="ga-stat">${totalEnroll.toLocaleString()}</div><div class="ga-stat-label">mean ${avgEnroll.toLocaleString()} · median ${median.toLocaleString()}</div></div></div>`;
   /* Trials by Phase */
   const phaseOrder=['Phase 1','Phase 2','Phase 3','Other'];
   const maxPhaseT=Math.max(...phaseOrder.map(p=>byPhase.get(p)||0),1);
   const phaseColors={'Phase 1':'#45B7D1','Phase 2':'#FFD700','Phase 3':'#FF6B6B','Other':'#888'};
-  html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.6rem;font-weight:700">Trials by Phase</div>`;
+  html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.2rem;font-weight:700">Trials by Phase</div><div style="font-size:.6rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Number of trials in each clinical phase. Click a bar to see the trial list.</div>`;
   phaseOrder.forEach(p=>{
     const v=byPhase.get(p)||0;if(!v)return;
     const bp=Math.max(v/maxPhaseT*65,1);const vr=bv(v,bp,6);
@@ -4611,20 +4614,21 @@ function renderEnrollmentChart(el,studies){
       anonByCountry.set(c,(anonByCountry.get(c)||0)+1);
     }
   });
-  const topCountries=[...byCountry.entries()].sort((a,b)=>b[1].trials-a[1].trials).slice(0,15);
-  const maxCountryT=topCountries.length>0?topCountries[0][1].trials:1;
-  html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.6rem;font-weight:700">Top Countries (Trials · Unique Sites)</div>`;
-  topCountries.forEach(([c,{trials,sites}])=>{
-    const bp=Math.max(trials/maxCountryT*55,1);const vr=bv(trials,bp,6);
-    const anonN=anonByCountry.get(c)||0;
-    const anonTag=anonN>0?` <span style="color:rgba(255,255,255,.35);font-size:.6rem">(anon ${anonN})</span>`:'';
-    const safeC=escHtml(c).replace(/'/g,"\\'");
-    const _hcCC=COUNTRY_NAME_TO_CODE[(c||'').toLowerCase()]||'';
-    const _hcSvg=_hcCC?COUNTRY_FLAG_SVG[_hcCC]:'';
-    const _hcFlag=_hcSvg?`<span class="flag-svg" style="width:14px;height:10px;display:inline-block;border-radius:1px;overflow:hidden;vertical-align:middle;box-shadow:0 0 0 .5px rgba(0,0,0,.15)">${_hcSvg}</span> `:'';
-    html+=`<div class="ga-bar-row" style="cursor:pointer" onclick="if(window._hcCountryStudies)showAnalyticsTrialPopup('👥 ${safeC}',window._hcCountryStudies.get('${safeC}')||[],'${trials} trials · ${sites} sites')"><div class="ga-bar-label" style="min-width:110px">${_hcFlag}${escHtml(c)}</div><div class="ga-bar" style="width:${bp}%;background:linear-gradient(90deg,#4ECDC4,#00E47C)">${vr.inside}</div>${vr.outside}<span class="ga-bar-val-out" onclick="event.stopPropagation();showSitePopup('${safeC}')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Click to view site list">${sites} sites${anonTag}</span></div>`;
+  const allCountries=[...byCountry.entries()].sort((a,b)=>b[1].trials-a[1].trials);
+  const maxCountryT=allCountries.length>0?allCountries[0][1].trials:1;
+  // Store for country search
+  window._hcAllCountries=allCountries;window._hcAnonByCountry=anonByCountry;window._hcMaxCountryT=maxCountryT;
+  html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.2rem;font-weight:700">Countries by Trial Count (Trials · Unique Sites)</div><div style="font-size:.6rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Bar = trial count per country. Click bar for trial list, click "sites" for site details. Use search to find a specific country.</div>`;
+  html+=`<div style="margin-bottom:.6rem"><input type="text" id="hcCountrySearch" placeholder="Search country..." oninput="filterCountryRanking(this.value)" style="width:200px;padding:.3rem .6rem;font-size:.75rem;background:rgba(255,255,255,.08);border:1px solid rgba(0,228,124,.3);border-radius:4px;color:#fff;outline:none"></div>`;
+  html+=`<div id="hcCountryList">`;
+  const showInitial=Math.min(allCountries.length,15);
+  allCountries.slice(0,showInitial).forEach(([c,{trials,sites}],idx)=>{
+    html+=_buildCountryBar(c,trials,sites,idx,maxCountryT,anonByCountry);
   });
-  html+=`</div>`;
+  if(allCountries.length>showInitial){
+    html+=`<div id="hcCountryMore" style="text-align:center;margin-top:.4rem"><button onclick="showAllCountries()" style="font-size:.65rem;padding:.3rem .8rem;background:transparent;border:1px solid rgba(0,228,124,.3);border-radius:4px;color:var(--mint);cursor:pointer">Show all ${allCountries.length} countries ▾</button></div>`;
+  }
+  html+=`</div></div>`;
   /* ── Global Top 50 Sites ── */
   const namedSites=[...bySite.entries()].filter(([k,v])=>!v.anon);
   const globalTop=namedSites.sort((a,b)=>b[1].trials-a[1].trials).slice(0,50);
@@ -4640,7 +4644,7 @@ function renderEnrollmentChart(el,studies){
   }
   if(globalTop.length>0){
     const maxSiteT=globalTop[0][1].trials;
-    html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.6rem;font-weight:700">🏆 Global Top ${Math.min(50,globalTop.length)} Sites</div>`;
+    html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.2rem;font-weight:700">🏆 Global Top ${Math.min(50,globalTop.length)} Sites</div><div style="font-size:.6rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Sites ranked by number of trials they participate in. Bar length = trial count.</div>`;
     globalTop.forEach(([site,info],i)=>{
       const facParts=site.split(',');
       const facName=(facParts[0]||site).trim();
@@ -4667,7 +4671,7 @@ function renderEnrollmentChart(el,studies){
   byRegion.forEach((arr,r)=>arr.sort((a,b)=>b.trials-a.trials));
   const regionOrder=['North America','Europe','Asia Pacific','Latin America','Middle East','Africa','Other'];
   const majorRegions=new Set(['North America','Europe','Asia Pacific']);
-  html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.6rem;font-weight:700">🌍 Top Sites by Region</div>`;
+  html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.2rem;font-weight:700">🌍 Top Sites by Region</div><div style="font-size:.6rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Top clinical trial sites in each region, ranked by number of trials. Bar = trial count.</div>`;
   regionOrder.forEach(region=>{
     const allInRegion=byRegion.get(region);if(!allInRegion||!allInRegion.length)return;
     const showN=majorRegions.has(region)?8:4;
@@ -4692,6 +4696,45 @@ function renderEnrollmentChart(el,studies){
   html+=`</div>`;
   el.innerHTML=html;
 }
+
+function _buildCountryBar(c,trials,sites,idx,maxT,anonMap){
+  const bp=Math.max(trials/maxT*55,1);const vr=bv(trials,bp,6);
+  const anonN=anonMap.get(c)||0;
+  const anonTag=anonN>0?` <span style="color:rgba(255,255,255,.35);font-size:.6rem">(anon ${anonN})</span>`:'';
+  const safeC=escHtml(c).replace(/'/g,"\\'");
+  const cc=COUNTRY_NAME_TO_CODE[(c||'').toLowerCase()]||'';
+  const svg=cc?COUNTRY_FLAG_SVG[cc]:'';
+  const flag=svg?`<span class="flag-svg" style="width:14px;height:10px;display:inline-block;border-radius:1px;overflow:hidden;vertical-align:middle;box-shadow:0 0 0 .5px rgba(0,0,0,.15)">${svg}</span> `:'';
+  const rank=`<span style="min-width:22px;display:inline-block;text-align:right;font-size:.58rem;color:rgba(255,255,255,.4);margin-right:.3rem">#${idx+1}</span>`;
+  return `<div class="ga-bar-row" style="cursor:pointer" onclick="if(window._hcCountryStudies)showAnalyticsTrialPopup('👥 ${safeC}',window._hcCountryStudies.get('${safeC}')||[],'${trials} trials · ${sites} sites')"><div class="ga-bar-label" style="min-width:130px">${rank}${flag}${escHtml(c)}</div><div class="ga-bar" style="width:${bp}%;background:linear-gradient(90deg,#4ECDC4,#00E47C)">${vr.inside}</div>${vr.outside}<span class="ga-bar-val-out" onclick="event.stopPropagation();showSitePopup('${safeC}')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Click to view site list">${sites} sites${anonTag}</span></div>`;
+}
+
+window.filterCountryRanking=function(query){
+  const list=document.getElementById('hcCountryList');
+  if(!list||!window._hcAllCountries)return;
+  const q=query.toLowerCase().trim();
+  const filtered=q?window._hcAllCountries.filter(([c])=>c.toLowerCase().includes(q)):window._hcAllCountries.slice(0,15);
+  let h='';
+  filtered.forEach(([c,{trials,sites}],i)=>{
+    const globalIdx=window._hcAllCountries.findIndex(([cc])=>cc===c);
+    h+=_buildCountryBar(c,trials,sites,globalIdx,window._hcMaxCountryT,window._hcAnonByCountry);
+  });
+  if(!q&&window._hcAllCountries.length>15){
+    h+=`<div id="hcCountryMore" style="text-align:center;margin-top:.4rem"><button onclick="showAllCountries()" style="font-size:.65rem;padding:.3rem .8rem;background:transparent;border:1px solid rgba(0,228,124,.3);border-radius:4px;color:var(--mint);cursor:pointer">Show all ${window._hcAllCountries.length} countries ▾</button></div>`;
+  }
+  if(filtered.length===0)h=`<div style="color:rgba(255,255,255,.4);font-size:.75rem;padding:.5rem">No countries match "${escHtml(query)}"</div>`;
+  list.innerHTML=h;
+};
+
+window.showAllCountries=function(){
+  const list=document.getElementById('hcCountryList');
+  if(!list||!window._hcAllCountries)return;
+  let h='';
+  window._hcAllCountries.forEach(([c,{trials,sites}],i)=>{
+    h+=_buildCountryBar(c,trials,sites,i,window._hcMaxCountryT,window._hcAnonByCountry);
+  });
+  list.innerHTML=h;
+};
 
 /* ── 3. FAILURE RATE (Phase Attrition) ── */
 function renderFailureChart(el,studies){
@@ -6558,9 +6601,10 @@ function showAlertModal(data){
     if(data.filters.phases&&data.filters.phases.length) html+=`<div><span class="af-label">Phase:</span><span class="af-value">${data.filters.phases.join(', ')}</span></div>`;
     if(data.filters.statuses&&data.filters.statuses.length) html+=`<div><span class="af-label">Status:</span><span class="af-value">${data.filters.statuses.join(', ')}</span></div>`;
   } else if(data.type==='compare'){
-    title.textContent='ALERT THESE DRUGS';
-    desc.textContent='You will receive weekly email updates when new trials involve these drugs/interventions.';
-    html+=`<div><span class="af-label">Drugs:</span><span class="af-value">${data.filters.intervention}</span></div>`;
+    title.textContent='WATCH THESE TRIALS';
+    desc.textContent='You will receive email updates when any of these compared trials are updated.';
+    if(data.filters.nctIds) html+=`<div><span class="af-label">Trials:</span><span class="af-value">${data.filters.nctIds.join(', ')}</span></div>`;
+    if(data.filters.titles) html+=`<div style="margin-top:.3rem;font-size:.75rem;color:var(--text-light);line-height:1.5">${data.filters.titles.map(t=>'• '+t).join('<br>')}</div>`;
   } else if(data.type==='drug'){
     title.textContent='ALERT THIS DRUG';
     desc.textContent='You will receive weekly email updates for new trials involving this drug.';
@@ -6569,6 +6613,10 @@ function showAlertModal(data){
     title.textContent='WATCH THIS TRIAL';
     desc.textContent='You will receive email updates when this trial is updated.';
     html+=`<div><span class="af-label">NCT ID:</span><span class="af-value">${data.filters.keyword}</span></div>`;
+  } else if(data.type==='sponsor'){
+    title.textContent='ALERT THIS SPONSOR';
+    desc.textContent='You will receive email updates for new or updated trials by this sponsor.';
+    html+=`<div><span class="af-label">Sponsor:</span><span class="af-value">${data.filters.sponsor}</span></div>`;
   }
 
   filters.innerHTML=html;
@@ -6590,23 +6638,17 @@ window.triggerSearchAlert=function(){
   });
 };
 
-// 2. Compare Alert
+// 2. Compare Alert — watches the compared trials (by NCT ID)
 window.triggerCompareAlert=function(){
   if(typeof compareSet==='undefined'||!compareSet||compareSet.size<2)return;
-  // Collect drugs from compared trials
-  const drugs=new Set();
   const ids=[...compareSet.keys()];
-  ids.forEach(id=>{
+  const titles=ids.map(id=>{
     const trial=allResults?.find(r=>r.nctId===id);
-    if(trial&&trial.drug){
-      trial.drug.split(', ').forEach(d=>{if(d.trim())drugs.add(d.trim());});
-    }
+    return trial?trial.title||id:id;
   });
-  const drugStr=[...drugs].join(', ');
-  if(!drugStr)return;
   showAlertModal({
     type:'compare',
-    filters:{intervention:drugStr}
+    filters:{nctIds:ids,titles,keyword:ids.join(',')}
   });
 };
 
@@ -6625,6 +6667,15 @@ window.triggerTrialAlert=function(nctId){
   showAlertModal({
     type:'trial',
     filters:{keyword:nctId}
+  });
+};
+
+// 5. Sponsor Alert
+window.triggerSponsorAlert=function(sponsorName){
+  if(!sponsorName)return;
+  showAlertModal({
+    type:'sponsor',
+    filters:{sponsor:sponsorName}
   });
 };
 
@@ -6696,9 +6747,14 @@ window.openAlertManager=async function(){
     slotList.innerHTML=slots.map((s,i)=>{
       let typeLabel='SEARCH';
       let filterHtml='';
-      if(s.condition){filterHtml+=`Condition: ${s.condition}<br>`;typeLabel='SEARCH';}
-      if(s.intervention){filterHtml+=`Intervention: ${s.intervention}<br>`;if(!s.condition&&!s.keyword)typeLabel='DRUG';}
-      if(s.keyword){filterHtml+=`Keyword: ${s.keyword}<br>`;if(!s.condition&&!s.intervention)typeLabel='WATCH';}
+      if(s.nctIds&&s.nctIds.length){
+        typeLabel='COMPARE';
+        filterHtml+=`Trials: ${s.nctIds.join(', ')}<br>`;
+        if(s.titles)filterHtml+=`<span style="font-size:.72rem">${s.titles.map(t=>'• '+t).join('<br>')}</span>`;
+      } else if(s.condition){filterHtml+=`Condition: ${s.condition}<br>`;typeLabel='SEARCH';}
+      if(s.sponsor&&!s.condition&&!s.intervention){filterHtml+=`Sponsor: ${s.sponsor}<br>`;typeLabel='SPONSOR';}
+      if(s.intervention&&!s.nctIds){filterHtml+=`Intervention: ${s.intervention}<br>`;if(!s.condition&&!s.keyword&&!s.sponsor)typeLabel='DRUG';}
+      if(s.keyword&&!s.nctIds){filterHtml+=`Keyword: ${s.keyword}<br>`;if(!s.condition&&!s.intervention&&!s.sponsor)typeLabel='WATCH';}
       if(s.country)filterHtml+=`Country: ${s.country}<br>`;
       if(s.phases&&s.phases.length)filterHtml+=`Phase: ${s.phases.join(', ')}<br>`;
       if(s.statuses&&s.statuses.length)filterHtml+=`Status: ${s.statuses.join(', ')}`;
@@ -6948,17 +7004,37 @@ function adjustHSL(hex,hShift,sShift,lShift){
 }
 function luminance(hex){const{r,g,b}=hexToRgb(hex);return(0.299*r+0.587*g+0.114*b)/255;}
 
+function ensureContrast(fgHex,bgHex,minDiff){
+  // Ensure sufficient luminance difference between fg (mint) and bg (dark)
+  const fgL=luminance(fgHex), bgL=luminance(bgHex);
+  const diff=Math.abs(fgL-bgL);
+  if(diff>=minDiff)return{fg:fgHex,bg:bgHex};
+  const fgHsl=hexToHsl(fgHex), bgHsl=hexToHsl(bgHex);
+  if(fgHsl.l>bgHsl.l){
+    // fg is lighter — make fg lighter and bg darker
+    const boost=Math.ceil((minDiff-diff)*100);
+    return{fg:adjustHSL(fgHex,0,10,Math.min(boost,40)),bg:adjustHSL(bgHex,0,0,-Math.min(boost*0.6,25))};
+  } else {
+    // fg is darker — make bg lighter and fg darker
+    const boost=Math.ceil((minDiff-diff)*100);
+    return{fg:adjustHSL(fgHex,0,0,-Math.min(boost,25)),bg:adjustHSL(bgHex,0,10,Math.min(boost*0.6,40))};
+  }
+}
+
 function generateTheme(primary,secondary){
   const{h,s,l}=hexToHsl(primary);
-  const mint=primary;
+  let mint=primary;
   const mintDark=adjustHSL(primary,0,5,-12);
   const mintLight=hslToHex(h,Math.min(s,40),88);
   const mintBg=hslToHex(h,Math.min(s,30),95);
   let dark,darkMid,darkLight;
   if(secondary){
     dark=secondary;
-    darkMid=adjustHSL(secondary,0,0,6);
-    darkLight=adjustHSL(secondary,0,-5,13);
+    // Ensure primary (text/accent) and secondary (background) have enough contrast
+    const fixed=ensureContrast(mint,dark,0.25);
+    mint=fixed.fg; dark=fixed.bg;
+    darkMid=adjustHSL(dark,0,0,6);
+    darkLight=adjustHSL(dark,0,-5,13);
   } else {
     dark=l<12?primary:hslToHex(h,Math.min(s,50),12);
     darkMid=hslToHex(h,Math.min(s,45),18);

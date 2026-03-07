@@ -55,27 +55,46 @@ Deno.serve(async (req) => {
     const today = new Date().toISOString().slice(0, 10);
 
     // Query ClinicalTrials.gov
-    const params = new URLSearchParams({ format: "json", pageSize: "50", sort: "LastUpdatePostDate:desc" });
-    const queryParts: string[] = [];
-    if (slot.condition) queryParts.push(`AREA[Condition]${slot.condition}`);
-    if (slot.intervention) queryParts.push(`AREA[InterventionName]${slot.intervention}`);
-    if (slot.keyword) queryParts.push(slot.keyword);
-    if (slot.country) queryParts.push(`AREA[LocationCountry]${slot.country}`);
-    if (queryParts.length > 0) params.set("query.term", queryParts.join(" AND "));
+    let studies: any[] = [];
 
-    // Build filter.advanced: date range + optional phase filter
-    const advParts: string[] = [];
-    advParts.push(`AREA[LastUpdatePostDate]RANGE[${since},${today}]`);
-    if (slot.phases?.length > 0) advParts.push(`AREA[Phase](${slot.phases.join(" OR ")})`);
-    params.set("filter.advanced", advParts.join(" AND "));
+    if (slot.nctIds && slot.nctIds.length > 0) {
+      // Compare/Watch mode: fetch specific trials by NCT ID
+      const fetches = slot.nctIds.map(async (nctId: string) => {
+        try {
+          const res = await fetch(`https://clinicaltrials.gov/api/v2/studies/${nctId}`, {
+            headers: { Accept: "application/json" },
+            signal: AbortSignal.timeout(8000),
+          });
+          if (res.ok) return await res.json();
+        } catch { /* skip failed */ }
+        return null;
+      });
+      const results = await Promise.all(fetches);
+      studies = results.filter(Boolean);
+    } else {
+      // Search/Drug mode: query with filters
+      const params = new URLSearchParams({ format: "json", pageSize: "50", sort: "LastUpdatePostDate:desc" });
+      const queryParts: string[] = [];
+      if (slot.condition) queryParts.push(`AREA[Condition]${slot.condition}`);
+      if (slot.intervention) queryParts.push(`AREA[InterventionName]${slot.intervention}`);
+      if (slot.sponsor) queryParts.push(`AREA[LeadSponsorName]${slot.sponsor}`);
+      if (slot.keyword) queryParts.push(slot.keyword);
+      if (slot.country) queryParts.push(`AREA[LocationCountry]${slot.country}`);
+      if (queryParts.length > 0) params.set("query.term", queryParts.join(" AND "));
 
-    if (slot.statuses?.length > 0) params.set("filter.overallStatus", slot.statuses.join("|"));
+      const advParts: string[] = [];
+      advParts.push(`AREA[LastUpdatePostDate]RANGE[${since},${today}]`);
+      if (slot.phases?.length > 0) advParts.push(`AREA[Phase](${slot.phases.join(" OR ")})`);
+      params.set("filter.advanced", advParts.join(" AND "));
 
-    const ctRes = await fetch(`https://clinicaltrials.gov/api/v2/studies?${params.toString()}`, {
-      headers: { Accept: "application/json" },
-    });
-    const ctData = await ctRes.json();
-    const studies = ctData.studies || [];
+      if (slot.statuses?.length > 0) params.set("filter.overallStatus", slot.statuses.join("|"));
+
+      const ctRes = await fetch(`https://clinicaltrials.gov/api/v2/studies?${params.toString()}`, {
+        headers: { Accept: "application/json" },
+      });
+      const ctData = await ctRes.json();
+      studies = ctData.studies || [];
+    }
 
     if (studies.length === 0) {
       return new Response(JSON.stringify({ message: "No trials found for this filter.", count: 0 }), {
@@ -137,11 +156,17 @@ Deno.serve(async (req) => {
     const trials = trialList;
 
     // Build email HTML
+    const isCompareMode = !!(slot.nctIds && slot.nctIds.length > 0);
     const filterParts: string[] = [];
-    if (slot.condition) filterParts.push(`Condition: ${slot.condition}`);
-    if (slot.intervention) filterParts.push(`Intervention: ${slot.intervention}`);
-    if (slot.keyword) filterParts.push(`Keyword: ${slot.keyword}`);
-    if (slot.country) filterParts.push(`Country: ${slot.country}`);
+    if (isCompareMode) {
+      filterParts.push(`Watching ${slot.nctIds.length} trial(s): ${slot.nctIds.join(", ")}`);
+    } else {
+      if (slot.condition) filterParts.push(`Condition: ${slot.condition}`);
+      if (slot.intervention) filterParts.push(`Intervention: ${slot.intervention}`);
+      if (slot.sponsor) filterParts.push(`Sponsor: ${slot.sponsor}`);
+      if (slot.keyword) filterParts.push(`Keyword: ${slot.keyword}`);
+      if (slot.country) filterParts.push(`Country: ${slot.country}`);
+    }
     const filterDesc = filterParts.join(" | ") || "All";
     const now = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
