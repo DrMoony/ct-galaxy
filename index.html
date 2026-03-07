@@ -5986,25 +5986,25 @@ function renderCompare(studies){
   </div>`+html;
 
   /* ── Inclusion Criteria (diff) — with AI placeholder ── */
-  html+=`<tr><td>Inclusion<br>Criteria<br><span class="premium-badge" style="font-size:.5rem;margin-top:.3rem">AI</span></td>${rowCells((p,i)=>{
+  html+=`<tr><td>Inclusion<br>Criteria<br></td>${rowCells((p,i)=>{
     const items=parseCriteria(p.inclusion);
     return`<div class="cmp-criteria" id="aiIncl_${i}">${renderDiffList(items,commonIncl)}</div>`;
   })}</tr>`;
 
   /* ── Exclusion Criteria (diff) ── */
-  html+=`<tr><td>Exclusion<br>Criteria<br><span class="premium-badge" style="font-size:.5rem;margin-top:.3rem">AI</span></td>${rowCells((p,i)=>{
+  html+=`<tr><td>Exclusion<br>Criteria<br></td>${rowCells((p,i)=>{
     const items=parseCriteria(p.exclusion);
     return`<div class="cmp-criteria" id="aiExcl_${i}">${renderDiffList(items,commonExcl)}</div>`;
   })}</tr>`;
 
   /* ── Primary Objectives (diff) ── */
-  html+=`<tr><td>Primary<br>Endpoint<br><span class="premium-badge" style="font-size:.5rem;margin-top:.3rem">AI</span></td>${rowCells((p,i)=>{
+  html+=`<tr><td>Primary<br>Endpoint<br></td>${rowCells((p,i)=>{
     if(!p.primaryOutcomes.length)return'<span id="aiPri_'+i+'">N/A</span>';
     return`<div id="aiPri_${i}">${renderDiffList(p.primaryOutcomes,commonPri)}</div>`;
   })}</tr>`;
 
   /* ── Secondary Objectives (diff) ── */
-  html+=`<tr><td>Secondary<br>Endpoint<br><span class="premium-badge" style="font-size:.5rem;margin-top:.3rem">AI</span></td>${rowCells((p,i)=>{
+  html+=`<tr><td>Secondary<br>Endpoint<br></td>${rowCells((p,i)=>{
     if(!p.secondaryOutcomes.length)return'<span id="aiSec_'+i+'">N/A</span>';
     const items=p.secondaryOutcomes.slice(0,10);
     let r=`<div id="aiSec_${i}">${renderDiffList(items,commonSec)}`;
