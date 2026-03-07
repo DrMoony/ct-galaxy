@@ -6610,7 +6610,13 @@ window.openAdminPanel=async function(){
     <button onclick="window._adminFilter('7d')" class="adm-fb" data-f="7d" style="background:#7c3aed;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">7D</button>
     <button onclick="window._adminFilter('30d')" class="adm-fb" data-f="30d" style="background:#334155;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">30D</button>
     <button onclick="window._adminFilter('90d')" class="adm-fb" data-f="90d" style="background:#334155;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">90D</button>
+    <button onclick="window._adminFilter('180d')" class="adm-fb" data-f="180d" style="background:#334155;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">6M</button>
+    <button onclick="window._adminFilter('365d')" class="adm-fb" data-f="365d" style="background:#334155;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">1Y</button>
     <button onclick="window._adminFilter('all')" class="adm-fb" data-f="all" style="background:#334155;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">ALL</button>
+    <span style="color:#475569;margin-left:.5rem;font-size:.65rem">|</span>
+    <input type="date" id="admDateFrom" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;border-radius:4px;padding:2px 6px;font-size:.65rem;font-family:monospace" onchange="window._adminFilterCustom()">
+    <span style="color:#475569;font-size:.65rem">~</span>
+    <input type="date" id="admDateTo" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;border-radius:4px;padding:2px 6px;font-size:.65rem;font-family:monospace" onchange="window._adminFilterCustom()">
     <span style="color:#475569;font-size:.65rem;margin-left:.5rem" id="admDateRange"></span>
   </div>
   <div id="adminContent"><div style="color:#94a3b8;text-align:center;padding:2rem">Loading...</div></div>`;
@@ -6636,7 +6642,7 @@ window._adminFilter=function(range){
     b.style.color=active?'#fff':'#94a3b8';
   });
   const now=Date.now();
-  const days={['7d']:7,['30d']:30,['90d']:90,['all']:9999}[range]||7;
+  const days={['7d']:7,['30d']:30,['90d']:90,['180d']:180,['365d']:365,['all']:9999}[range]||7;
   const since=new Date(now-days*864e5);
   const activities=window._adminAllActs.filter(a=>new Date(a.created_at)>=since);
   const subs=window._adminSubs;
@@ -6701,6 +6707,33 @@ window._adminFilter=function(range){
 
   document.getElementById('adminContent').innerHTML=h;
   window._admCurrentActs=activities;
+  window._adminRenderActs(activities);
+};
+
+window._adminFilterCustom=function(){
+  const from=document.getElementById('admDateFrom').value;
+  const to=document.getElementById('admDateTo').value;
+  if(!from||!to)return;
+  document.querySelectorAll('.adm-fb').forEach(b=>{b.style.background='#334155';b.style.color='#94a3b8';});
+  const since=new Date(from);
+  const until=new Date(to+'T23:59:59');
+  const activities=window._adminAllActs.filter(a=>{const d=new Date(a.created_at);return d>=since&&d<=until;});
+  const rangeEl=document.getElementById('admDateRange');
+  if(rangeEl)rangeEl.textContent=from+' ~ '+to+' ('+activities.length+' records)';
+  window._admCurrentActs=activities;
+  window._adminRenderFiltered(activities);
+};
+
+window._adminRenderFiltered=function(activities){
+  const subs=window._adminSubs;
+  const uniqueUsers=new Set(activities.map(a=>a.email));
+  const typeCount={};
+  activities.forEach(a=>{typeCount[a.type]=(typeCount[a.type]||0)+1;});
+
+  // Just update the activity table + cards would require full re-render
+  // For simplicity, re-use _adminFilter logic by storing filtered acts
+  const el=document.getElementById('admActTitle');
+  if(el)el.textContent='Activity ('+activities.length+')';
   window._adminRenderActs(activities);
 };
 
