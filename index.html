@@ -6594,121 +6594,165 @@ function updateAuthUI(user){
   }
 }
 
+window._adminAllActs=[];
+window._adminSubs=[];
 window.openAdminPanel=async function(){
   if(!_isMaster())return;
+  const old=document.getElementById('adminOverlay');if(old)old.remove();
   const overlay=document.createElement('div');
   overlay.id='adminOverlay';
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10002;display:flex;align-items:flex-start;justify-content:center;padding:2rem;overflow-y:auto';
   overlay.onclick=function(e){if(e.target===this)this.remove();};
-
   const panel=document.createElement('div');
-  panel.style.cssText='background:#0f172a;border:2px solid #7c3aed;border-radius:12px;max-width:1000px;width:100%;padding:1.5rem;color:#e2e8f0;font-size:.82rem';
-  panel.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h2 style="margin:0;font-size:1rem;color:#a78bfa;font-family:monospace">ADMIN DASHBOARD</h2><button onclick="document.getElementById(\'adminOverlay\').remove()" style="background:none;border:none;color:#94a3b8;font-size:1.2rem;cursor:pointer">x</button></div><div id="adminContent"><div style="color:#94a3b8;text-align:center;padding:2rem">Loading...</div></div>';
-  overlay.appendChild(panel);
-  document.body.appendChild(overlay);
+  panel.style.cssText='background:#0f172a;border:2px solid #7c3aed;border-radius:12px;max-width:1100px;width:100%;padding:1.5rem;color:#e2e8f0;font-size:.82rem';
+  panel.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h2 style="margin:0;font-size:1rem;color:#a78bfa;font-family:monospace">ADMIN DASHBOARD</h2><button onclick="document.getElementById('adminOverlay').remove()" style="background:none;border:none;color:#94a3b8;font-size:1.2rem;cursor:pointer">x</button></div>
+  <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
+    <button onclick="window._adminFilter('7d')" class="adm-fb" data-f="7d" style="background:#7c3aed;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">7D</button>
+    <button onclick="window._adminFilter('30d')" class="adm-fb" data-f="30d" style="background:#334155;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">30D</button>
+    <button onclick="window._adminFilter('90d')" class="adm-fb" data-f="90d" style="background:#334155;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">90D</button>
+    <button onclick="window._adminFilter('all')" class="adm-fb" data-f="all" style="background:#334155;color:#94a3b8;border:none;padding:4px 10px;border-radius:4px;font-size:.7rem;font-weight:700;cursor:pointer">ALL</button>
+    <span style="color:#475569;font-size:.65rem;margin-left:.5rem" id="admDateRange"></span>
+  </div>
+  <div id="adminContent"><div style="color:#94a3b8;text-align:center;padding:2rem">Loading...</div></div>`;
+  overlay.appendChild(panel);document.body.appendChild(overlay);
 
   try{
-    // Fetch all data in parallel
     const[actRes,subRes]=await Promise.all([
-      _sb.from('activity_logs').select('*').order('created_at',{ascending:false}).limit(200),
+      _sb.from('activity_logs').select('*').order('created_at',{ascending:false}).limit(1000),
       _sb.from('subscriptions').select('*').order('email')
     ]);
-    const activities=actRes.data||[];
-    const subs=subRes.data||[];
-
-    // Stats
-    const uniqueUsers=new Set(activities.map(a=>a.email));
-    const typeCount={};
-    activities.forEach(a=>{typeCount[a.type]=(typeCount[a.type]||0)+1;});
-
-    let h='';
-
-    // Overview cards
-    h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem;margin-bottom:1.5rem">';
-    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#a78bfa">'+uniqueUsers.size+'</div><div style="font-size:.7rem;color:#94a3b8">Active Users</div></div>';
-    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#10b981">'+(typeCount.search||0)+'</div><div style="font-size:.7rem;color:#94a3b8">Searches</div></div>';
-    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#3b82f6">'+(typeCount.compare||0)+'</div><div style="font-size:.7rem;color:#94a3b8">Compares</div></div>';
-    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#f59e0b">'+(typeCount.ai_analysis||0)+'</div><div style="font-size:.7rem;color:#94a3b8">AI Analyses</div></div>';
-    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#ef4444">'+(typeCount.alert_push||0)+'</div><div style="font-size:.7rem;color:#94a3b8">Alert Pushes</div></div>';
-    // Total AI tokens
-    let totalIn=0,totalOut=0;
-    activities.filter(a=>a.type==='ai_analysis').forEach(a=>{const t=a.detail?.tokens||{};totalIn+=(t.input||0);totalOut+=(t.output||0);});
-    const totalCost=((totalIn*0.075+totalOut*0.30)/1e6*1400).toFixed(0);
-    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.1rem;font-weight:800;color:#00e47c">'+(totalIn/1000).toFixed(1)+'K/<span style="color:#38bdf8">'+(totalOut/1000).toFixed(1)+'K</span></div><div style="font-size:.7rem;color:#94a3b8">AI Tokens (In/Out) ≈ ₩'+Number(totalCost).toLocaleString()+'</div></div>';
-    h+='</div>';
-
-    // Active Subscriptions
-    h+='<h3 style="color:#a78bfa;font-size:.85rem;margin-bottom:.5rem;border-bottom:1px solid #334155;padding-bottom:.3rem">Active Subscriptions ('+subs.length+')</h3>';
-    if(subs.length>0){
-      h+='<div style="overflow-x:auto;margin-bottom:1.5rem"><table style="width:100%;border-collapse:collapse;font-size:.75rem">';
-      h+='<tr style="color:#94a3b8;text-align:left;border-bottom:1px solid #334155"><th style="padding:.4rem">Email</th><th>Slots</th><th>Schedule</th><th>Sent</th><th>Last Sent</th></tr>';
-      subs.forEach(s=>{
-        const slots=(s.keywords||[]).length;
-        const schedule=s.schedule_type||'monthly';
-        const sent=s.monthly_sent||0;
-        const lastSent=s.last_sent_at?new Date(s.last_sent_at).toLocaleDateString():'Never';
-        h+='<tr style="border-bottom:1px solid #1e293b"><td style="padding:.4rem;color:#e2e8f0">'+escHtml(s.email||'')+'</td><td>'+slots+'</td><td>'+schedule+'</td><td>'+sent+'/10</td><td style="color:#64748b">'+lastSent+'</td></tr>';
-      });
-      h+='</table></div>';
-    }
-
-    // AI Usage per User
-    const aiByUser={};
-    activities.filter(a=>a.type==='ai_analysis').forEach(a=>{
-      const e=a.email||'unknown';
-      if(!aiByUser[e])aiByUser[e]={count:0,tokIn:0,tokOut:0};
-      aiByUser[e].count++;
-      const t=a.detail?.tokens||{};
-      aiByUser[e].tokIn+=(t.input||0);
-      aiByUser[e].tokOut+=(t.output||0);
-    });
-    const aiUsers=Object.entries(aiByUser).sort((a,b)=>b[1].tokIn-a[1].tokIn);
-    if(aiUsers.length>0){
-      h+='<h3 style="color:#f59e0b;font-size:.85rem;margin-bottom:.5rem;border-bottom:1px solid #334155;padding-bottom:.3rem">AI Usage per User</h3>';
-      h+='<div style="overflow-x:auto;margin-bottom:1.5rem"><table style="width:100%;border-collapse:collapse;font-size:.75rem">';
-      h+='<tr style="color:#94a3b8;text-align:left;border-bottom:1px solid #334155"><th style="padding:.4rem">Email</th><th>Calls</th><th>Input Tok</th><th>Output Tok</th><th>Est. Cost</th></tr>';
-      aiUsers.forEach(([email,u])=>{
-        const cost=((u.tokIn*0.075+u.tokOut*0.30)/1e6*1400).toFixed(0);
-        h+='<tr style="border-bottom:1px solid #1e293b"><td style="padding:.4rem;color:#e2e8f0">'+escHtml(email)+'</td><td>'+u.count+'</td><td>'+u.tokIn.toLocaleString()+'</td><td>'+u.tokOut.toLocaleString()+'</td><td style="color:#00e47c;font-weight:600">₩'+Number(cost).toLocaleString()+'</td></tr>';
-      });
-      h+='</table></div>';
-    }
-
-    // Recent Activity
-    h+='<h3 style="color:#a78bfa;font-size:.85rem;margin-bottom:.5rem;border-bottom:1px solid #334155;padding-bottom:.3rem">Recent Activity (last 200)</h3>';
-    h+='<div style="max-height:400px;overflow-y:auto"><table style="width:100%;border-collapse:collapse;font-size:.72rem">';
-    h+='<tr style="color:#94a3b8;text-align:left;border-bottom:1px solid #334155;position:sticky;top:0;background:#0f172a"><th style="padding:.3rem">Time</th><th>Email</th><th>Type</th><th>Detail</th></tr>';
-    activities.forEach(a=>{
-      const time=new Date(a.created_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-      const typeColors={search:'#10b981',compare:'#3b82f6',ai_analysis:'#f59e0b',alert_push:'#ef4444'};
-      const tc=typeColors[a.type]||'#94a3b8';
-      let detail='';
-      if(a.type==='search'){
-        const d=a.detail||{};
-        const parts=[];
-        if(d.condition)parts.push('C:'+d.condition);
-        if(d.intervention)parts.push('I:'+d.intervention);
-        if(d.keyword)parts.push('K:'+d.keyword);
-        if(d.totalCount!==undefined)parts.push(d.totalCount+' results');
-        detail=parts.join(' | ')||'-';
-      }else if(a.type==='compare'){
-        detail=(a.detail?.nctIds||[]).join(', ');
-      }else if(a.type==='ai_analysis'){
-        const d=a.detail||{};
-        const toks=d.tokens?(d.tokens.input+'/'+d.tokens.output+' tok'):'';
-        const model=d.model?'['+d.model+']':'';
-        detail=(d.nctIds||[]).join(', ')+(toks?' · '+toks:'')+(model?' · '+model:'');
-      }else if(a.type==='alert_push'){
-        detail=(a.detail?.filterDesc||'')+(a.detail?.count?' '+a.detail.count+' trials':'');
-      }
-      h+='<tr style="border-bottom:1px solid #1e293b"><td style="padding:.3rem;color:#64748b;white-space:nowrap">'+time+'</td><td style="color:#e2e8f0;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(a.email||'')+'</td><td><span style="color:'+tc+';font-weight:600">'+a.type+'</span></td><td style="color:#94a3b8;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+escHtml(detail)+'">'+escHtml(detail.substring(0,80))+'</td></tr>';
-    });
-    h+='</table></div>';
-
-    document.getElementById('adminContent').innerHTML=h;
+    window._adminAllActs=actRes.data||[];
+    window._adminSubs=subRes.data||[];
+    window._adminFilter('7d');
   }catch(e){
     document.getElementById('adminContent').innerHTML='<div style="color:#ef4444">Error: '+escHtml(e.message)+'</div>';
   }
+};
+
+window._adminFilter=function(range){
+  document.querySelectorAll('.adm-fb').forEach(b=>{
+    const active=b.dataset.f===range;
+    b.style.background=active?'#7c3aed':'#334155';
+    b.style.color=active?'#fff':'#94a3b8';
+  });
+  const now=Date.now();
+  const days={['7d']:7,['30d']:30,['90d']:90,['all']:9999}[range]||7;
+  const since=new Date(now-days*864e5);
+  const activities=window._adminAllActs.filter(a=>new Date(a.created_at)>=since);
+  const subs=window._adminSubs;
+
+  const rangeEl=document.getElementById('admDateRange');
+  if(rangeEl)rangeEl.textContent=since.toLocaleDateString('ko-KR')+' ~ '+new Date().toLocaleDateString('ko-KR')+' ('+activities.length+' records)';
+
+  const uniqueUsers=new Set(activities.map(a=>a.email));
+  const typeCount={};
+  activities.forEach(a=>{typeCount[a.type]=(typeCount[a.type]||0)+1;});
+
+  let h='';
+  // Overview cards
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.6rem;margin-bottom:1.2rem">';
+  h+='<div style="background:#1e293b;padding:.8rem;border-radius:8px;text-align:center;cursor:pointer" onclick="window._adminFilterType(\'all\')"><div style="font-size:1.4rem;font-weight:800;color:#a78bfa">'+uniqueUsers.size+'</div><div style="font-size:.65rem;color:#94a3b8">Users</div></div>';
+  h+='<div style="background:#1e293b;padding:.8rem;border-radius:8px;text-align:center;cursor:pointer" onclick="window._adminFilterType(\'search\')"><div style="font-size:1.4rem;font-weight:800;color:#10b981">'+(typeCount.search||0)+'</div><div style="font-size:.65rem;color:#94a3b8">Searches</div></div>';
+  h+='<div style="background:#1e293b;padding:.8rem;border-radius:8px;text-align:center;cursor:pointer" onclick="window._adminFilterType(\'compare\')"><div style="font-size:1.4rem;font-weight:800;color:#3b82f6">'+(typeCount.compare||0)+'</div><div style="font-size:.65rem;color:#94a3b8">Compares</div></div>';
+  h+='<div style="background:#1e293b;padding:.8rem;border-radius:8px;text-align:center;cursor:pointer" onclick="window._adminFilterType(\'ai_analysis\')"><div style="font-size:1.4rem;font-weight:800;color:#f59e0b">'+(typeCount.ai_analysis||0)+'</div><div style="font-size:.65rem;color:#94a3b8">AI</div></div>';
+  h+='<div style="background:#1e293b;padding:.8rem;border-radius:8px;text-align:center;cursor:pointer" onclick="window._adminFilterType(\'alert_push\')"><div style="font-size:1.4rem;font-weight:800;color:#ef4444">'+(typeCount.alert_push||0)+'</div><div style="font-size:.65rem;color:#94a3b8">Alerts</div></div>';
+  let totalIn=0,totalOut=0;
+  activities.filter(a=>a.type==='ai_analysis').forEach(a=>{const t=a.detail?.tokens||{};totalIn+=(t.input||0);totalOut+=(t.output||0);});
+  const totalCost=((totalIn*0.075+totalOut*0.30)/1e6*1400).toFixed(0);
+  h+='<div style="background:#1e293b;padding:.8rem;border-radius:8px;text-align:center"><div style="font-size:1rem;font-weight:800;color:#00e47c">'+(totalIn/1000).toFixed(1)+'K/<span style="color:#38bdf8">'+(totalOut/1000).toFixed(1)+'K</span></div><div style="font-size:.65rem;color:#94a3b8">Tokens ≈ ₩'+Number(totalCost).toLocaleString()+'</div></div>';
+  h+='</div>';
+
+  // Subscriptions
+  h+='<details style="margin-bottom:1rem"><summary style="color:#a78bfa;font-size:.85rem;cursor:pointer;font-weight:600">Subscriptions ('+subs.length+')</summary>';
+  if(subs.length>0){
+    h+='<div style="overflow-x:auto;margin-top:.5rem"><table style="width:100%;border-collapse:collapse;font-size:.73rem">';
+    h+='<tr style="color:#94a3b8;text-align:left;border-bottom:1px solid #334155"><th style="padding:.4rem">Email</th><th>Slots</th><th>Schedule</th><th>Sent</th><th>Last Sent</th></tr>';
+    subs.forEach(s=>{
+      h+='<tr style="border-bottom:1px solid #1e293b;cursor:pointer" onclick="window._admShowDetail('+escHtml(JSON.stringify(JSON.stringify(s)))+')"><td style="padding:.4rem;color:#e2e8f0">'+escHtml(s.email||'')+'</td><td>'+(s.keywords||[]).length+'</td><td>'+(s.schedule_type||'monthly')+'</td><td>'+(s.monthly_sent||0)+'/10</td><td style="color:#64748b">'+(s.last_sent_at?new Date(s.last_sent_at).toLocaleDateString():'Never')+'</td></tr>';
+    });
+    h+='</table></div>';
+  }
+  h+='</details>';
+
+  // AI Usage per User
+  const aiByUser={};
+  activities.filter(a=>a.type==='ai_analysis').forEach(a=>{
+    const e=a.email||'unknown';
+    if(!aiByUser[e])aiByUser[e]={count:0,tokIn:0,tokOut:0};
+    aiByUser[e].count++;
+    const t=a.detail?.tokens||{};
+    aiByUser[e].tokIn+=(t.input||0);aiByUser[e].tokOut+=(t.output||0);
+  });
+  const aiUsers=Object.entries(aiByUser).sort((a,b)=>b[1].tokIn-a[1].tokIn);
+  if(aiUsers.length>0){
+    h+='<details open style="margin-bottom:1rem"><summary style="color:#f59e0b;font-size:.85rem;cursor:pointer;font-weight:600">AI Usage per User</summary>';
+    h+='<div style="overflow-x:auto;margin-top:.5rem"><table style="width:100%;border-collapse:collapse;font-size:.73rem">';
+    h+='<tr style="color:#94a3b8;text-align:left;border-bottom:1px solid #334155"><th style="padding:.4rem">Email</th><th>Calls</th><th>In</th><th>Out</th><th>Cost</th></tr>';
+    aiUsers.forEach(([email,u])=>{
+      const cost=((u.tokIn*0.075+u.tokOut*0.30)/1e6*1400).toFixed(0);
+      h+='<tr style="border-bottom:1px solid #1e293b"><td style="padding:.4rem;color:#e2e8f0">'+escHtml(email)+'</td><td>'+u.count+'</td><td>'+u.tokIn.toLocaleString()+'</td><td>'+u.tokOut.toLocaleString()+'</td><td style="color:#00e47c;font-weight:600">₩'+Number(cost).toLocaleString()+'</td></tr>';
+    });
+    h+='</table></div></details>';
+  }
+
+  // Activity Log
+  h+='<details open style="margin-bottom:.5rem"><summary style="color:#a78bfa;font-size:.85rem;cursor:pointer;font-weight:600" id="admActTitle">Activity ('+activities.length+')</summary>';
+  h+='<div id="admActTable"></div></details>';
+
+  document.getElementById('adminContent').innerHTML=h;
+  window._admCurrentActs=activities;
+  window._adminRenderActs(activities);
+};
+
+window._adminFilterType=function(type){
+  const acts=window._admCurrentActs||[];
+  const filtered=type==='all'?acts:acts.filter(a=>a.type===type);
+  const title=document.getElementById('admActTitle');
+  if(title)title.textContent='Activity'+(type!=='all'?' ['+type+']':'')+' ('+filtered.length+')';
+  window._adminRenderActs(filtered);
+};
+
+window._adminRenderActs=function(activities){
+  const typeColors={search:'#10b981',compare:'#3b82f6',ai_analysis:'#f59e0b',alert_push:'#ef4444'};
+  let h='<div style="max-height:500px;overflow-y:auto;margin-top:.5rem"><table style="width:100%;border-collapse:collapse;font-size:.72rem">';
+  h+='<tr style="color:#94a3b8;text-align:left;border-bottom:1px solid #334155;position:sticky;top:0;background:#0f172a"><th style="padding:.3rem">Time</th><th>Email</th><th>Type</th><th>Detail</th></tr>';
+  activities.forEach((a,idx)=>{
+    const time=new Date(a.created_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const tc=typeColors[a.type]||'#94a3b8';
+    let detail='';
+    if(a.type==='search'){
+      const d=a.detail||{};const parts=[];
+      if(d.condition)parts.push('C:'+d.condition);if(d.intervention)parts.push('I:'+d.intervention);
+      if(d.keyword)parts.push('K:'+d.keyword);if(d.totalCount!==undefined)parts.push(d.totalCount+' hits');
+      detail=parts.join(' | ')||'-';
+    }else if(a.type==='compare'){
+      detail=(a.detail?.nctIds||[]).join(', ');
+    }else if(a.type==='ai_analysis'){
+      const d=a.detail||{};
+      const toks=d.tokens?(d.tokens.input+'/'+d.tokens.output+'t'):'';
+      const model=d.model?'['+d.model+']':'';
+      detail=(d.nctIds||[]).join(', ')+(toks?' · '+toks:'')+(model?' '+model:'');
+    }else if(a.type==='alert_push'){
+      detail=(a.detail?.filterDesc||'')+(a.detail?.count?' '+a.detail.count+'t':'');
+    }
+    h+='<tr style="border-bottom:1px solid #1e293b;cursor:pointer" onclick="window._admShowDetail(\''+btoa(unescape(encodeURIComponent(JSON.stringify(a))))+'\')" title="Click for detail"><td style="padding:.3rem;color:#64748b;white-space:nowrap">'+time+'</td><td style="color:#e2e8f0;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(a.email||'')+'</td><td><span style="color:'+tc+';font-weight:600">'+a.type+'</span></td><td style="color:#94a3b8;max-width:350px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(detail.substring(0,100))+'</td></tr>';
+  });
+  h+='</table></div>';
+  document.getElementById('admActTable').innerHTML=h;
+};
+
+window._admShowDetail=function(b64){
+  try{
+    const obj=JSON.parse(decodeURIComponent(escape(atob(b64))));
+    const old=document.getElementById('admDetailModal');if(old)old.remove();
+    const modal=document.createElement('div');modal.id='admDetailModal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10003;display:flex;align-items:center;justify-content:center;padding:2rem';
+    modal.onclick=function(e){if(e.target===this)this.remove();};
+    const box=document.createElement('div');
+    box.style.cssText='background:#1e293b;border:1px solid #475569;border-radius:10px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto;padding:1.2rem;color:#e2e8f0;font-size:.78rem';
+    box.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:.8rem"><span style="font-weight:700;color:#a78bfa">Detail</span><button onclick="document.getElementById(\'admDetailModal\').remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1rem">x</button></div><pre style="white-space:pre-wrap;word-break:break-all;color:#cbd5e1;font-size:.72rem;font-family:monospace;background:#0f172a;padding:1rem;border-radius:6px;max-height:60vh;overflow-y:auto">'+escHtml(JSON.stringify(obj,null,2))+'</pre>';
+    modal.appendChild(box);document.body.appendChild(modal);
+  }catch(e){}
 };
 
 window.handleLogout=async function(){
