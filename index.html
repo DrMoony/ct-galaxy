@@ -7215,7 +7215,12 @@ window.runQuickAI=async function(){
     const costIn=tIn*1.25/1e6, costOut=tOut*10/1e6;
     const costUSD=costIn+costOut;
     const costKRW=Math.round(costUSD*1400);
-    const costLine=tIn?`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.8rem;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:.65rem;color:#64748b"><span>Gemini 2.5 Pro · Input: ${tIn.toLocaleString()} tok · Output: ${tOut.toLocaleString()} tok</span><span style="font-weight:600;color:#059669">≈ $${costUSD.toFixed(4)} (₩${costKRW}) · 월 10건 ≈ ₩${(costKRW*10).toLocaleString()}</span></div>`:'';
+    const modelName=result.model||'Gemini 2.5 Pro';
+    const isFallback=modelName.includes('Flash');
+    const pIn=isFallback?0.15:1.25, pOut=isFallback?0.60:10.00;
+    const costIn2=tIn*pIn/1e6, costOut2=tOut*pOut/1e6, costUSD2=costIn2+costOut2;
+    const costKRW2=Math.round(costUSD2*1400);
+    const costLine=tIn?`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.8rem;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:.65rem;color:#64748b;flex-wrap:wrap;gap:4px"><span>${modelName} · Input: ${tIn.toLocaleString()} tok · Output: ${tOut.toLocaleString()} tok</span><span style="font-weight:600;color:#059669">≈ $${costUSD2.toFixed(4)} (₩${costKRW2}) · 월 10건 ≈ ₩${(costKRW2*10).toLocaleString()}</span></div>`:'';
     reportDiv.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem"><span style="font-weight:700;color:#059669;font-size:.85rem">AI Competitive Analysis</span><button onclick="this.closest('#aiQuickReport').remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1rem">x</button></div>`+result.analysis+costLine;
     const settingsBar=document.getElementById('aiSettingsBar');
     if(settingsBar){settingsBar.after(reportDiv);}

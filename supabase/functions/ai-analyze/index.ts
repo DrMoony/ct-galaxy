@@ -316,22 +316,31 @@ Rules:
 - IMPORTANT: Write the ENTIRE analysis in ${langName}. Section headings, analysis text, and all content must be in ${langName}. Keep NCT IDs and drug names in their original form.
 - CRITICAL: For ALL technical/medical/regulatory terms, ALWAYS include the English term in parentheses after the translated term. Examples: 무작위배정(Randomization), 이중맹검(Double-blind), 主要终点(Primary Endpoint), 加速承認(Accelerated Approval), 全生存期(Overall Survival), Gesamtüberleben(Overall Survival). This applies to every language except English.`;
 
-    // Call Gemini 2.5 Pro
-    const geminiRes = await fetch(
+    // Call Gemini 2.5 Pro (fallback to Flash if Pro unavailable)
+    const reqBody = JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: 12000,
+        temperature: 0.3,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    });
+    const headers = { "Content-Type": "application/json" };
+
+    let geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            maxOutputTokens: 12000,
-            temperature: 0.3,
-            thinkingConfig: { thinkingBudget: 0 },
-          },
-        }),
-      }
+      { method: "POST", headers, body: reqBody }
     );
+
+    let usedModel = "Gemini 2.5 Pro";
+    if (!geminiRes.ok) {
+      // Fallback to Flash
+      geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+        { method: "POST", headers, body: reqBody }
+      );
+      usedModel = "Gemini 2.5 Flash (fallback)";
+    }
 
     const geminiData = await geminiRes.json();
 
@@ -360,6 +369,7 @@ Rules:
 
     return new Response(JSON.stringify({
       analysis: text,
+      model: usedModel,
       tokens: { input: usage.promptTokenCount, output: usage.candidatesTokenCount },
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
