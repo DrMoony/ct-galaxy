@@ -18,6 +18,11 @@ RESEND_KEY = os.environ['RESEND_API_KEY']
 FROM_EMAIL = 'CT-Galaxy <onboarding@resend.dev>'
 
 
+def esc_html(s):
+    """Escape HTML special characters."""
+    return s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
+
+
 def supabase_get(path):
     url = f"{SUPABASE_URL}/rest/v1/{path}"
     req = urllib.request.Request(url, headers={
@@ -251,8 +256,8 @@ def build_email_html(email, slots_results, days):
       <div>{badge}<a href="{trial_url}" style="font-size:12px;color:#0284c7;text-decoration:none;font-weight:600">{t['nctId']}</a></div>
       <span style="font-size:10px;color:{sc};font-weight:600;background:{sc}15;padding:2px 8px;border-radius:10px">{t['status'].replace('_',' ')}</span>
     </div>
-    <a href="{trial_url}" style="display:block;font-size:13px;margin:6px 0 4px;font-weight:500;color:#1e293b;line-height:1.4;text-decoration:none">{t['title']}</a>
-    <div style="font-size:11px;color:#64748b">{t['phase']} · {t['sponsor']}{(' · ' + str(t['enrollment']) + ' enrolled') if t['enrollment'] else ''}</div>
+    <a href="{trial_url}" style="display:block;font-size:13px;margin:6px 0 4px;font-weight:500;color:#1e293b;line-height:1.4;text-decoration:none">{esc_html(t['title'])}</a>
+    <div style="font-size:11px;color:#64748b">{esc_html(t['phase'])} · {esc_html(t['sponsor'])}{(' · ' + str(t['enrollment']) + ' enrolled') if t['enrollment'] else ''}</div>
     {status_change}
     {modules}
     <div style="font-size:10px;color:#94a3b8;margin-top:4px">{date_info}</div>

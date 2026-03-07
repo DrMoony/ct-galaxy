@@ -4,6 +4,10 @@ const RESEND_KEY = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+function esc(s: string): string {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -202,8 +206,8 @@ Deno.serve(async (req) => {
           <div>${changeBadge}<a href="${trialUrl}" style="font-size:12px;color:#0284c7;text-decoration:none;font-weight:600">${t.nctId}</a></div>
           <span style="font-size:10px;color:${sc};font-weight:600;background:${sc}15;padding:2px 8px;border-radius:10px">${t.status.replace(/_/g, " ")}</span>
         </div>
-        <a href="${trialUrl}" style="display:block;font-size:13px;margin:6px 0 4px;font-weight:500;color:#1e293b;line-height:1.4;text-decoration:none">${t.title}</a>
-        <div style="font-size:11px;color:#64748b">${t.phase} · ${t.sponsor}${t.enrollment ? ' · '+t.enrollment+' enrolled' : ''}</div>
+        <a href="${trialUrl}" style="display:block;font-size:13px;margin:6px 0 4px;font-weight:500;color:#1e293b;line-height:1.4;text-decoration:none">${esc(t.title)}</a>
+        <div style="font-size:11px;color:#64748b">${esc(t.phase)} · ${esc(t.sponsor)}${t.enrollment ? ' · '+t.enrollment+' enrolled' : ''}</div>
         ${statusChange}
         ${modules}
         <div style="font-size:10px;color:#94a3b8;margin-top:4px">${dateInfo}</div>

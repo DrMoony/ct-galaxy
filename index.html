@@ -160,7 +160,7 @@
 
 /* ── CI Theme Selector ── */
 .ci-theme-btn{
-  position:fixed;bottom:20px;left:20px;z-index:9999;
+  position:fixed;bottom:20px;left:20px;z-index:10001;
   width:48px;height:48px;border-radius:50%;border:3px solid var(--mint);
   background:var(--dark);color:var(--mint);cursor:pointer;
   font-size:1.3rem;display:flex;align-items:center;justify-content:center;
@@ -168,7 +168,7 @@
 }
 .ci-theme-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(0,0,0,.4)}
 .ci-theme-panel{
-  position:fixed;bottom:80px;left:20px;z-index:9998;
+  position:fixed;bottom:80px;left:20px;z-index:10001;
   width:340px;max-height:70vh;overflow-y:auto;
   background:var(--card);border:2px solid var(--mint);border-radius:8px;
   box-shadow:0 8px 30px rgba(0,0,0,.25);display:none;
@@ -378,7 +378,7 @@ body{font-family:'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--t
 .galaxy-mobile-btn .gm-sub{font-family:'Segoe UI',sans-serif;font-size:.75rem;color:rgba(255,255,255,.55)}
 /* Galaxy fullscreen overlay (mobile) */
 .galaxy-fullscreen-overlay{
-  position:fixed;inset:0;z-index:10000;background:#000d14;
+  position:fixed;inset:0;z-index:9999;background:#000d14;
   display:flex;flex-direction:column;
 }
 .galaxy-fullscreen-overlay .gfs-header{
@@ -2215,6 +2215,7 @@ function showColRestoreBtn(){
 
 /* ── Drug Click Popup ── */
 function showDrugPopup(drugName){
+  if(!allResults||!allResults.length)return;
   /* Find all trials with this drug, sorted by latest update */
   const trials=allResults.filter(r=>r.drug&&r.drug.toLowerCase().includes(drugName.toLowerCase()))
     .sort((a,b)=>(b.lastUpdate||'').localeCompare(a.lastUpdate||''));
@@ -2561,7 +2562,7 @@ function renderDetail(study){
       <div class="detail-item"><div class="label">Study Type</div><div class="value">${getCategoryBadgeMulti(trialCat.all)}</div></div>
       <div class="detail-item"><div class="label">Status</div><div class="value"><span class="badge ${getStatusBadgeClass(status)}">${formatStatus(status)}</span></div></div>
       <div class="detail-item"><div class="label">Phase</div><div class="value">${escHtml(phases)}</div></div>
-      <div class="detail-item"><div class="label">Sponsor</div><div class="value">${escHtml(sponsor)} <button class="alert-trigger-btn" onclick="event.stopPropagation();triggerSponsorAlert('${sponsor.replace(/'/g,"\\'")}')" style="font-size:.35rem;padding:.2rem .4rem;margin-left:.5rem;vertical-align:middle" title="Alert for all trials by this sponsor"><em class="bell">🔔</em> ALERT</button></div></div>
+      <div class="detail-item"><div class="label">Sponsor</div><div class="value">${escHtml(sponsor)} <button class="alert-trigger-btn" onclick="event.stopPropagation();triggerSponsorAlert(this.dataset.sponsor)" data-sponsor="${escHtml(sponsor)}" style="font-size:.35rem;padding:.2rem .4rem;margin-left:.5rem;vertical-align:middle" title="Alert for all trials by this sponsor"><em class="bell">🔔</em> ALERT</button></div></div>
       <div class="detail-item"><div class="label">Conditions</div><div class="value">${escHtml(conditions)} <span id="icd10badges"></span></div></div>
       <div class="detail-item"><div class="label">Last Updated</div><div class="value">${escHtml(lastUpdate)}</div></div>
       <div class="detail-item"><div class="label">Age</div><div class="value">${escHtml(ageRange)}</div></div>
@@ -4820,7 +4821,7 @@ function renderFailureChart(el,studies){
     html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.6rem;font-weight:700">Top Termination Reasons</div>`;
     const maxR=topReasons[0][1];
     topReasons.forEach(([reason,count])=>{
-      const bp2=Math.max(count/maxR*45,1);const vr2=bv(count,bp2,6);
+      const bp2=Math.max(count/maxR*45,1);const vr2=bv(count,bp2,6,'trials');
       const safeReason=reason.replace(/'/g,"\\'").replace(/"/g,'&quot;');
       html+=`<div class="ga-bar-row" style="cursor:pointer" onclick="if(window._gvTermReasonStudies){const s=window._gvTermReasonStudies.get('${safeReason}');if(s)showAnalyticsTrialPopup('💀 Terminated — '+decodeURIComponent('${encodeURIComponent(reason.substring(0,40))}'),s,'${count} trials')}"><div class="ga-bar-label" style="min-width:180px" title="${escHtml(reason)}">${escHtml(reason.length>30?reason.substring(0,28)+'..':reason)}</div><div class="ga-bar" style="width:${bp2}%;background:#FF6B6B">${vr2.inside}</div>${vr2.outside}</div>`;
     });
@@ -4874,9 +4875,9 @@ function renderCompareChart(el,studies){
     const w=65;
     const eName=escHtml(sp.name).replace(/'/g,"\\'");
     html+=`<div class="ga-bar-row" style="cursor:pointer" onclick="showSponsorTrials('${eName}')" title="Click to see ${sp.trials} trials"><div class="ga-bar-label" style="min-width:130px" title="${escHtml(sp.name)}">${getSponsorFlag(sp.name)} ${escHtml(sp.name.length>18?sp.name.substring(0,16)+'..':sp.name)}</div><div style="flex:1;display:flex;align-items:center;height:18px">`;
-    if(sp.p1){const bp=sp.p1/maxTrials*w;const vr=bv(sp.p1>1?sp.p1:0,bp,4);html+=`<div style="width:${bp}%;background:#45B7D1;border-radius:3px 0 0 3px;position:relative;height:100%">${vr.inside}</div>${vr.outside}`;}
+    if(sp.p1){const bp=sp.p1/maxTrials*w;const vr=bv(sp.p1>1?sp.p1:0,bp,4,'');html+=`<div style="width:${bp}%;background:#45B7D1;border-radius:3px 0 0 3px;position:relative;height:100%">${vr.inside}</div>${vr.outside}`;}
     if(sp.p2){const bp=sp.p2/maxTrials*w;const vr=bvs(sp.p2>1?sp.p2:0,bp,'color:#333',4);html+=`<div style="width:${bp}%;background:#FFD700;position:relative;height:100%">${vr.inside}</div>${vr.outside}`;}
-    if(sp.p3){const bp=sp.p3/maxTrials*w;const vr=bv(sp.p3>1?sp.p3:0,bp,4);html+=`<div style="width:${bp}%;background:#FF6B6B;border-radius:0 3px 3px 0;position:relative;height:100%">${vr.inside}</div>${vr.outside}`;}
+    if(sp.p3){const bp=sp.p3/maxTrials*w;const vr=bv(sp.p3>1?sp.p3:0,bp,4,'');html+=`<div style="width:${bp}%;background:#FF6B6B;border-radius:0 3px 3px 0;position:relative;height:100%">${vr.inside}</div>${vr.outside}`;}
     html+=`</div><span class="ga-bar-val-out">${sp.trials}</span></div>`;
   });
   html+=`</div>`;
@@ -5861,6 +5862,7 @@ function renderCompare(studies){
   const COUNTRY_FLAG_MAP={'United States':'\ud83c\uddfa\ud83c\uddf8','China':'\ud83c\udde8\ud83c\uddf3','Japan':'\ud83c\uddef\ud83c\uddf5','South Korea':'\ud83c\uddf0\ud83c\uddf7','Korea, Republic of':'\ud83c\uddf0\ud83c\uddf7','Germany':'\ud83c\udde9\ud83c\uddea','France':'\ud83c\uddeb\ud83c\uddf7','United Kingdom':'\ud83c\uddec\ud83c\udde7','Canada':'\ud83c\udde8\ud83c\udde6','Australia':'\ud83c\udde6\ud83c\uddfa','Italy':'\ud83c\uddee\ud83c\uddf9','Spain':'\ud83c\uddea\ud83c\uddf8','Brazil':'\ud83c\udde7\ud83c\uddf7','India':'\ud83c\uddee\ud83c\uddf3','Mexico':'\ud83c\uddf2\ud83c\uddfd','Netherlands':'\ud83c\uddf3\ud83c\uddf1','Belgium':'\ud83c\udde7\ud83c\uddea','Switzerland':'\ud83c\udde8\ud83c\udded','Sweden':'\ud83c\uddf8\ud83c\uddea','Denmark':'\ud83c\udde9\ud83c\uddf0','Norway':'\ud83c\uddf3\ud83c\uddf4','Finland':'\ud83c\uddeb\ud83c\uddee','Austria':'\ud83c\udde6\ud83c\uddf9','Poland':'\ud83c\uddf5\ud83c\uddf1','Russia':'\ud83c\uddf7\ud83c\uddfa','Turkey':'\ud83c\uddf9\ud83c\uddf7','Israel':'\ud83c\uddee\ud83c\uddf1','Taiwan':'\ud83c\uddf9\ud83c\uddfc','Thailand':'\ud83c\uddf9\ud83c\udded','Argentina':'\ud83c\udde6\ud83c\uddf7','Chile':'\ud83c\udde8\ud83c\uddf1','Colombia':'\ud83c\udde8\ud83c\uddf4','Peru':'\ud83c\uddf5\ud83c\uddea','South Africa':'\ud83c\uddff\ud83c\udde6','Egypt':'\ud83c\uddea\ud83c\uddec','New Zealand':'\ud83c\uddf3\ud83c\uddff','Singapore':'\ud83c\uddf8\ud83c\uddec','Malaysia':'\ud83c\uddf2\ud83c\uddfe','Philippines':'\ud83c\uddf5\ud83c\udded','Indonesia':'\ud83c\uddee\ud83c\udde9','Vietnam':'\ud83c\uddfb\ud83c\uddf3','Portugal':'\ud83c\uddf5\ud83c\uddf9','Greece':'\ud83c\uddec\ud83c\uddf7','Czech Republic':'\ud83c\udde8\ud83c\uddff','Czechia':'\ud83c\udde8\ud83c\uddff','Hungary':'\ud83c\udded\ud83c\uddfa','Romania':'\ud83c\uddf7\ud83c\uddf4','Bulgaria':'\ud83c\udde7\ud83c\uddec','Ireland':'\ud83c\uddee\ud83c\uddea','Ukraine':'\ud83c\uddfa\ud83c\udde6','Croatia':'\ud83c\udded\ud83c\uddf7','Serbia':'\ud83c\uddf7\ud83c\uddf8','Hong Kong':'\ud83c\udded\ud83c\uddf0','Saudi Arabia':'\ud83c\uddf8\ud83c\udde6','United Arab Emirates':'\ud83c\udde6\ud83c\uddea','Pakistan':'\ud83c\uddf5\ud83c\uddf0','Bangladesh':'\ud83c\udde7\ud83c\udde9','Nigeria':'\ud83c\uddf3\ud83c\uddec','Kenya':'\ud83c\uddf0\ud83c\uddea','Ghana':'\ud83c\uddec\ud83c\udded','Morocco':'\ud83c\uddf2\ud83c\udde6','Tunisia':'\ud83c\uddf9\ud83c\uddf3','Puerto Rico':'\ud83c\uddf5\ud83c\uddf7','Latvia':'\ud83c\uddf1\ud83c\uddfb','Lithuania':'\ud83c\uddf1\ud83c\uddf9','Estonia':'\ud83c\uddea\ud83c\uddea','Slovakia':'\ud83c\uddf8\ud83c\uddf0','Slovenia':'\ud83c\uddf8\ud83c\uddee','Luxembourg':'\ud83c\uddf1\ud83c\uddfa','Iceland':'\ud83c\uddee\ud83c\uddf8','Georgia':'\ud83c\uddec\ud83c\uddea'};
   function getCountryFlag(c){return COUNTRY_FLAG_MAP[c]||'\ud83c\udff3\ufe0f';}
 
+  if(!parsed.length||!parsed[0])return;
   /* ── Common sets ── */
   const allCountrySets=parsed.map(p=>new Set(p.countryList));
   const commonCountries=parsed[0].countryList.filter(c=>allCountrySets.every(s=>s.has(c)));
@@ -6940,6 +6942,7 @@ window.previewAlert=async function(idx){
       params.set('filter.advanced',adv.join(' AND '));
       if(slot.statuses&&slot.statuses.length)params.set('filter.overallStatus',slot.statuses.join('|'));
       const res=await fetch(`https://clinicaltrials.gov/api/v2/studies?${params}`);
+      if(!res.ok)throw new Error('ClinicalTrials.gov API error: '+res.status);
       const d=await res.json();
       studies=d.studies||[];
     }
@@ -7004,6 +7007,7 @@ window.pushAlertNow=async function(idx){
   showAlertToast('Sending alert email... please wait.');
   try{
     const{data:{session}}=await _sb.auth.getSession();
+    if(!session)throw new Error('Not logged in');
     const res=await fetch(SUPABASE_URL+'/functions/v1/push-alert',{
       method:'POST',
       headers:{'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json'},
