@@ -5983,7 +5983,7 @@ function renderCompare(studies){
     <button class="ai-btn" id="aiQuickBtn" onclick="window.runQuickAI()" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:.4rem 1rem;border-radius:5px;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap">AI Analysis</button>
     <div id="aiLangBar" style="display:inline-flex;gap:1px;align-items:center"><button onclick="window._setAILang('en',this)" data-lang="en" style="background:rgba(16,185,129,.25);border:1px solid #10b981;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#e2e8f0;line-height:1;font-family:monospace">ENG</button><button onclick="window._setAILang('ko',this)" data-lang="ko" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">KOR</button><button onclick="window._setAILang('ja',this)" data-lang="ja" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">JPN</button><button onclick="window._setAILang('zh',this)" data-lang="zh" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">CHN</button><button onclick="window._setAILang('es',this)" data-lang="es" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">ESP</button><button onclick="window._setAILang('pt',this)" data-lang="pt" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">POR</button><button onclick="window._setAILang('de',this)" data-lang="de" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">DEU</button><button onclick="window._setAILang('fr',this)" data-lang="fr" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">FRA</button><button onclick="window._setAILang('ar',this)" data-lang="ar" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">ARA</button></div>
     <span class="ai-status" id="aiQuickStatus" style="font-size:.7rem;color:#94a3b8"></span>
-    <span style="font-size:.65rem;color:#718096;margin-left:auto" id="aiQuickInfo">Gemini 2.5 Flash</span>
+    <span style="font-size:.65rem;color:#718096;margin-left:auto" id="aiQuickInfo">Gemini 2.5 Pro</span>
   </div>`+html;
 
   /* ── Inclusion Criteria (diff) — with AI placeholder ── */
@@ -6035,14 +6035,14 @@ function renderCompare(studies){
   setTimeout(()=>{
     const infoEl=document.getElementById('aiQuickInfo');
     if(infoEl&&typeof window._isMaster==='function'){
-      if(window._isMaster()){infoEl.textContent='Gemini 2.5 Flash · Unlimited (Master)';}
+      if(window._isMaster()){infoEl.textContent='Gemini 2.5 Pro · Unlimited (Master)';}
       else if(window._currentUser){
         const mo=JSON.parse(localStorage.getItem('ai_monthly')||'{"month":0,"count":0}');
         const now=new Date().getMonth()+1;
         const used=mo.month===now?mo.count:0;
-        infoEl.textContent=`Gemini 2.5 Flash · ${10-used}/10 remaining`;
+        infoEl.textContent=`Gemini 2.5 Pro · ${10-used}/10 remaining`;
       } else {
-        infoEl.textContent='Gemini 2.5 Flash · Sign in to use';
+        infoEl.textContent='Gemini 2.5 Pro · Sign in to use';
       }
     }
   },0);
@@ -7204,7 +7204,7 @@ window.runQuickAI=async function(){
     setTimeout(()=>{const tr=document.getElementById('aiCatTrack');if(tr)tr.remove();statusEl.textContent=`Done! (${remaining} left this month)`;},1500);
     statusEl.style.color='#10b981';
     const infoEl=document.getElementById('aiQuickInfo');
-    if(infoEl)infoEl.textContent=_isMaster()?'Gemini 2.5 Flash · Unlimited':'Gemini 2.5 Flash · '+remaining+'/10 remaining';
+    if(infoEl)infoEl.textContent=_isMaster()?'Gemini 2.5 Pro · Unlimited':'Gemini 2.5 Pro · '+remaining+'/10 remaining';
     const existing=document.getElementById('aiQuickReport');
     if(existing)existing.remove();
     const reportDiv=document.createElement('div');

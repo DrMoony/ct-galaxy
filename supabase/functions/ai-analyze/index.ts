@@ -231,13 +231,24 @@ EXTERNAL REFERENCES (PubMed & FDA):
 ${externalData || "(No external data retrieved)"}
 ${"=".repeat(80)}
 
+CRITICAL INSTRUCTION: You are NOT a summarizer. You are an expert analyst. Do NOT simply restate what the protocol says. Instead, REASON about what each design choice ACTUALLY MEANS in practice:
+- If a trial uses hard endpoints only (e.g., liver-related clinical events), calculate how long event accrual will realistically take given enrollment size and event rates in this population. A 4500-patient trial with hard endpoints does NOT mean "faster" — it likely means 5+ years to readout.
+- If a trial uses biopsy-based surrogate endpoints (e.g., fibrosis improvement ≥1 stage), explain that this enables accelerated/conditional approval in 2-3 years, while hard endpoint data accumulates in parallel.
+- When discussing MOAs, draw on your knowledge of Phase 2 data including supplementary materials. For example, if a GLP-1/Glucagon dual agonist showed superior fibrosis resolution vs. GLP-1 alone in Phase 2 supplementary data, cite that specific finding.
+- Do NOT say "master protocol provides competitive advantage" without analyzing whether the endpoint choice within that protocol actually supports faster regulatory path.
+- Always distinguish between: time to data readout vs. time to regulatory submission vs. time to market.
+
 Provide your analysis in the following structure. Use HTML with inline styles. Be specific — cite NCT IDs, drug names, exact numbers, and percentages. Be opinionated — give clear assessments, not just descriptions. Use <strong> for key insights.
 
 <h3 style="color:#059669;border-bottom:2px solid #10b981;padding-bottom:4px">1. Executive Summary</h3>
 <p>3-5 sentence intelligence brief: disease area, MOAs/drugs being tested, development stage of each, and the single most important competitive insight. End with a clear verdict on which program has the strongest position.</p>
 
 <h3 style="color:#2563eb;border-bottom:2px solid #60a5fa;padding-bottom:4px">2. Study Design & Protocol Comparison</h3>
-<p>Compare: randomization, blinding (open-label vs double-blind implications), control arms (placebo vs active comparator vs SOC), sample sizes, and adaptive designs. Highlight which design choices give regulatory or competitive advantage. Note if any trial is underpowered or overly ambitious in enrollment.</p>
+<p>Do NOT just list design features. ANALYZE their implications:
+- Single-blind vs double-blind: what specific biases does this introduce? Does the investigator knowing allocation affect endpoint assessment (e.g., biopsy scoring)?
+- Sample size: is it powered for the chosen endpoint? For event-driven hard endpoints, estimate realistic event accrual time based on expected annual event rates in this population.
+- Master protocol / adaptive designs: do they actually accelerate anything, or do they add operational complexity? Be honest about tradeoffs.
+- Control arm choice: is placebo still ethical given existing approved therapies? Could regulators demand an active comparator?</p>
 
 <h3 style="color:#7c3aed;border-bottom:2px solid #a78bfa;padding-bottom:4px">3. Endpoint Strategy & Regulatory Implications</h3>
 <p>This is critical. For each trial, classify primary endpoints as:
@@ -305,9 +316,9 @@ Rules:
 - IMPORTANT: Write the ENTIRE analysis in ${langName}. Section headings, analysis text, and all content must be in ${langName}. Keep NCT IDs and drug names in their original form.
 - CRITICAL: For ALL technical/medical/regulatory terms, ALWAYS include the English term in parentheses after the translated term. Examples: 무작위배정(Randomization), 이중맹검(Double-blind), 主要终点(Primary Endpoint), 加速承認(Accelerated Approval), 全生存期(Overall Survival), Gesamtüberleben(Overall Survival). This applies to every language except English.`;
 
-    // Call Gemini 2.5 Flash
+    // Call Gemini 2.5 Pro
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GEMINI_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
