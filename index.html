@@ -5982,19 +5982,7 @@ function renderCompare(studies){
     <div class="ai-settings-bar" id="aiSettingsBar">
       <button class="ai-btn" id="aiQuickBtn" onclick="runQuickAI()" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:.4rem 1rem;border-radius:5px;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap">AI Analysis</button>
       <span class="ai-status" id="aiQuickStatus" style="font-size:.7rem;color:#94a3b8"></span>
-      <span style="color:#4a5568;margin:0 .3rem">|</span>
-      <span class="premium-badge">PREMIUM</span>
-      <label>AI Semantic Analysis</label>
-      <select onchange="switchAIProvider(this)" style="padding:.3rem .5rem;border-radius:4px;border:1px solid #4a5568;background:#2d3748;color:#e2e8f0;font-size:.74rem;font-weight:600;cursor:pointer">
-        <option value="openai" ${curProv==='openai'?'selected':''}>OpenAI · GPT-4.1 [Paid]</option>
-        <option value="claude" ${curProv==='claude'?'selected':''}>Claude · Sonnet 4.5 [Paid]</option>
-        <option value="gemini" ${curProv==='gemini'?'selected':''}>Gemini 2.5 Flash Lite [Free]</option>
-        <option value="github" ${curProv==='github'?'selected':''}>GitHub Copilot · GPT-4.1 [Subscription]</option>
-      </select>
-      <input type="password" class="ai-key-input" id="aiKeyInput" placeholder="${curProvInfo.placeholder}" value="${getAIKey(curProv)?'••••••••••••••••':''}" onfocus="if(getAIKey())this.value=getAIKey()" onblur="if(getAIKey()&&!this.value)this.value='••••••••••••••••'"/>
-      <button class="ai-btn ai-btn-run" id="aiRunBtn" onclick="runAIComparison()">Run AI Analysis</button>
-      <span class="ai-status" id="aiStatus">${getAIKey(curProv)?'Key registered':'Enter API key'}</span>
-      <span id="aiProvLabel" style="font-size:.65rem;color:#718096;margin-left:auto">${curProvInfo.name} · ${curProvInfo.model} [${curProvInfo.tag}]</span>
+      <span style="font-size:.65rem;color:#718096;margin-left:auto">Gemini 2.5 Flash · Free for signed-in users (10/month)</span>
     </div>
   </td></tr>`;
 
