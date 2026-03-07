@@ -7139,8 +7139,9 @@ window.runQuickAI=async function(){
   if(!_isMaster()&&!_aiCanUse()){statusEl.textContent='Monthly limit reached (10/10)';statusEl.style.color='#ef4444';return;}
   const studies=window._cmpStudiesRaw;
   if(!studies||studies.length<2){console.log('[AI] not enough studies:',studies?.length);statusEl.textContent='Need at least 2 trials';return;}
-  btn.disabled=true;
-  statusEl.textContent='Analyzing with AI...';statusEl.style.color='#10b981';
+  btn.disabled=true;btn.style.opacity='.6';
+  statusEl.innerHTML='<span style="display:inline-flex;align-items:center;gap:6px"><span class="ai-spinner" style="display:inline-block;width:12px;height:12px;border:2px solid #10b981;border-top-color:transparent;border-radius:50%;animation:aispin .8s linear infinite"></span>Analyzing with AI...</span>';statusEl.style.color='#10b981';
+  if(!document.getElementById('aiSpinStyle')){const st=document.createElement('style');st.id='aiSpinStyle';st.textContent='@keyframes aispin{to{transform:rotate(360deg)}}';document.head.appendChild(st);}
   console.log('[AI] calling edge function with',studies.length,'trials');
   try{
     const{data:{session}}=await _sb.auth.getSession();
@@ -7167,7 +7168,7 @@ window.runQuickAI=async function(){
     if(settingsBar){settingsBar.after(reportDiv);}
   }catch(e){
     statusEl.textContent='Error: '+e.message;statusEl.style.color='#ef4444';
-  }finally{btn.disabled=false;}
+  }finally{btn.disabled=false;btn.style.opacity='1';}
 };
 
 // ── Activity Logging ──
