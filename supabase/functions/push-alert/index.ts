@@ -43,8 +43,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    const MASTER_EMAIL = "mftsky@gmail.com";
+    const isMaster = user.email === MASTER_EMAIL;
     const sent = sub.monthly_sent || 0;
-    if (sent >= 10) {
+    if (!isMaster && sent >= 10) {
       return new Response(JSON.stringify({ error: "Monthly limit reached (10/10)" }), {
         status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -262,10 +264,12 @@ Deno.serve(async (req) => {
     await supabase.from("subscriptions")
       .update({ monthly_sent: sent + 1, last_sent_at: new Date().toISOString() })
       .eq("user_id", user.id);
-    await supabase.from("activity_logs").insert({
-      user_id: user.id, email: user.email, type: "alert_push",
-      detail: { slotIndex, filterDesc, count: studies.length },
-    });
+    if (!isMaster) {
+      await supabase.from("activity_logs").insert({
+        user_id: user.id, email: user.email, type: "alert_push",
+        detail: { slotIndex, filterDesc, count: studies.length },
+      });
+    }
 
     return new Response(JSON.stringify({ message: "Alert sent!", count: studies.length, emailId: resendData.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

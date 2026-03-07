@@ -6230,7 +6230,7 @@ async function runQuickAI(){
   const btn=document.getElementById('aiQuickBtn');
   const statusEl=document.getElementById('aiQuickStatus');
   if(!_currentUser){statusEl.textContent='Please sign in first';statusEl.style.color='#f59e0b';return;}
-  if(!_aiCanUse()){statusEl.textContent='Monthly limit reached (10/10)';statusEl.style.color='#ef4444';return;}
+  if(!_isMaster()&&!_aiCanUse()){statusEl.textContent='Monthly limit reached (10/10)';statusEl.style.color='#ef4444';return;}
 
   const studies=window._cmpStudiesRaw;
   if(!studies||studies.length<2){statusEl.textContent='Need at least 2 trials';return;}
@@ -6574,6 +6574,8 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const _sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 let _currentUser=null;
 let _pendingAlert=null; // stores alert data when user needs to login first
+const _MASTER_EMAIL='mftsky@gmail.com';
+function _isMaster(){return _currentUser&&_currentUser.email===_MASTER_EMAIL;}
 
 // ── Auth Modal ──
 let _authMode='login';
@@ -7071,7 +7073,7 @@ window.pushAlertNow=async function(idx){
   const data=window._alertSubData;
   if(!data||!data.keywords||!data.keywords[idx])return;
   const sent=data.monthly_sent||0;
-  if(sent>=10){showAlertToast('Monthly limit reached (10/10). Upgrade for more.');return;}
+  if(!_isMaster()&&sent>=10){showAlertToast('Monthly limit reached (10/10). Upgrade for more.');return;}
   showAlertToast('Sending alert email... please wait.');
   try{
     const{data:{session}}=await _sb.auth.getSession();
@@ -7091,7 +7093,7 @@ window.pushAlertNow=async function(idx){
 
 // ── Activity Logging ──
 window._logActivity=async function(type,detail){
-  if(!_currentUser)return;
+  if(!_currentUser||_isMaster())return;
   try{await _sb.from('activity_logs').insert({user_id:_currentUser.id,email:_currentUser.email,type,detail});}catch(e){}
 };
 window._logSearch=async function(query){
