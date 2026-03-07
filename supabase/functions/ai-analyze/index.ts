@@ -308,7 +308,7 @@ If no relevant publications or FDA data were found, state that and rely on your 
 Rules:
 - Be specific: cite NCT IDs, exact numbers, drug names, country percentages
 - Be opinionated: give clear assessments and verdicts, not balanced-both-sides descriptions
-- Each section: 4-8 sentences, dense with insight
+- Each section: 8-15 sentences, dense with insight. Be thorough — do not cut analysis short
 - Professional English accessible to both clinicians and business stakeholders
 - Use <strong> for emphasis, <br> for line breaks within sections
 - When comparing criteria differences, use a mini HTML table if helpful
@@ -320,7 +320,7 @@ Rules:
     const reqBody = JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        maxOutputTokens: 12000,
+        maxOutputTokens: 24000,
         temperature: 0.3,
         thinkingConfig: { thinkingBudget: 0 },
       },
