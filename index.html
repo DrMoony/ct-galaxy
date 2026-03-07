@@ -5699,6 +5699,7 @@ function renderAIDiffListGlobal(items,trialIdx,aiLookup,groupColorMap,conceptMap
 }
 
 function renderCompare(studies){
+  window._cmpStudiesRaw=studies;
   const parsed=studies.map(s=>{
     const p=s.protocolSection||{},id=p.identificationModule||{},st=p.statusModule||{},des=p.designModule||{},sp=p.sponsorCollaboratorsModule||{},el=p.eligibilityModule||{},arms=p.armsInterventionsModule||{},loc=p.contactsLocationsModule||{},out=p.outcomesModule||{},desMod=p.designModule||{},descMod=p.descriptionModule||{};
     const criteria=el.eligibilityCriteria||'';
@@ -5977,6 +5978,9 @@ function renderCompare(studies){
   const curProvInfo=AI_PROVIDERS[curProv];
   html+=`<tr><td colspan="${colCount+1}" style="padding:0">
     <div class="ai-settings-bar" id="aiSettingsBar">
+      <button class="ai-btn" id="aiQuickBtn" onclick="runQuickAI()" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:.4rem 1rem;border-radius:5px;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap">AI Analysis</button>
+      <span class="ai-status" id="aiQuickStatus" style="font-size:.7rem;color:#94a3b8"></span>
+      <span style="color:#4a5568;margin:0 .3rem">|</span>
       <span class="premium-badge">PREMIUM</span>
       <label>AI Semantic Analysis</label>
       <select onchange="switchAIProvider(this)" style="padding:.3rem .5rem;border-radius:4px;border:1px solid #4a5568;background:#2d3748;color:#e2e8f0;font-size:.74rem;font-weight:600;cursor:pointer">
@@ -6206,6 +6210,69 @@ function buildAIReport(aiResult,trialsData,parsed){
       reportRow.innerHTML=`<td colspan="${parsed.length+1}" style="padding:0;max-width:0;word-wrap:break-word;overflow-wrap:break-word">${rhtml}</td>`;
       parentTr.parentNode.insertBefore(reportRow,parentTr.nextElementSibling);
     }
+  }
+}
+
+/* ── Quick AI Analysis (Server-side Gemini, free for logged-in users) ── */
+let _aiMonthlyUsed = JSON.parse(localStorage.getItem('ai_monthly')||'{"month":0,"count":0}');
+function _aiCanUse(){
+  const now=new Date().getMonth()+1;
+  if(_aiMonthlyUsed.month!==now){_aiMonthlyUsed={month:now,count:0};localStorage.setItem('ai_monthly',JSON.stringify(_aiMonthlyUsed));}
+  return _aiMonthlyUsed.count<10;
+}
+function _aiIncrement(){
+  _aiMonthlyUsed.count++;
+  localStorage.setItem('ai_monthly',JSON.stringify(_aiMonthlyUsed));
+}
+
+async function runQuickAI(){
+  const btn=document.getElementById('aiQuickBtn');
+  const statusEl=document.getElementById('aiQuickStatus');
+  if(!_currentUser){statusEl.textContent='Please sign in first';statusEl.style.color='#f59e0b';return;}
+  if(!_aiCanUse()){statusEl.textContent='Monthly limit reached (10/10)';statusEl.style.color='#ef4444';return;}
+
+  const studies=window._cmpStudiesRaw;
+  if(!studies||studies.length<2){statusEl.textContent='Need at least 2 trials';return;}
+
+  btn.disabled=true;
+  statusEl.textContent='Analyzing with AI...';statusEl.style.color='#10b981';
+
+  try{
+    const{data:{session}}=await _sb.auth.getSession();
+    if(!session)throw new Error('Not logged in');
+    const res=await fetch(SUPABASE_URL+'/functions/v1/ai-analyze',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json'},
+      body:JSON.stringify({trials:studies})
+    });
+    const result=await res.json();
+    if(!res.ok)throw new Error(result.error||'AI analysis failed');
+
+    _aiIncrement();
+    const remaining=10-_aiMonthlyUsed.count;
+    statusEl.textContent=`Done! (${remaining} left this month)`;statusEl.style.color='#10b981';
+
+    // Render analysis report
+    const existing=document.getElementById('aiQuickReport');
+    if(existing)existing.remove();
+    const reportDiv=document.createElement('div');
+    reportDiv.id='aiQuickReport';
+    reportDiv.style.cssText='padding:1.2rem;margin:.8rem 0;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #86efac;border-radius:8px;font-size:.82rem;line-height:1.6;color:#1a2b3c';
+    reportDiv.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+      <span style="font-weight:700;color:#059669;font-size:.85rem">AI Competitive Analysis</span>
+      <button onclick="this.closest('#aiQuickReport').remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1rem">x</button>
+    </div>`+result.analysis;
+
+    // Insert after settings bar
+    const settingsBar=document.getElementById('aiSettingsBar');
+    if(settingsBar){
+      const parentTd=settingsBar.closest('td');
+      if(parentTd)parentTd.appendChild(reportDiv);
+    }
+  }catch(e){
+    statusEl.textContent='Error: '+e.message;statusEl.style.color='#ef4444';
+  }finally{
+    btn.disabled=false;
   }
 }
 
