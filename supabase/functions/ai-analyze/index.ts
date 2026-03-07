@@ -200,7 +200,8 @@ Rules:
 - Use <strong> for emphasis, <br> for line breaks within sections
 - When comparing criteria differences, use a mini HTML table if helpful
 - Do NOT use markdown — only HTML with inline styles
-- IMPORTANT: Write the ENTIRE analysis in ${langName}. Section headings, analysis text, and all content must be in ${langName}. Keep NCT IDs, drug names, and technical terms in their original form.`;
+- IMPORTANT: Write the ENTIRE analysis in ${langName}. Section headings, analysis text, and all content must be in ${langName}. Keep NCT IDs and drug names in their original form.
+- CRITICAL: For ALL technical/medical/regulatory terms, ALWAYS include the English term in parentheses after the translated term. Examples: 무작위배정(Randomization), 이중맹검(Double-blind), 主要终点(Primary Endpoint), 加速承認(Accelerated Approval), 全生存期(Overall Survival), Gesamtüberleben(Overall Survival). This applies to every language except English.`;
 
     // Call Gemini 2.5 Flash
     const geminiRes = await fetch(
