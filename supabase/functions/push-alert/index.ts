@@ -258,10 +258,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Update counter
+    // Update counter + log activity
     await supabase.from("subscriptions")
       .update({ monthly_sent: sent + 1, last_sent_at: new Date().toISOString() })
       .eq("user_id", user.id);
+    await supabase.from("activity_logs").insert({
+      user_id: user.id, email: user.email, type: "alert_push",
+      detail: { slotIndex, filterDesc, count: studies.length },
+    });
 
     return new Response(JSON.stringify({ message: "Alert sent!", count: studies.length, emailId: resendData.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -5675,6 +5675,7 @@ async function openCompare(){
   const ids=[...compareSet.keys()];
   try{
     const studies=await Promise.all(ids.map(id=>fetch(`https://clinicaltrials.gov/api/v2/studies/${id}?format=json`).then(r=>{if(!r.ok)throw new Error(id);return r.json();})));
+    if(window._logActivity)_logActivity('compare',{nctIds:ids});
     renderCompare(studies);
   }catch(err){
     document.getElementById('compareBody').innerHTML=`<p style="color:var(--danger)">Failed to load comparison data: ${err.message}</p>`;
@@ -7088,10 +7089,15 @@ window.pushAlertNow=async function(idx){
   }catch(e){showAlertToast('Error: '+e.message);}
 };
 
-// ── Search Logging ──
+// ── Activity Logging ──
+window._logActivity=async function(type,detail){
+  if(!_currentUser)return;
+  try{await _sb.from('activity_logs').insert({user_id:_currentUser.id,email:_currentUser.email,type,detail});}catch(e){}
+};
 window._logSearch=async function(query){
   if(!_currentUser)return;
   try{await _sb.from('search_logs').insert({user_id:_currentUser.id,query});}catch(e){}
+  _logActivity('search',query);
 };
 
 // Refresh badge on load

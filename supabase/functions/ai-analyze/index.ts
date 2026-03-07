@@ -136,6 +136,17 @@ Rules:
     const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "No analysis generated.";
     const usage = geminiData.usageMetadata || {};
 
+    // Log AI usage
+    const nctIds = trials.slice(0, 4).map((t: any) =>
+      t?.protocolSection?.identificationModule?.nctId || ""
+    ).filter(Boolean);
+    await supabase.from("activity_logs").insert({
+      user_id: user.id,
+      email: user.email,
+      type: "ai_analysis",
+      detail: { nctIds, tokens: { input: usage.promptTokenCount, output: usage.candidatesTokenCount } },
+    });
+
     return new Response(JSON.stringify({
       analysis: text,
       tokens: { input: usage.promptTokenCount, output: usage.candidatesTokenCount },
