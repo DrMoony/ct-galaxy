@@ -327,19 +327,21 @@ Rules:
     });
     const headers = { "Content-Type": "application/json" };
 
-    let geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GEMINI_KEY}`,
-      { method: "POST", headers, body: reqBody }
-    );
-
-    let usedModel = "Gemini 2.5 Pro";
-    if (!geminiRes.ok) {
-      // Fallback to Flash
+    // Try models in order: 3.1 Flash Lite → 3 Flash → 2.5 Flash
+    const models = [
+      { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash-Lite" },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash" },
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+    ];
+    let geminiRes!: Response;
+    let usedModel = models[0].name;
+    for (const m of models) {
       geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${m.id}:generateContent?key=${GEMINI_KEY}`,
         { method: "POST", headers, body: reqBody }
       );
-      usedModel = "Gemini 2.5 Flash (fallback)";
+      if (geminiRes.ok) { usedModel = m.name; break; }
+      usedModel = m.name + " (failed)";
     }
 
     const geminiData = await geminiRes.json();
