@@ -730,6 +730,7 @@ th .col-hide-btn{float:right;margin-top:1px}
       </div>
       <div id="authLoggedIn" style="display:none">
         <div class="auth-user">
+          <div class="auth-admin-btn" id="authAdminBtn" onclick="openAdminPanel()" title="Admin Dashboard" style="display:none;cursor:pointer;font-size:.7rem;background:#7c3aed;color:#fff;padding:.25rem .5rem;border-radius:4px;font-weight:700;margin-right:.3rem">ADMIN</div>
           <div class="auth-alerts-badge" id="authAlertsBadge" onclick="openAlertManager()" title="Manage your alerts">🔔 <span class="badge-count" id="authAlertCount">0</span></div>
           <div class="auth-avatar" id="authAvatar">?</div>
           <span class="auth-user-email" id="authEmail"></span>
@@ -6634,6 +6635,8 @@ function updateAuthUI(user){
     loggedIn.style.display='block';
     document.getElementById('authEmail').textContent=user.email;
     document.getElementById('authAvatar').textContent=user.email[0].toUpperCase();
+    const adminBtn=document.getElementById('authAdminBtn');
+    if(adminBtn)adminBtn.style.display=user.email===_MASTER_EMAIL?'block':'none';
     hideAuthModal();
     // Process pending alert if any
     if(_pendingAlert){
@@ -6645,6 +6648,94 @@ function updateAuthUI(user){
     loggedIn.style.display='none';
   }
 }
+
+window.openAdminPanel=async function(){
+  if(!_isMaster())return;
+  const overlay=document.createElement('div');
+  overlay.id='adminOverlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10002;display:flex;align-items:flex-start;justify-content:center;padding:2rem;overflow-y:auto';
+  overlay.onclick=function(e){if(e.target===this)this.remove();};
+
+  const panel=document.createElement('div');
+  panel.style.cssText='background:#0f172a;border:2px solid #7c3aed;border-radius:12px;max-width:1000px;width:100%;padding:1.5rem;color:#e2e8f0;font-size:.82rem';
+  panel.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h2 style="margin:0;font-size:1rem;color:#a78bfa;font-family:monospace">ADMIN DASHBOARD</h2><button onclick="document.getElementById(\'adminOverlay\').remove()" style="background:none;border:none;color:#94a3b8;font-size:1.2rem;cursor:pointer">x</button></div><div id="adminContent"><div style="color:#94a3b8;text-align:center;padding:2rem">Loading...</div></div>';
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+
+  try{
+    // Fetch all data in parallel
+    const[actRes,subRes]=await Promise.all([
+      _sb.from('activity_logs').select('*').order('created_at',{ascending:false}).limit(200),
+      _sb.from('subscriptions').select('*').order('email')
+    ]);
+    const activities=actRes.data||[];
+    const subs=subRes.data||[];
+
+    // Stats
+    const uniqueUsers=new Set(activities.map(a=>a.email));
+    const typeCount={};
+    activities.forEach(a=>{typeCount[a.type]=(typeCount[a.type]||0)+1;});
+
+    let h='';
+
+    // Overview cards
+    h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem;margin-bottom:1.5rem">';
+    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#a78bfa">'+uniqueUsers.size+'</div><div style="font-size:.7rem;color:#94a3b8">Active Users</div></div>';
+    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#10b981">'+(typeCount.search||0)+'</div><div style="font-size:.7rem;color:#94a3b8">Searches</div></div>';
+    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#3b82f6">'+(typeCount.compare||0)+'</div><div style="font-size:.7rem;color:#94a3b8">Compares</div></div>';
+    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#f59e0b">'+(typeCount.ai_analysis||0)+'</div><div style="font-size:.7rem;color:#94a3b8">AI Analyses</div></div>';
+    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#ef4444">'+(typeCount.alert_push||0)+'</div><div style="font-size:.7rem;color:#94a3b8">Alert Pushes</div></div>';
+    h+='</div>';
+
+    // Active Subscriptions
+    h+='<h3 style="color:#a78bfa;font-size:.85rem;margin-bottom:.5rem;border-bottom:1px solid #334155;padding-bottom:.3rem">Active Subscriptions ('+subs.length+')</h3>';
+    if(subs.length>0){
+      h+='<div style="overflow-x:auto;margin-bottom:1.5rem"><table style="width:100%;border-collapse:collapse;font-size:.75rem">';
+      h+='<tr style="color:#94a3b8;text-align:left;border-bottom:1px solid #334155"><th style="padding:.4rem">Email</th><th>Slots</th><th>Schedule</th><th>Sent</th><th>Last Sent</th></tr>';
+      subs.forEach(s=>{
+        const slots=(s.keywords||[]).length;
+        const schedule=s.schedule_type||'monthly';
+        const sent=s.monthly_sent||0;
+        const lastSent=s.last_sent_at?new Date(s.last_sent_at).toLocaleDateString():'Never';
+        h+='<tr style="border-bottom:1px solid #1e293b"><td style="padding:.4rem;color:#e2e8f0">'+escHtml(s.email||'')+'</td><td>'+slots+'</td><td>'+schedule+'</td><td>'+sent+'/10</td><td style="color:#64748b">'+lastSent+'</td></tr>';
+      });
+      h+='</table></div>';
+    }
+
+    // Recent Activity
+    h+='<h3 style="color:#a78bfa;font-size:.85rem;margin-bottom:.5rem;border-bottom:1px solid #334155;padding-bottom:.3rem">Recent Activity (last 200)</h3>';
+    h+='<div style="max-height:400px;overflow-y:auto"><table style="width:100%;border-collapse:collapse;font-size:.72rem">';
+    h+='<tr style="color:#94a3b8;text-align:left;border-bottom:1px solid #334155;position:sticky;top:0;background:#0f172a"><th style="padding:.3rem">Time</th><th>Email</th><th>Type</th><th>Detail</th></tr>';
+    activities.forEach(a=>{
+      const time=new Date(a.created_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const typeColors={search:'#10b981',compare:'#3b82f6',ai_analysis:'#f59e0b',alert_push:'#ef4444'};
+      const tc=typeColors[a.type]||'#94a3b8';
+      let detail='';
+      if(a.type==='search'){
+        const d=a.detail||{};
+        const parts=[];
+        if(d.condition)parts.push('C:'+d.condition);
+        if(d.intervention)parts.push('I:'+d.intervention);
+        if(d.keyword)parts.push('K:'+d.keyword);
+        if(d.totalCount!==undefined)parts.push(d.totalCount+' results');
+        detail=parts.join(' | ')||'-';
+      }else if(a.type==='compare'){
+        detail=(a.detail?.nctIds||[]).join(', ');
+      }else if(a.type==='ai_analysis'){
+        const d=a.detail||{};
+        detail=(d.nctIds||[]).join(', ')+(d.tokens?' ('+d.tokens.input+'/'+d.tokens.output+' tok)':'');
+      }else if(a.type==='alert_push'){
+        detail=(a.detail?.filterDesc||'')+(a.detail?.count?' '+a.detail.count+' trials':'');
+      }
+      h+='<tr style="border-bottom:1px solid #1e293b"><td style="padding:.3rem;color:#64748b;white-space:nowrap">'+time+'</td><td style="color:#e2e8f0;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(a.email||'')+'</td><td><span style="color:'+tc+';font-weight:600">'+a.type+'</span></td><td style="color:#94a3b8;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+escHtml(detail)+'">'+escHtml(detail.substring(0,80))+'</td></tr>';
+    });
+    h+='</table></div>';
+
+    document.getElementById('adminContent').innerHTML=h;
+  }catch(e){
+    document.getElementById('adminContent').innerHTML='<div style="color:#ef4444">Error: '+escHtml(e.message)+'</div>';
+  }
+};
 
 window.handleLogout=async function(){
   await _sb.auth.signOut();
