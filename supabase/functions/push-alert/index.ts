@@ -145,6 +145,7 @@ Deno.serve(async (req) => {
           const latest = changes[changes.length - 1];
           const prev = changes[changes.length - 2];
           t.version = latest.version;
+          t.prevVersion = prev.version;
           t.changedModules = latest.moduleLabels || [];
           if (prev.status && prev.status !== latest.status) {
             t.prevStatus = prev.status;
@@ -184,11 +185,12 @@ Deno.serve(async (req) => {
       const modules = (!t.isNew && t.changedModules.length > 0)
         ? `<div style="font-size:10px;color:#6366f1;margin-top:4px">Changed: ${t.changedModules.join(", ")}</div>`
         : '';
-      const diffUrl = (!t.isNew && t.version > 1)
-        ? `https://clinicaltrials.gov/study/${t.nctId}?tab=history&a=${t.version-1}&b=${t.version}#version-content-panel`
+      // API versions are 0-based, website displays 1-based
+      const diffUrl = (!t.isNew && t.version > 0 && t.prevVersion !== undefined)
+        ? `https://clinicaltrials.gov/study/${t.nctId}?tab=history&a=${t.prevVersion+1}&b=${t.version+1}#version-content-panel`
         : '';
       const trialUrl = `https://clinicaltrials.gov/study/${t.nctId}`;
-      const versionInfo = t.version > 0 ? ` · v${t.version}` : '';
+      const versionInfo = t.version > 0 ? ` · v${t.version + 1}` : '';
       const dateInfo = t.isNew
         ? `First posted: ${t.firstPost}`
         : `Updated: ${t.lastUpdate}${versionInfo}`;

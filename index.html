@@ -4372,9 +4372,9 @@ function renderGalaxy(){
    ANALYTICS VIEWS: Trends · Enrollment · Failure Rate · Company Compare
    ══════════════════════════════════════════════════════════════ */
 /* Helper: bar value — inside if bar wide enough, outside-right otherwise */
-function bv(val,barPct,threshold){
+function bv(val,barPct,threshold,unit){
   if(!val||val<=0)return{inside:'',outside:''};
-  const txt=typeof val==='number'?val.toLocaleString():val;
+  const txt=(typeof val==='number'?val.toLocaleString():val)+(unit?' '+unit:'');
   /* barPct is the bar width as a % of container; threshold is min % to show inside */
   if(barPct>=(threshold||8))return{inside:`<span class="ga-bar-val">${txt}</span>`,outside:''};
   return{inside:'',outside:`<span class="ga-bar-val outside">${txt}</span>`};
@@ -4591,8 +4591,8 @@ function renderEnrollmentChart(el,studies){
   const medianArr=studies.map(s=>((s.protocolSection?.designModule?.enrollmentInfo||{}).count)||0).filter(v=>v>0).sort((a,b)=>a-b);
   const median=medianArr.length>0?medianArr[Math.floor(medianArr.length/2)]:0;
   html+=`<div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.8rem;line-height:1.5">Enrollment analytics for your search results. Bar charts show trial distribution by phase and country. Click any bar to see the underlying trials.</div>`;
-  html+=`<div class="ga-grid" style="margin-bottom:1.2rem"><div class="ga-card" title="Total number of trials in your search results and how many report enrollment data"><h5>TOTAL TRIALS</h5><div class="ga-stat">${studies.length}</div><div class="ga-stat-label">${enrolledStudies} with enrollment · ${totalSites} sites</div></div>`;
-  html+=`<div class="ga-card" title="Sum of all enrolled participants across matching trials. Mean and median help gauge typical trial size."><h5>ENROLLMENT</h5><div class="ga-stat">${totalEnroll.toLocaleString()}</div><div class="ga-stat-label">mean ${avgEnroll.toLocaleString()} · median ${median.toLocaleString()}</div></div></div>`;
+  html+=`<div class="ga-grid" style="margin-bottom:1.2rem"><div class="ga-card" title="Total number of clinical trials matching your search"><h5>TOTAL TRIALS</h5><div class="ga-stat">${studies.length} <span style="font-size:.6rem;color:rgba(255,255,255,.5)">trials</span></div><div class="ga-stat-label">${enrolledStudies} reporting enrollment · ${totalSites.toLocaleString()} unique institutions</div></div>`;
+  html+=`<div class="ga-card" title="Total participants enrolled across all matching trials"><h5>TOTAL ENROLLMENT</h5><div class="ga-stat">${totalEnroll.toLocaleString()} <span style="font-size:.6rem;color:rgba(255,255,255,.5)">participants</span></div><div class="ga-stat-label">mean ${avgEnroll.toLocaleString()} per trial · median ${median.toLocaleString()} per trial</div></div></div>`;
   /* Trials by Phase */
   const phaseOrder=['Phase 1','Phase 2','Phase 3','Other'];
   const maxPhaseT=Math.max(...phaseOrder.map(p=>byPhase.get(p)||0),1);
@@ -4600,7 +4600,7 @@ function renderEnrollmentChart(el,studies){
   html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.2rem;font-weight:700">Trials by Phase</div><div style="font-size:.6rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Number of trials in each clinical phase. Click a bar to see the trial list.</div>`;
   phaseOrder.forEach(p=>{
     const v=byPhase.get(p)||0;if(!v)return;
-    const bp=Math.max(v/maxPhaseT*65,1);const vr=bv(v,bp,6);
+    const bp=Math.max(v/maxPhaseT*65,1);const vr=bv(v,bp,6,'trials');
     const safeP=p.replace(/'/g,"\\'");
     html+=`<div class="ga-bar-row" style="cursor:pointer" onclick="if(window._hcPhaseStudies)showAnalyticsTrialPopup('👥 ${safeP}',window._hcPhaseStudies.get('${safeP}')||[],'${v} trials')"><div class="ga-bar-label">${p}</div><div class="ga-bar" style="width:${bp}%;background:${phaseColors[p]||'#888'}">${vr.inside}</div>${vr.outside}</div>`;
   });
@@ -4618,7 +4618,7 @@ function renderEnrollmentChart(el,studies){
   const maxCountryT=allCountries.length>0?allCountries[0][1].trials:1;
   // Store for country search
   window._hcAllCountries=allCountries;window._hcAnonByCountry=anonByCountry;window._hcMaxCountryT=maxCountryT;
-  html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.2rem;font-weight:700">Countries by Trial Count (Trials · Unique Sites)</div><div style="font-size:.6rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Bar = trial count per country. Click bar for trial list, click "sites" for site details. Use search to find a specific country.</div>`;
+  html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.2rem;font-weight:700">Countries by Trial Count</div><div style="font-size:.6rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Bar = number of clinical trials per country. "institutions" = unique research sites (hospitals, clinics, centers). Note: US counts may appear high because large hospital networks (e.g. HCA/Sarah Cannon) and CRO site networks register each physical location separately under a central IRB. Click bar → trial list, click institutions → site details.</div>`;
   html+=`<div style="margin-bottom:.6rem"><input type="text" id="hcCountrySearch" placeholder="Search country..." oninput="filterCountryRanking(this.value)" style="width:200px;padding:.3rem .6rem;font-size:.75rem;background:rgba(255,255,255,.08);border:1px solid rgba(0,228,124,.3);border-radius:4px;color:#fff;outline:none"></div>`;
   html+=`<div id="hcCountryList">`;
   const showInitial=Math.min(allCountries.length,15);
@@ -4653,8 +4653,8 @@ function renderEnrollmentChart(el,studies){
       html+=`<div class="ga-bar-row" style="margin-bottom:.15rem;align-items:center">`;
       html+=`<div style="width:18px;text-align:right;font-size:.6rem;color:rgba(255,255,255,.35);margin-right:.3rem">${i+1}</div>`;
       html+=`<div class="ga-bar-label" style="min-width:180px;font-size:.62rem" title="${escHtml(site)}">${escHtml(label)}</div>`;
-      html+=`<div class="ga-bar" style="width:${bp}%;background:linear-gradient(90deg,#4ECDC4,#00E47C);height:14px">${info.trials>1&&bp>4?'<span class="ga-bar-val" style="font-size:.58rem">'+info.trials+'</span>':''}</div>`;
-      if(info.trials>1&&bp<=4)html+=`<span style="font-size:.6rem;font-weight:700;color:rgba(255,255,255,.7);margin-left:3px">${info.trials}</span>`;
+      html+=`<div class="ga-bar" style="width:${bp}%;background:linear-gradient(90deg,#4ECDC4,#00E47C);height:14px">${info.trials>1&&bp>4?'<span class="ga-bar-val" style="font-size:.58rem">'+info.trials+' trials</span>':''}</div>`;
+      if(info.trials>1&&bp<=4)html+=`<span style="font-size:.6rem;font-weight:700;color:rgba(255,255,255,.7);margin-left:3px">${info.trials} trials</span>`;
       html+=`<div style="min-width:140px;text-align:right;font-size:.6rem;display:flex;align-items:center;justify-content:flex-end;gap:.3rem">${_countryTag(info.country)}</div>`;
       html+=`</div>`;
     });
@@ -4687,8 +4687,8 @@ function renderEnrollmentChart(el,studies){
       const _rFlag=_rSvg?`<span class="flag-svg" style="width:14px;height:10px;display:inline-block;border-radius:1px;overflow:hidden;vertical-align:middle;box-shadow:0 0 0 .5px rgba(0,0,0,.15)">${_rSvg}</span> `:'';
       const bp=Math.max(s.trials/maxR*45,1);
       html+=`<div class="ga-bar-row" style="margin-bottom:.15rem"><div class="ga-bar-label" style="min-width:190px;font-size:.6rem" title="${escHtml(s.site)}">${_rFlag}${escHtml(label)}</div>`;
-      html+=`<div class="ga-bar" style="width:${bp}%;background:${rClr}88;height:13px">${s.trials>1&&bp>6?'<span class="ga-bar-val" style="font-size:.56rem">'+s.trials+'</span>':''}</div>`;
-      if(s.trials>1&&bp<=6)html+=`<span style="font-size:.58rem;font-weight:700;color:rgba(255,255,255,.65);margin-left:3px">${s.trials}</span>`;
+      html+=`<div class="ga-bar" style="width:${bp}%;background:${rClr}88;height:13px">${s.trials>1&&bp>6?'<span class="ga-bar-val" style="font-size:.56rem">'+s.trials+' trials</span>':''}</div>`;
+      if(s.trials>1&&bp<=6)html+=`<span style="font-size:.58rem;font-weight:700;color:rgba(255,255,255,.65);margin-left:3px">${s.trials} trials</span>`;
       html+=`<span style="font-size:.58rem;color:rgba(255,255,255,.4);margin-left:.3rem">${cc||s.country}</span></div>`;
     });
     if(allInRegion.length>showN)html+=`<div style="color:rgba(255,255,255,.3);font-size:.58rem;margin-left:12px;margin-top:.1rem">+${allInRegion.length-showN} more</div>`;
@@ -4698,7 +4698,7 @@ function renderEnrollmentChart(el,studies){
 }
 
 function _buildCountryBar(c,trials,sites,idx,maxT,anonMap){
-  const bp=Math.max(trials/maxT*55,1);const vr=bv(trials,bp,6);
+  const bp=Math.max(trials/maxT*55,1);const vr=bv(trials,bp,6,'trials');
   const anonN=anonMap.get(c)||0;
   const anonTag=anonN>0?` <span style="color:rgba(255,255,255,.35);font-size:.6rem">(anon ${anonN})</span>`:'';
   const safeC=escHtml(c).replace(/'/g,"\\'");
@@ -4706,7 +4706,7 @@ function _buildCountryBar(c,trials,sites,idx,maxT,anonMap){
   const svg=cc?COUNTRY_FLAG_SVG[cc]:'';
   const flag=svg?`<span class="flag-svg" style="width:14px;height:10px;display:inline-block;border-radius:1px;overflow:hidden;vertical-align:middle;box-shadow:0 0 0 .5px rgba(0,0,0,.15)">${svg}</span> `:'';
   const rank=`<span style="min-width:22px;display:inline-block;text-align:right;font-size:.58rem;color:rgba(255,255,255,.4);margin-right:.3rem">#${idx+1}</span>`;
-  return `<div class="ga-bar-row" style="cursor:pointer" onclick="if(window._hcCountryStudies)showAnalyticsTrialPopup('👥 ${safeC}',window._hcCountryStudies.get('${safeC}')||[],'${trials} trials · ${sites} sites')"><div class="ga-bar-label" style="min-width:130px">${rank}${flag}${escHtml(c)}</div><div class="ga-bar" style="width:${bp}%;background:linear-gradient(90deg,#4ECDC4,#00E47C)">${vr.inside}</div>${vr.outside}<span class="ga-bar-val-out" onclick="event.stopPropagation();showSitePopup('${safeC}')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Click to view site list">${sites} sites${anonTag}</span></div>`;
+  return `<div class="ga-bar-row" style="cursor:pointer" onclick="if(window._hcCountryStudies)showAnalyticsTrialPopup('👥 ${safeC}',window._hcCountryStudies.get('${safeC}')||[],'${trials} trials · ${sites} institutions')"><div class="ga-bar-label" style="min-width:130px">${rank}${flag}${escHtml(c)}</div><div class="ga-bar" style="width:${bp}%;background:linear-gradient(90deg,#4ECDC4,#00E47C)">${vr.inside}</div>${vr.outside}<span class="ga-bar-val-out" onclick="event.stopPropagation();showSitePopup('${safeC}')" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Unique research institutions in this country. Click to view list.">${sites.toLocaleString()} institutions${anonTag}</span></div>`;
 }
 
 window.filterCountryRanking=function(query){
