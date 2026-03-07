@@ -6215,7 +6215,7 @@ function _aiIncrement(){
   localStorage.setItem('ai_monthly',JSON.stringify(_aiMonthlyUsed));
 }
 
-async function runQuickAI(){
+window.runQuickAI=async function(){
   const btn=document.getElementById('aiQuickBtn');
   const statusEl=document.getElementById('aiQuickStatus');
   if(!_currentUser){statusEl.textContent='Please sign in first';statusEl.style.color='#f59e0b';return;}
