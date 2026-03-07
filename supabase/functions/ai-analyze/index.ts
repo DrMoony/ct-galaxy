@@ -131,10 +131,104 @@ TRIAL ${i + 1}: ${id.nctId || ""}
 ${eligText || "N/A"}`;
     }).join("\n\n" + "=".repeat(80) + "\n");
 
+    // ── PubMed: fetch top 3 high-IF papers per drug ──
+    const HIGH_IF_JOURNALS = '("N Engl J Med"[Journal] OR "Lancet"[Journal] OR "JAMA"[Journal] OR "BMJ"[Journal] OR "Nat Med"[Journal] OR "J Clin Oncol"[Journal] OR "Lancet Oncol"[Journal] OR "Ann Oncol"[Journal] OR "Blood"[Journal] OR "Hepatology"[Journal] OR "Gastroenterology"[Journal] OR "Circulation"[Journal] OR "Eur Heart J"[Journal] OR "Diabetes Care"[Journal] OR "J Hepatol"[Journal] OR "Ann Intern Med"[Journal] OR "Gut"[Journal] OR "JAMA Oncol"[Journal])';
+
+    // Extract unique drug names from trials
+    const drugNames = [...new Set(trials.slice(0, 4).flatMap((t: any) => {
+      const arms = t.protocolSection?.armsInterventionsModule?.interventions || [];
+      return arms.filter((iv: any) => iv.type === "DRUG" || iv.type === "BIOLOGICAL").map((iv: any) => iv.name);
+    }))].slice(0, 6);
+
+    // Extract conditions for FDA search
+    const conditions = [...new Set(trials.slice(0, 4).flatMap((t: any) =>
+      t.protocolSection?.conditionsModule?.conditions || []
+    ))].slice(0, 3);
+
+    async function searchPubMed(drugName: string): Promise<string> {
+      try {
+        // First try high-IF journals
+        let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&retmax=3&sort=relevance&term=${encodeURIComponent(drugName)}+AND+${encodeURIComponent(HIGH_IF_JOURNALS)}`;
+        let res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        let data = await res.json();
+        let ids = data.esearchresult?.idlist || [];
+
+        // Fallback: no journal filter
+        if (ids.length === 0) {
+          url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&retmax=3&sort=relevance&term=${encodeURIComponent(drugName)}+AND+(clinical+trial+OR+phase)`;
+          res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+          data = await res.json();
+          ids = data.esearchresult?.idlist || [];
+        }
+        if (ids.length === 0) return "";
+
+        // Fetch summaries + abstracts
+        const sumRes = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&id=${ids.join(",")}`, { signal: AbortSignal.timeout(5000) });
+        const sumData = await sumRes.json();
+
+        const absRes = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&rettype=abstract&retmode=text&id=${ids.join(",")}`, { signal: AbortSignal.timeout(5000) });
+        const absText = await absRes.text();
+        // Split abstracts by double newline + number pattern
+        const abstracts = absText.split(/\n\n(?=\d+\.\s)/).map(a => a.trim());
+
+        let result = `\nKEY PUBLICATIONS for "${drugName}":\n`;
+        ids.forEach((id: string, idx: number) => {
+          const article = sumData.result?.[id];
+          if (!article) return;
+          const title = article.title || "";
+          const journal = article.fulljournalname || article.source || "";
+          const year = (article.pubdate || "").substring(0, 4);
+          const authors = (article.authors || []).slice(0, 3).map((a: any) => a.name).join(", ");
+          // Extract abstract for this article (rough match)
+          const absForThis = abstracts[idx]?.substring(0, 800) || "";
+          result += `  [${idx + 1}] ${title}\n      ${authors} et al. ${journal} (${year}) PMID:${id}\n      Abstract: ${absForThis}\n\n`;
+        });
+        return result;
+      } catch { return ""; }
+    }
+
+    // ── openFDA: recent drug approvals/labels for the conditions ──
+    async function searchFDA(condition: string): Promise<string> {
+      try {
+        const url = `https://api.fda.gov/drug/drugsfda.json?search=indications_and_usage:"${encodeURIComponent(condition)}"&limit=5&sort=submissions.submission_date:desc`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        if (!res.ok) return "";
+        const data = await res.json();
+        const results = data.results || [];
+        if (results.length === 0) return "";
+
+        let out = `\nFDA APPROVED DRUGS for "${condition}":\n`;
+        results.forEach((r: any, i: number) => {
+          const brand = r.openfda?.brand_name?.[0] || "Unknown";
+          const generic = r.openfda?.generic_name?.[0] || "";
+          const sponsor = r.sponsor_name || "";
+          const subs = r.submissions || [];
+          const latest = subs[0] || {};
+          const date = latest.submission_date || "";
+          const type = latest.submission_type || "";
+          out += `  [${i + 1}] ${brand} (${generic}) — ${sponsor}, ${type} ${date ? date.substring(0, 4) + "-" + date.substring(4, 6) : "N/A"}\n`;
+        });
+        return out;
+      } catch { return ""; }
+    }
+
+    // Parallel fetch: PubMed + FDA
+    const [pubmedResults, fdaResults] = await Promise.all([
+      Promise.all(drugNames.map(d => searchPubMed(d))),
+      Promise.all(conditions.map(c => searchFDA(c))),
+    ]);
+
+    const pubmedSection = pubmedResults.filter(Boolean).join("\n");
+    const fdaSection = fdaResults.filter(Boolean).join("\n");
+    const externalData = [pubmedSection, fdaSection].filter(Boolean).join("\n" + "=".repeat(40) + "\n");
+
     const prompt = `You are a senior clinical trial analyst at a top pharma competitive intelligence firm specializing in regulatory strategy. Perform a deep comparative analysis of these ${trials.length} clinical trials.
 
 ${trialSummaries}
 
+${"=".repeat(80)}
+EXTERNAL REFERENCES (PubMed & FDA):
+${externalData || "(No external data retrieved)"}
 ${"=".repeat(80)}
 
 Provide your analysis in the following structure. Use HTML with inline styles. Be specific — cite NCT IDs, drug names, exact numbers, and percentages. Be opinionated — give clear assessments, not just descriptions. Use <strong> for key insights.
@@ -192,6 +286,14 @@ Who wins if all trials succeed? Who has the best risk-adjusted position?</p>
 - <strong>Market positioning</strong>: If approved, where does each drug fit in the treatment landscape? First-in-class advantage? Best-in-class potential? What existing treatments does it compete with? Estimate market potential relative to competitors (dominant vs. niche vs. me-too).
 Be concrete with dates (e.g., "Q3 2027") rather than vague ("in the coming years").</p>
 
+<h3 style="color:#0369a1;border-bottom:2px solid #38bdf8;padding-bottom:4px">9. Literature & Regulatory Context</h3>
+<p>Using the PubMed publications and FDA approval data provided above:
+- Cite the most relevant publications for each drug — what do they show about efficacy/safety from earlier trials?
+- Reference any FDA-approved competitors in this indication — how do approved drugs' profiles compare to what these trials are testing?
+- If key Phase 2 data exists in the literature, summarize the efficacy signals and safety profile that inform Phase 3 expectations.
+- Include PMID links where available: format as <a href="https://pubmed.ncbi.nlm.nih.gov/PMID" style="color:#0284c7;text-decoration:none">PMID:NUMBER</a>
+If no relevant publications or FDA data were found, state that and rely on your knowledge.</p>
+
 Rules:
 - Be specific: cite NCT IDs, exact numbers, drug names, country percentages
 - Be opinionated: give clear assessments and verdicts, not balanced-both-sides descriptions
@@ -212,7 +314,7 @@ Rules:
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            maxOutputTokens: 10000,
+            maxOutputTokens: 12000,
             temperature: 0.3,
             thinkingConfig: { thinkingBudget: 0 },
           },
