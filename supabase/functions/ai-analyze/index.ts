@@ -308,7 +308,9 @@ If no relevant publications or FDA data were found, state that and rely on your 
 Rules:
 - Be specific: cite NCT IDs, exact numbers, drug names, country percentages
 - Be opinionated: give clear assessments and verdicts, not balanced-both-sides descriptions
-- CRITICAL LENGTH REQUIREMENT: Your response MUST be at least ${trials.slice(0,4).length * 1300} tokens (${trials.slice(0,4).length} trials × 1300 tokens each). Each section must be LONG and DETAILED — minimum 10-20 sentences per section. Do NOT summarize briefly. Write thorough, in-depth paragraphs with specific data points, comparisons, and reasoning. If a section feels "done" after 5 sentences, you have NOT written enough — expand with more analysis, implications, and cross-trial comparisons. SHORT RESPONSES ARE UNACCEPTABLE.
+- ABSOLUTE MINIMUM LENGTH: ${trials.slice(0,4).length} trials × 1300 tokens = ${trials.slice(0,4).length * 1300} tokens MINIMUM. You MUST write at least this many tokens. Count carefully. If your response would be shorter than ${trials.slice(0,4).length * 1300} tokens, you MUST go back and add more detail to each section until you reach the minimum. Each of the 9 sections should be roughly ${Math.round(trials.slice(0,4).length * 1300 / 9)} tokens.
+- Each section: minimum 10-20 sentences. Every trial must get substantial individual analysis in every section — not just a passing mention. Include specific numbers, dates, comparisons, and reasoning for each trial individually.
+- Do NOT summarize briefly. If a section feels "done" after 5 sentences, you have NOT written enough. SHORT RESPONSES ARE A FAILURE.
 - Professional English accessible to both clinicians and business stakeholders
 - Use <strong> for emphasis, <br> for line breaks within sections
 - USE HTML TABLES extensively for comparisons. When comparing 2+ trials on any dimension (endpoints, eligibility, sites, timelines, etc.), present it as a styled HTML table:
@@ -323,8 +325,8 @@ Rules:
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
         maxOutputTokens: 24000,
-        temperature: 0.3,
-        thinkingConfig: { thinkingBudget: 0 },
+        temperature: 0.4,
+        thinkingConfig: { thinkingBudget: 4096 },
       },
     });
     const headers = { "Content-Type": "application/json" };
