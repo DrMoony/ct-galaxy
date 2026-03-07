@@ -74,7 +74,11 @@ Deno.serve(async (req) => {
         return null;
       });
       const results = await Promise.all(fetches);
-      studies = results.filter(Boolean);
+      // Filter to only trials updated within the date range
+      studies = results.filter(Boolean).filter((s: any) => {
+        const lu = s?.protocolSection?.statusModule?.lastUpdatePostDateStruct?.date || "";
+        return lu >= since;
+      });
     } else {
       // Search/Drug mode: query with filters
       const params = new URLSearchParams({ format: "json", pageSize: "50", sort: "LastUpdatePostDate:desc" });

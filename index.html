@@ -6927,7 +6927,7 @@ window.previewAlert=async function(idx){
     let studies=[];
     if(slot.nctIds&&slot.nctIds.length>0){
       const fetches=slot.nctIds.map(nctId=>fetch(`https://clinicaltrials.gov/api/v2/studies/${nctId}?format=json`).then(r=>r.ok?r.json():null).catch(()=>null));
-      studies=(await Promise.all(fetches)).filter(Boolean);
+      studies=(await Promise.all(fetches)).filter(Boolean).filter(s=>{const lu=s?.protocolSection?.statusModule?.lastUpdatePostDateStruct?.date||'';return lu>=since;});
     } else {
       const params=new URLSearchParams({format:'json',pageSize:'50',sort:'LastUpdatePostDate:desc'});
       const qp=[];

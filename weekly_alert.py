@@ -68,7 +68,11 @@ def query_ctgov(slot, days=7):
         for nct_id in slot['nctIds']:
             s = fetch_study_by_id(nct_id)
             if s:
-                studies.append(s)
+                # Filter to only trials updated within the date range
+                lu = (s.get('protocolSection', {}).get('statusModule', {})
+                      .get('lastUpdatePostDateStruct', {}).get('date', ''))
+                if lu >= since:
+                    studies.append(s)
         return studies, since
 
     # Search/Drug/Sponsor mode
