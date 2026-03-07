@@ -6664,7 +6664,7 @@ window._adminFilter=function(range){
   h+='<div style="background:#1e293b;padding:.8rem;border-radius:8px;text-align:center;cursor:pointer" onclick="window._adminFilterType(\'alert_push\')"><div style="font-size:1.4rem;font-weight:800;color:#ef4444">'+(typeCount.alert_push||0)+'</div><div style="font-size:.65rem;color:#94a3b8">Alerts</div></div>';
   let totalIn=0,totalOut=0;
   activities.filter(a=>a.type==='ai_analysis').forEach(a=>{const t=a.detail?.tokens||{};totalIn+=(t.input||0);totalOut+=(t.output||0);});
-  const totalCost=((totalIn*0.075+totalOut*0.30)/1e6*1400).toFixed(0);
+  const totalCost=((totalIn*0.25+totalOut*1.50)/1e6*1400).toFixed(0);
   h+='<div style="background:#1e293b;padding:.8rem;border-radius:8px;text-align:center"><div style="font-size:1rem;font-weight:800;color:#00e47c">'+(totalIn/1000).toFixed(1)+'K/<span style="color:#38bdf8">'+(totalOut/1000).toFixed(1)+'K</span></div><div style="font-size:.65rem;color:#94a3b8">Tokens ≈ ₩'+Number(totalCost).toLocaleString()+'</div></div>';
   h+='</div>';
 
@@ -6695,7 +6695,7 @@ window._adminFilter=function(range){
     h+='<div style="overflow-x:auto;margin-top:.5rem"><table style="width:100%;border-collapse:collapse;font-size:.73rem">';
     h+='<tr style="color:#94a3b8;text-align:left;border-bottom:1px solid #334155"><th style="padding:.4rem">Email</th><th>Calls</th><th>In</th><th>Out</th><th>Cost</th></tr>';
     aiUsers.forEach(([email,u])=>{
-      const cost=((u.tokIn*0.075+u.tokOut*0.30)/1e6*1400).toFixed(0);
+      const cost=((u.tokIn*0.25+u.tokOut*1.50)/1e6*1400).toFixed(0);
       h+='<tr style="border-bottom:1px solid #1e293b"><td style="padding:.4rem;color:#e2e8f0">'+escHtml(email)+'</td><td>'+u.count+'</td><td>'+u.tokIn.toLocaleString()+'</td><td>'+u.tokOut.toLocaleString()+'</td><td style="color:#00e47c;font-weight:600">₩'+Number(cost).toLocaleString()+'</td></tr>';
     });
     h+='</table></div></details>';
@@ -7273,27 +7273,22 @@ window.runQuickAI=async function(){
   <div style="position:relative;height:4px;background:#1e3a5f;border-radius:2px">
     <div id="aiCatBar" style="position:absolute;left:0;top:0;height:100%;width:0%;background:linear-gradient(90deg,#00e47c,#10b981);border-radius:2px;transition:width .6s ease"></div>
   </div>
-  <div style="display:flex;justify-content:space-between;margin-top:4px;padding:0 2px">
-    <span id="aiStep1" style="font-size:.5rem;color:#334155">① PubMed</span>
-    <span id="aiStep2" style="font-size:.5rem;color:#334155">② FDA</span>
-    <span id="aiStep3" style="font-size:.5rem;color:#334155">③ Gemini</span>
-    <span id="aiStep4" style="font-size:.5rem;color:#334155">④ Report</span>
-  </div>`;
+  `;
   statusEl.appendChild(track);
   // Timer + progress
   const aiStartTime=Date.now();
   let catStep=0;
   const catSteps=[
-    {pct:10,label:'Searching PubMed for publications...',step:1},
-    {pct:25,label:'Fetching abstracts from high-IF journals...',step:1},
-    {pct:40,label:'Checking FDA approved drugs...',step:2},
-    {pct:55,label:'Sending data to Gemini AI...',step:3},
-    {pct:65,label:'AI analyzing study designs...',step:3},
-    {pct:72,label:'AI comparing endpoints & eligibility...',step:3},
-    {pct:80,label:'AI assessing competitive landscape...',step:3},
-    {pct:85,label:'AI forecasting timelines & market...',step:3},
-    {pct:90,label:'Generating final report...',step:4},
-    {pct:95,label:'Almost done...',step:4}
+    {pct:10,label:'Gathering intelligence...'},
+    {pct:25,label:'Cross-referencing data sources...'},
+    {pct:40,label:'Reviewing competitive landscape...'},
+    {pct:55,label:'Deep-diving into protocols...'},
+    {pct:65,label:'Evaluating strategic positioning...'},
+    {pct:72,label:'Assessing risk factors...'},
+    {pct:80,label:'Building market forecast...'},
+    {pct:85,label:'Synthesizing insights...'},
+    {pct:90,label:'Finalizing analysis...'},
+    {pct:95,label:'Almost done...'}
   ];
   window._aiCatInterval=setInterval(()=>{
     const elapsed=Math.round((Date.now()-aiStartTime)/1000);
@@ -7305,10 +7300,6 @@ window.runQuickAI=async function(){
       const lbl=document.getElementById('aiCatLabel');
       if(bar)bar.style.width=s.pct+'%';
       if(lbl)lbl.textContent=s.label;
-      for(let i=1;i<=4;i++){
-        const el=document.getElementById('aiStep'+i);
-        if(el)el.style.color=i<s.step?'#00e47c':i===s.step?'#38bdf8':'#334155';
-      }
       catStep++;
     }
   },3000);
@@ -7329,7 +7320,6 @@ window.runQuickAI=async function(){
     const elapsed=Math.round((Date.now()-aiStartTime)/1000);
     const bar=document.getElementById('aiCatBar');const cat=document.getElementById('aiCat');const lbl=document.getElementById('aiCatLabel');
     if(bar)bar.style.width='100%';if(cat)cat.textContent='😺';if(lbl)lbl.textContent='Complete! ('+elapsed+'s)';
-    for(let i=1;i<=4;i++){const el=document.getElementById('aiStep'+i);if(el)el.style.color='#00e47c';}
     setTimeout(()=>{const tr=document.getElementById('aiCatTrack');if(tr)tr.remove();statusEl.textContent=`Done! (${remaining} left this month)`;},2000);
     statusEl.style.color='#10b981';
     const infoEl=document.getElementById('aiQuickInfo');
@@ -7344,7 +7334,7 @@ window.runQuickAI=async function(){
     const modelName=result.model||'Gemini AI';
     let costLine='';
     if(_isMaster()&&tIn){
-      const pIn=modelName.includes('2.5-flash')?0.15:0.075, pOut=modelName.includes('2.5-flash')?0.60:0.30;
+      const pIn=modelName.includes('2.5')?0.15:modelName.includes('Lite')?0.25:0.50, pOut=modelName.includes('2.5')?0.60:modelName.includes('Lite')?1.50:3.00;
       const costUSD=tIn*pIn/1e6+tOut*pOut/1e6;
       const costKRW=Math.round(costUSD*1400);
       costLine=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.8rem;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:.65rem;color:#64748b;flex-wrap:wrap;gap:4px"><span>${modelName} · In: ${tIn.toLocaleString()} · Out: ${tOut.toLocaleString()}</span><span style="font-weight:600;color:#059669">≈ $${costUSD.toFixed(4)} (₩${costKRW}) · 월10건 ≈ ₩${(costKRW*10).toLocaleString()}</span></div>`;

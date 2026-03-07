@@ -188,7 +188,7 @@ ${eligText || "N/A"}`;
     }
 
     // ── openFDA: recent drug approvals/labels for the conditions ──
-    async function searchFDA(condition: string): Promise<string> {
+    async function searchFDAbyCondition(condition: string): Promise<string> {
       try {
         const url = `https://api.fda.gov/drug/drugsfda.json?search=indications_and_usage:"${encodeURIComponent(condition)}"&limit=5&sort=submissions.submission_date:desc`;
         const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
@@ -212,15 +212,66 @@ ${eligText || "N/A"}`;
       } catch { return ""; }
     }
 
-    // Parallel fetch: PubMed + FDA
-    const [pubmedResults, fdaResults] = await Promise.all([
+    // ── openFDA: drug-specific label/approval info ──
+    async function searchFDAbyDrug(drugName: string): Promise<string> {
+      try {
+        const url = `https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${encodeURIComponent(drugName)}"+OR+openfda.brand_name:"${encodeURIComponent(drugName)}"&limit=2`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        if (!res.ok) return "";
+        const data = await res.json();
+        const results = data.results || [];
+        if (results.length === 0) return "";
+
+        let out = `\nFDA LABEL INFO for "${drugName}":\n`;
+        results.forEach((r: any, i: number) => {
+          const brand = r.openfda?.brand_name?.[0] || "";
+          const generic = r.openfda?.generic_name?.[0] || "";
+          const indications = (r.indications_and_usage?.[0] || "").slice(0, 500);
+          const warnings = (r.boxed_warning?.[0] || r.warnings?.[0] || "").slice(0, 300);
+          const effectiveDate = r.effective_time || "";
+          out += `  [${i + 1}] ${brand} (${generic}) — Effective: ${effectiveDate ? effectiveDate.substring(0, 4) + "-" + effectiveDate.substring(4, 6) : "N/A"}\n`;
+          out += `      Indications: ${indications}\n`;
+          if (warnings) out += `      Key Warnings: ${warnings}\n`;
+        });
+        return out;
+      } catch { return ""; }
+    }
+
+    // ── PubMed: recent reviews/guidelines for landscape context ──
+    async function searchRecentReviews(condition: string): Promise<string> {
+      try {
+        const url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&retmax=3&sort=date&term=${encodeURIComponent(condition)}+AND+(review[pt] OR guideline[pt] OR "FDA approval" OR "regulatory")+AND+("last 2 years"[dp])`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        const data = await res.json();
+        const ids = data.esearchresult?.idlist || [];
+        if (ids.length === 0) return "";
+
+        const sumRes = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&id=${ids.join(",")}`, { signal: AbortSignal.timeout(5000) });
+        const sumData = await sumRes.json();
+
+        let out = `\nRECENT REVIEWS/GUIDELINES for "${condition}":\n`;
+        ids.forEach((id: string, idx: number) => {
+          const article = sumData.result?.[id];
+          if (!article) return;
+          out += `  [${idx + 1}] ${article.title}\n      ${article.source || ""} (${(article.pubdate || "").substring(0, 4)}) PMID:${id}\n`;
+        });
+        return out;
+      } catch { return ""; }
+    }
+
+    // Parallel fetch: PubMed + FDA (condition) + FDA (drug) + Recent reviews
+    const [pubmedResults, fdaCondResults, fdaDrugResults, reviewResults] = await Promise.all([
       Promise.all(drugNames.map(d => searchPubMed(d))),
-      Promise.all(conditions.map(c => searchFDA(c))),
+      Promise.all(conditions.map(c => searchFDAbyCondition(c))),
+      Promise.all(drugNames.map(d => searchFDAbyDrug(d))),
+      Promise.all(conditions.map(c => searchRecentReviews(c))),
     ]);
 
     const pubmedSection = pubmedResults.filter(Boolean).join("\n");
-    const fdaSection = fdaResults.filter(Boolean).join("\n");
-    const externalData = [pubmedSection, fdaSection].filter(Boolean).join("\n" + "=".repeat(40) + "\n");
+    const fdaCondSection = fdaCondResults.filter(Boolean).join("\n");
+    const fdaDrugSection = fdaDrugResults.filter(Boolean).join("\n");
+    const reviewSection = reviewResults.filter(Boolean).join("\n");
+    const externalData = [pubmedSection, fdaCondSection, fdaDrugSection, reviewSection].filter(Boolean).join("\n" + "=".repeat(40) + "\n");
 
     const prompt = `You are a senior clinical trial analyst at a top pharma competitive intelligence firm specializing in regulatory strategy. Perform a deep comparative analysis of these ${trials.length} clinical trials.
 
@@ -306,9 +357,11 @@ Be concrete with dates (e.g., "Q3 2027") rather than vague ("in the coming years
 If no relevant publications or FDA data were found, state that and rely on your knowledge.</p>
 
 Rules:
-- Be specific: cite NCT IDs, exact numbers, drug names, country percentages
+- NEVER cite an NCT ID alone. ALWAYS pair it with the drug name, e.g., "survodutide (NCT06789012)" or "NCT06789012 (survodutide)". A standalone NCT ID without the drug name is FORBIDDEN.
+- Be specific: cite exact numbers, drug names, country percentages
 - Be opinionated: give clear assessments and verdicts, not balanced-both-sides descriptions
-- ABSOLUTE MINIMUM LENGTH: ${trials.slice(0,4).length} trials × 1300 tokens = ${trials.slice(0,4).length * 1300} tokens MINIMUM. You MUST write at least this many tokens. Count carefully. If your response would be shorter than ${trials.slice(0,4).length * 1300} tokens, you MUST go back and add more detail to each section until you reach the minimum. Each of the 9 sections should be roughly ${Math.round(trials.slice(0,4).length * 1300 / 9)} tokens.
+- USE the external references (PubMed, FDA labels, recent reviews) provided above to ground your analysis in the LATEST evidence. Reference recent approvals, guideline changes, and regulatory trends from the data. Do NOT rely solely on your training data for regulatory landscape — use the retrieved data.
+- ABSOLUTE MINIMUM LENGTH: ${trials.slice(0,4).length} trials × 1700 tokens = ${trials.slice(0,4).length * 1700} tokens MINIMUM. You MUST write at least this many tokens. Count carefully. If your response would be shorter than ${trials.slice(0,4).length * 1700} tokens, you MUST go back and add more detail to each section until you reach the minimum. Each of the 9 sections should be roughly ${Math.round(trials.slice(0,4).length * 1700 / 9)} tokens.
 - Each section: minimum 10-20 sentences. Every trial must get substantial individual analysis in every section — not just a passing mention. Include specific numbers, dates, comparisons, and reasoning for each trial individually.
 - Do NOT summarize briefly. If a section feels "done" after 5 sentences, you have NOT written enough. SHORT RESPONSES ARE A FAILURE.
 - Professional English accessible to both clinicians and business stakeholders
@@ -318,28 +371,28 @@ Rules:
 - Do NOT use markdown — only HTML with inline styles
 - Do NOT cut the analysis short. If you run out of space, prioritize completing all 9 sections over being brief in early sections.
 - IMPORTANT: Write the ENTIRE analysis in ${langName}. Section headings, analysis text, and all content must be in ${langName}. Keep NCT IDs and drug names in their original form.
-- CRITICAL: For ALL technical/medical/regulatory terms, ALWAYS include the English term in parentheses after the translated term. Examples: 무작위배정(Randomization), 이중맹검(Double-blind), 主要终点(Primary Endpoint), 加速承認(Accelerated Approval), 全生存期(Overall Survival), Gesamtüberleben(Overall Survival). This applies to every language except English.`;
+- CRITICAL: For ALL technical/medical/regulatory terms, ALWAYS include the English term in parentheses after the translated term. Examples: 무작위배정(Randomization), 이중맹검(Double-blind), 主要终点(Primary Endpoint), 加速承認(Accelerated Approval), 全生存期(Overall Survival), Gesamtüberleben(Overall Survival). This applies to every language except English.
 
-    // Call Gemini 2.5 Pro (fallback to Flash if Pro unavailable)
-    const reqBody = JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        maxOutputTokens: 24000,
-        temperature: 0.4,
-        thinkingConfig: { thinkingBudget: 4096 },
-      },
-    });
+FINAL REMINDER — LENGTH CHECK:
+Your output MUST be at least ${trials.slice(0,4).length * 1700} tokens. That means each of the 9 sections must average at least ${Math.round(trials.slice(0,4).length * 1700 / 9)} tokens. If any section is under 5 sentences, EXPAND it with more analysis, comparisons, tables, and trial-specific detail. An output under ${trials.slice(0,4).length * 1700} tokens is UNACCEPTABLE and constitutes a failed analysis. Write MORE, not less.`;
+
+    // Call Gemini (cascade: 3.1 Flash Lite → 3 Flash → 2.5 Flash)
     const headers = { "Content-Type": "application/json" };
 
-    // Try models in order: 3.1 Flash Lite → 3 Flash → 2.5 Flash
     const models = [
-      { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash-Lite" },
-      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash" },
-      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+      { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash-Lite", thinking: false },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash", thinking: true },
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", thinking: true },
     ];
     let geminiRes!: Response;
     let usedModel = models[0].name;
     for (const m of models) {
+      const genConfig: any = { maxOutputTokens: 32000, temperature: 0.5 };
+      if (m.thinking) genConfig.thinkingConfig = { thinkingBudget: 4096 };
+      const reqBody = JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: genConfig,
+      });
       geminiRes = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${m.id}:generateContent?key=${GEMINI_KEY}`,
         { method: "POST", headers, body: reqBody }
