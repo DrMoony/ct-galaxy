@@ -7267,20 +7267,25 @@ function adjustHSL(hex,hShift,sShift,lShift){
 function luminance(hex){const{r,g,b}=hexToRgb(hex);return(0.299*r+0.587*g+0.114*b)/255;}
 
 function ensureContrast(fgHex,bgHex,minDiff){
-  // Ensure sufficient luminance difference between fg (mint) and bg (dark)
+  // Ensure sufficient luminance difference between fg (mint/text) and bg (dark/background)
   const fgL=luminance(fgHex), bgL=luminance(bgHex);
   const diff=Math.abs(fgL-bgL);
   if(diff>=minDiff)return{fg:fgHex,bg:bgHex};
-  const fgHsl=hexToHsl(fgHex), bgHsl=hexToHsl(bgHex);
-  if(fgHsl.l>bgHsl.l){
-    // fg is lighter — make fg lighter and bg darker
-    const boost=Math.ceil((minDiff-diff)*100);
-    return{fg:adjustHSL(fgHex,0,10,Math.min(boost,40)),bg:adjustHSL(bgHex,0,0,-Math.min(boost*0.6,25))};
-  } else {
-    // fg is darker — make bg lighter and fg darker
-    const boost=Math.ceil((minDiff-diff)*100);
-    return{fg:adjustHSL(fgHex,0,0,-Math.min(boost,25)),bg:adjustHSL(bgHex,0,10,Math.min(boost*0.6,40))};
+  // Iteratively adjust until contrast is sufficient (max 5 rounds)
+  let fg=fgHex, bg=bgHex;
+  for(let i=0;i<5;i++){
+    const curDiff=Math.abs(luminance(fg)-luminance(bg));
+    if(curDiff>=minDiff)break;
+    const fgHsl=hexToHsl(fg), bgHsl=hexToHsl(bg);
+    if(fgHsl.l>=bgHsl.l){
+      fg=adjustHSL(fg,0,8,12);
+      bg=adjustHSL(bg,0,0,-10);
+    } else {
+      fg=adjustHSL(fg,0,0,-12);
+      bg=adjustHSL(bg,0,8,10);
+    }
   }
+  return{fg,bg};
 }
 
 function generateTheme(primary,secondary){
@@ -7293,7 +7298,7 @@ function generateTheme(primary,secondary){
   if(secondary){
     dark=secondary;
     // Ensure primary (text/accent) and secondary (background) have enough contrast
-    const fixed=ensureContrast(mint,dark,0.25);
+    const fixed=ensureContrast(mint,dark,0.4);
     mint=fixed.fg; dark=fixed.bg;
     darkMid=adjustHSL(dark,0,0,6);
     darkLight=adjustHSL(dark,0,-5,13);
