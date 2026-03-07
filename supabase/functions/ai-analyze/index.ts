@@ -140,12 +140,13 @@ Rules:
     const nctIds = trials.slice(0, 4).map((t: any) =>
       t?.protocolSection?.identificationModule?.nctId || ""
     ).filter(Boolean);
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("cf-connecting-ip") || "unknown";
     if (user.email !== "mftsky@gmail.com") {
       await supabase.from("activity_logs").insert({
         user_id: user.id,
         email: user.email,
         type: "ai_analysis",
-        detail: { nctIds, tokens: { input: usage.promptTokenCount, output: usage.candidatesTokenCount } },
+        detail: { nctIds, ip: clientIp, tokens: { input: usage.promptTokenCount, output: usage.candidatesTokenCount } },
       });
     }
 

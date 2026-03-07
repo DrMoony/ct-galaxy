@@ -265,9 +265,10 @@ Deno.serve(async (req) => {
       .update({ monthly_sent: sent + 1, last_sent_at: new Date().toISOString() })
       .eq("user_id", user.id);
     if (!isMaster) {
+      const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("cf-connecting-ip") || "unknown";
       await supabase.from("activity_logs").insert({
         user_id: user.id, email: user.email, type: "alert_push",
-        detail: { slotIndex, filterDesc, count: studies.length },
+        detail: { slotIndex, filterDesc, count: studies.length, ip: clientIp },
       });
     }
 
