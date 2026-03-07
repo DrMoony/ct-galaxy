@@ -335,6 +335,24 @@ body{font-family:'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--t
   td{font-size:.75rem;padding:.2rem .4rem}
   .badge{font-size:.62rem;padding:.15rem .35rem}
   .phase-badge{font-size:.62rem;padding:.1rem .3rem}
+  /* Auth mobile */
+  .auth-bar{top:8px;right:8px;gap:.3rem}
+  .auth-bar .auth-btn{font-size:.4rem;padding:.3rem .5rem}
+  .auth-bar .auth-user-email{max-width:80px;font-size:.55rem}
+  .auth-modal{width:95vw;padding:1.2rem}
+  .auth-modal h3{font-size:.55rem}
+  /* Alert modals mobile */
+  .alert-modal{width:95vw;padding:1rem}
+  .alert-modal h3{font-size:.5rem}
+  .alert-manage{width:95vw;padding:1rem}
+  .alert-manage h3{font-size:.5rem}
+  .am-slot{flex-direction:column;gap:.4rem}
+  .am-slot-actions{flex-direction:row}
+  .alert-trigger-btn{font-size:.38rem;padding:.25rem .5rem}
+  /* CI theme mobile */
+  .ci-theme-btn{width:40px;height:40px;font-size:1rem;bottom:14px;left:14px}
+  .ci-theme-panel{width:85vw;max-width:300px;bottom:65px;left:14px}
+  .ci-grid{grid-template-columns:repeat(2,1fr)}
 }
 /* ── Mobile Galaxy: hide inline, show fullscreen button ── */
 @media(max-width:768px){
@@ -6700,7 +6718,11 @@ async function saveAlertToSupabase(alertData){
     const newSlot=alertData.filters;
     if(existing){
       const slots=existing.keywords||[];
-      const isDup=slots.some(s=>JSON.stringify(s)===JSON.stringify(newSlot));
+      const isDup=slots.some(s=>{
+        // Compare by meaningful fields, ignoring key order and display-only fields like titles
+        const norm=o=>JSON.stringify({c:o.condition||'',i:o.intervention||'',k:o.keyword||'',co:o.country||'',sp:o.sponsor||'',n:(o.nctIds||[]).sort().join(','),p:(o.phases||[]).sort().join(','),st:(o.statuses||[]).sort().join(',')});
+        return norm(s)===norm(newSlot);
+      });
       if(isDup){showAlertToast('This alert is already active!');hideAlertModal();return;}
       if(slots.length>=5){showAlertToast('Maximum 5 alert slots reached.');hideAlertModal();return;}
       slots.push(newSlot);
@@ -6764,6 +6786,7 @@ window.openAlertManager=async function(){
           <div class="am-slot-filter">${filterHtml}</div>
         </div>
         <div class="am-slot-actions">
+          <button class="am-btn" onclick="previewAlert(${i})" title="Preview email content before sending" style="border-color:#6366f1;color:#6366f1">👁 Preview</button>
           <button class="am-btn am-btn-push" onclick="pushAlertNow(${i})" title="Send alert email now">⚡ Push</button>
           <button class="am-btn am-btn-del" onclick="deleteAlertSlot(${i})" title="Remove this alert">✕ Del</button>
         </div>
@@ -6885,6 +6908,91 @@ window.deleteAlertSlot=async function(idx){
     refreshAlertBadge();
     openAlertManager(); // refresh UI
   }catch(e){showAlertToast('Error: '+e.message);}
+};
+
+window.previewAlert=async function(idx){
+  if(!_currentUser)return;
+  const data=window._alertSubData;
+  if(!data||!data.keywords||!data.keywords[idx])return;
+  const slot=data.keywords[idx];
+  const st=data.schedule_type||'monthly';
+  const days=st==='weekly'?7:st==='bimonthly'?60:30;
+  const since=new Date(Date.now()-days*86400000).toISOString().slice(0,10);
+  const today=new Date().toISOString().slice(0,10);
+
+  showAlertToast('Loading preview...');
+  try{
+    let studies=[];
+    if(slot.nctIds&&slot.nctIds.length>0){
+      const fetches=slot.nctIds.map(nctId=>fetch(`https://clinicaltrials.gov/api/v2/studies/${nctId}?format=json`).then(r=>r.ok?r.json():null).catch(()=>null));
+      studies=(await Promise.all(fetches)).filter(Boolean);
+    } else {
+      const params=new URLSearchParams({format:'json',pageSize:'50',sort:'LastUpdatePostDate:desc'});
+      const qp=[];
+      if(slot.condition)qp.push(`AREA[Condition]${slot.condition}`);
+      if(slot.intervention)qp.push(`AREA[InterventionName]${slot.intervention}`);
+      if(slot.sponsor)qp.push(`AREA[LeadSponsorName]${slot.sponsor}`);
+      if(slot.keyword)qp.push(slot.keyword);
+      if(slot.country)qp.push(`AREA[LocationCountry]${slot.country}`);
+      if(qp.length)params.set('query.term',qp.join(' AND '));
+      const adv=[`AREA[LastUpdatePostDate]RANGE[${since},${today}]`];
+      if(slot.phases&&slot.phases.length)adv.push(`AREA[Phase](${slot.phases.join(' OR ')})`);
+      params.set('filter.advanced',adv.join(' AND '));
+      if(slot.statuses&&slot.statuses.length)params.set('filter.overallStatus',slot.statuses.join('|'));
+      const res=await fetch(`https://clinicaltrials.gov/api/v2/studies?${params}`);
+      const d=await res.json();
+      studies=d.studies||[];
+    }
+
+    // Build preview
+    const trials=studies.slice(0,20).map(s=>{
+      const p=s.protocolSection||{},id=p.identificationModule||{},st2=p.statusModule||{},sp=p.sponsorCollaboratorsModule||{},des=p.designModule||{};
+      const firstPost=st2.studyFirstPostDateStruct?.date||'';
+      const lastUpdate=st2.lastUpdatePostDateStruct?.date||'';
+      return{nctId:id.nctId||'',title:id.briefTitle||'',status:st2.overallStatus||'',phase:(des.phases||[]).join(', ')||'N/A',sponsor:(sp.leadSponsor||{}).name||'',enrollment:(des.enrollmentInfo||{}).count||null,isNew:firstPost>=since,firstPost,lastUpdate};
+    });
+
+    // Filter desc
+    const fp=[];
+    if(slot.nctIds)fp.push(`Watching ${slot.nctIds.length} trial(s)`);
+    if(slot.condition)fp.push(`Condition: ${slot.condition}`);
+    if(slot.intervention)fp.push(`Intervention: ${slot.intervention}`);
+    if(slot.sponsor)fp.push(`Sponsor: ${slot.sponsor}`);
+    if(slot.keyword&&!slot.nctIds)fp.push(`Keyword: ${slot.keyword}`);
+    const filterDesc=fp.join(' | ')||'All';
+    const newCount=trials.filter(t=>t.isNew).length;
+
+    let html=`<div style="max-width:640px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">`;
+    html+=`<div style="background:#001a2e;color:#fff;padding:12px 20px;border-radius:8px 8px 0 0;text-align:center"><h2 style="margin:0;font-size:16px;letter-spacing:2px">CT-GALAXY ALERT PREVIEW</h2><p style="margin:4px 0 0;font-size:11px;color:#00e47c">Last ${days} days · ${filterDesc}</p></div>`;
+    html+=`<div style="background:#fff;padding:16px 20px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px">`;
+    html+=`<div style="display:flex;gap:8px;margin-bottom:12px"><span style="font-size:11px;padding:3px 8px;border-radius:3px;background:#dcfce7;color:#16a34a;font-weight:600">${newCount} NEW</span><span style="font-size:11px;padding:3px 8px;border-radius:3px;background:#dbeafe;color:#3b82f6;font-weight:600">${trials.length-newCount} UPDATED</span></div>`;
+
+    if(trials.length===0){
+      html+=`<p style="text-align:center;color:#94a3b8;padding:2rem 0">No trials found for this period.</p>`;
+    }
+    trials.forEach(t=>{
+      const sc=t.status==='RECRUITING'?'#16a34a':t.status.includes('ACTIVE')?'#f59e0b':'#6b7280';
+      const badge=t.isNew?`<span style="font-size:9px;font-weight:700;color:#fff;background:#16a34a;padding:2px 6px;border-radius:3px;margin-right:4px">NEW</span>`:`<span style="font-size:9px;font-weight:700;color:#fff;background:#3b82f6;padding:2px 6px;border-radius:3px;margin-right:4px">UPDATED</span>`;
+      html+=`<div style="border:1px solid #e2e8f0;border-radius:6px;padding:10px;margin:6px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center">${badge}<a href="https://clinicaltrials.gov/study/${t.nctId}" target="_blank" style="font-size:12px;color:#0284c7;font-weight:600;text-decoration:none">${t.nctId}</a><span style="font-size:10px;color:${sc};font-weight:600;padding:2px 8px;border-radius:10px;background:${sc}15">${t.status.replace(/_/g,' ')}</span></div>
+        <div style="font-size:13px;margin:4px 0;font-weight:500;color:#1e293b;line-height:1.4">${escHtml(t.title)}</div>
+        <div style="font-size:11px;color:#64748b">${t.phase} · ${escHtml(t.sponsor)}${t.enrollment?' · '+t.enrollment+' enrolled':''}</div>
+        <div style="font-size:10px;color:#94a3b8;margin-top:3px">${t.isNew?'First posted: '+t.firstPost:'Updated: '+t.lastUpdate}</div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+
+    // Show in modal
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:10003;display:flex;align-items:center;justify-content:center;padding:20px';
+    overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+    const box=document.createElement('div');
+    box.style.cssText='background:#f8fafb;border-radius:8px;max-width:680px;width:100%;max-height:85vh;overflow-y:auto;position:relative';
+    box.innerHTML=`<button onclick="this.closest('div[style*=fixed]').remove()" style="position:sticky;top:8px;right:8px;float:right;background:#fff;border:1px solid #e2e8f0;border-radius:50%;width:28px;height:28px;font-size:14px;cursor:pointer;z-index:1">✕</button>`+html;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    showAlertToast(`Preview: ${trials.length} trial(s) found`);
+  }catch(e){showAlertToast('Preview error: '+e.message);}
 };
 
 window.pushAlertNow=async function(idx){
