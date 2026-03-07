@@ -365,7 +365,7 @@ Rules:
         user_id: user.id,
         email: user.email,
         type: "ai_analysis",
-        detail: { nctIds, ip: clientIp, tokens: { input: usage.promptTokenCount, output: usage.candidatesTokenCount } },
+        detail: { nctIds, model: usedModel, ip: clientIp, tokens: { input: usage.promptTokenCount, output: usage.candidatesTokenCount } },
       });
     }
 

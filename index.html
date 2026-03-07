@@ -6035,14 +6035,15 @@ function renderCompare(studies){
   setTimeout(()=>{
     const infoEl=document.getElementById('aiQuickInfo');
     if(infoEl&&typeof window._isMaster==='function'){
-      if(window._isMaster()){infoEl.textContent='Gemini AI · Unlimited (Master)';}
-      else if(window._currentUser){
-        const mo=JSON.parse(localStorage.getItem('ai_monthly')||'{"month":0,"count":0}');
-        const now=new Date().getMonth()+1;
-        const used=mo.month===now?mo.count:0;
-        infoEl.textContent=`Gemini AI · ${10-used}/10 remaining`;
+      if(window._currentUser){
+        if(!window._isMaster()){
+          const mo=JSON.parse(localStorage.getItem('ai_monthly')||'{"month":0,"count":0}');
+          const now=new Date().getMonth()+1;
+          const used=mo.month===now?mo.count:0;
+          infoEl.textContent=`${10-used}/10 remaining`;
+        } else { infoEl.textContent=''; }
       } else {
-        infoEl.textContent='Gemini AI · Sign in to use';
+        infoEl.textContent='Sign in to use';
       }
     }
   },0);
@@ -7152,6 +7153,8 @@ window.runQuickAI=async function(){
   const studies=window._cmpStudiesRaw;
   if(!studies||studies.length<2){console.log('[AI] not enough studies:',studies?.length);statusEl.textContent='Need at least 2 trials';return;}
   btn.disabled=true;btn.style.opacity='.6';
+  const infoElPre=document.getElementById('aiQuickInfo');
+  if(infoElPre)infoElPre.textContent='Analyzing...';
   statusEl.innerHTML='';statusEl.style.color='#10b981';
   // Cat runner animation
   const track=document.createElement('div');track.id='aiCatTrack';
@@ -7204,23 +7207,22 @@ window.runQuickAI=async function(){
     setTimeout(()=>{const tr=document.getElementById('aiCatTrack');if(tr)tr.remove();statusEl.textContent=`Done! (${remaining} left this month)`;},1500);
     statusEl.style.color='#10b981';
     const infoEl=document.getElementById('aiQuickInfo');
-    if(infoEl)infoEl.textContent=_isMaster()?'Gemini AI · Unlimited':'Gemini AI · '+remaining+'/10 remaining';
+    if(infoEl)infoEl.textContent=_isMaster()?'':remaining+'/10 remaining';
     const existing=document.getElementById('aiQuickReport');
     if(existing)existing.remove();
     const reportDiv=document.createElement('div');
     reportDiv.id='aiQuickReport';
     reportDiv.style.cssText='padding:1.2rem;margin:.8rem 0;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #86efac;border-radius:8px;font-size:.82rem;line-height:1.6;color:#1a2b3c';
-    // Cost estimation (Gemini AI pricing)
+    // Cost estimation (master only)
     const tIn=result.tokens?.input||0, tOut=result.tokens?.output||0;
-    const costIn=tIn*1.25/1e6, costOut=tOut*10/1e6;
-    const costUSD=costIn+costOut;
-    const costKRW=Math.round(costUSD*1400);
     const modelName=result.model||'Gemini AI';
-    const isFallback=modelName.includes('Flash');
-    const pIn=isFallback?0.15:1.25, pOut=isFallback?0.60:10.00;
-    const costIn2=tIn*pIn/1e6, costOut2=tOut*pOut/1e6, costUSD2=costIn2+costOut2;
-    const costKRW2=Math.round(costUSD2*1400);
-    const costLine=tIn?`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.8rem;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:.65rem;color:#64748b;flex-wrap:wrap;gap:4px"><span>${modelName} · Input: ${tIn.toLocaleString()} tok · Output: ${tOut.toLocaleString()} tok</span><span style="font-weight:600;color:#059669">≈ $${costUSD2.toFixed(4)} (₩${costKRW2}) · 월 10건 ≈ ₩${(costKRW2*10).toLocaleString()}</span></div>`:'';
+    let costLine='';
+    if(_isMaster()&&tIn){
+      const pIn=modelName.includes('2.5-flash')?0.15:0.075, pOut=modelName.includes('2.5-flash')?0.60:0.30;
+      const costUSD=tIn*pIn/1e6+tOut*pOut/1e6;
+      const costKRW=Math.round(costUSD*1400);
+      costLine=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.8rem;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:.65rem;color:#64748b;flex-wrap:wrap;gap:4px"><span>${modelName} · In: ${tIn.toLocaleString()} · Out: ${tOut.toLocaleString()}</span><span style="font-weight:600;color:#059669">≈ $${costUSD.toFixed(4)} (₩${costKRW}) · 월10건 ≈ ₩${(costKRW*10).toLocaleString()}</span></div>`;
+    }
     reportDiv.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem"><span style="font-weight:700;color:#059669;font-size:.85rem">AI Competitive Analysis</span><button onclick="this.closest('#aiQuickReport').remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1rem">x</button></div>`+result.analysis+costLine;
     const settingsBar=document.getElementById('aiSettingsBar');
     if(settingsBar){settingsBar.after(reportDiv);}
