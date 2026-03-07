@@ -308,11 +308,13 @@ If no relevant publications or FDA data were found, state that and rely on your 
 Rules:
 - Be specific: cite NCT IDs, exact numbers, drug names, country percentages
 - Be opinionated: give clear assessments and verdicts, not balanced-both-sides descriptions
-- Each section: 8-15 sentences, dense with insight. Be thorough — do not cut analysis short
+- CRITICAL LENGTH REQUIREMENT: Your response MUST be at least ${trials.slice(0,4).length * 1300} tokens (${trials.slice(0,4).length} trials × 1300 tokens each). Each section must be LONG and DETAILED — minimum 10-20 sentences per section. Do NOT summarize briefly. Write thorough, in-depth paragraphs with specific data points, comparisons, and reasoning. If a section feels "done" after 5 sentences, you have NOT written enough — expand with more analysis, implications, and cross-trial comparisons. SHORT RESPONSES ARE UNACCEPTABLE.
 - Professional English accessible to both clinicians and business stakeholders
 - Use <strong> for emphasis, <br> for line breaks within sections
-- When comparing criteria differences, use a mini HTML table if helpful
+- USE HTML TABLES extensively for comparisons. When comparing 2+ trials on any dimension (endpoints, eligibility, sites, timelines, etc.), present it as a styled HTML table:
+  <table style="width:100%;border-collapse:collapse;font-size:.8rem;margin:8px 0"><tr style="background:#f0fdf4"><th style="border:1px solid #d1d5db;padding:6px;text-align:left">...</th></tr><tr><td style="border:1px solid #e5e7eb;padding:6px">...</td></tr></table>
 - Do NOT use markdown — only HTML with inline styles
+- Do NOT cut the analysis short. If you run out of space, prioritize completing all 9 sections over being brief in early sections.
 - IMPORTANT: Write the ENTIRE analysis in ${langName}. Section headings, analysis text, and all content must be in ${langName}. Keep NCT IDs and drug names in their original form.
 - CRITICAL: For ALL technical/medical/regulatory terms, ALWAYS include the English term in parentheses after the translated term. Examples: 무작위배정(Randomization), 이중맹검(Double-blind), 主要终点(Primary Endpoint), 加速承認(Accelerated Approval), 全生存期(Overall Survival), Gesamtüberleben(Overall Survival). This applies to every language except English.`;
 
