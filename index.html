@@ -5979,7 +5979,7 @@ function renderCompare(studies){
   html=`<div class="ai-settings-bar" id="aiSettingsBar" style="margin-bottom:1rem">
     <button class="ai-btn" id="aiQuickBtn" onclick="window.runQuickAI()" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:.4rem 1rem;border-radius:5px;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap">AI Analysis</button>
     <span class="ai-status" id="aiQuickStatus" style="font-size:.7rem;color:#94a3b8"></span>
-    <span style="font-size:.65rem;color:#718096;margin-left:auto">Gemini 2.5 Flash · Free for signed-in users (10/month)</span>
+    <span style="font-size:.65rem;color:#718096;margin-left:auto" id="aiQuickInfo">Gemini 2.5 Flash</span>
   </div>`+html;
 
   /* ── Inclusion Criteria (diff) — with AI placeholder ── */
@@ -6027,6 +6027,21 @@ function renderCompare(studies){
   html+=`<div id="cmpSiteCards"></div></div>`;
 
   document.getElementById('compareBody').innerHTML=html;
+  // Update AI remaining count
+  setTimeout(()=>{
+    const infoEl=document.getElementById('aiQuickInfo');
+    if(infoEl&&typeof _isMaster==='function'){
+      if(_isMaster()){infoEl.textContent='Gemini 2.5 Flash · Unlimited (Master)';}
+      else if(_currentUser){
+        const mo=JSON.parse(localStorage.getItem('ai_monthly')||'{"month":0,"count":0}');
+        const now=new Date().getMonth()+1;
+        const used=mo.month===now?mo.count:0;
+        infoEl.textContent=`Gemini 2.5 Flash · ${10-used}/10 remaining`;
+      } else {
+        infoEl.textContent='Gemini 2.5 Flash · Sign in to use';
+      }
+    }
+  },0);
   window._cmpParsed=parsed;
   window._cmpParsedCriteria={inclSets:allInclSets,exclSets:allExclSets,priSets:allPriSets,secSets:allSecSets};
   window._cmpCommonCountries=commonCountries;
@@ -6212,8 +6227,10 @@ function _aiIncrement(){
 }
 
 window.runQuickAI=async function(){
+  console.log('runQuickAI called');
   const btn=document.getElementById('aiQuickBtn');
   const statusEl=document.getElementById('aiQuickStatus');
+  if(!btn||!statusEl){console.error('AI button elements not found');return;}
   if(!_currentUser){statusEl.textContent='Please sign in first';statusEl.style.color='#f59e0b';return;}
   if(!_isMaster()&&!_aiCanUse()){statusEl.textContent='Monthly limit reached (10/10)';statusEl.style.color='#ef4444';return;}
 
