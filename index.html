@@ -5901,7 +5901,7 @@ function renderCompare(studies){
     const col=tlColors[i%tlColors.length];
     const drugLabel=p.caseDrugs.length?p.caseDrugs[0]:(p.drugs.length?p.drugs[0]:'');
     const drugMoa=drugLabel?getDrugMoA(drugLabel):'';
-    return`<th style="border-top:3px solid ${col};position:relative"><button onclick="removeFromCompare('${p.nctId}')" style="position:absolute;top:4px;right:4px;background:rgba(255,107,107,.2);border:1px solid rgba(255,107,107,.4);color:#FF6B6B;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center;padding:0;line-height:1" title="Remove this trial">✕</button><a href="https://clinicaltrials.gov/study/${p.nctId}" target="_blank" style="color:var(--mint);text-decoration:none"><span style="color:${col}">●</span> ${escHtml(p.nctId)} ↗</a>${drugLabel?`<br><span style="display:inline-block;margin-top:.2rem;padding:.15rem .5rem;border-radius:3px;font-size:.72rem;font-weight:700;color:#fff;background:${col}">${escHtml(drugLabel)}</span>${drugMoa?`<br><span style="font-size:.6rem;font-weight:400;color:#94a3b8;font-family:'Segoe UI',sans-serif">${escHtml(drugMoa)}</span>`:''}`:''}${!drugLabel&&p.moaTypes.length?`<br><span style="font-size:.6rem;color:#94a3b8;font-family:'Segoe UI',sans-serif">${escHtml(p.moaTypes.join(', '))}</span>`:''}<br><span style="font-family:'Segoe UI',sans-serif;font-weight:400;font-size:.72rem;opacity:.8;white-space:normal;display:block;line-height:1.3;margin-top:.2rem">${escHtml(p.title)}</span></th>`;
+    return`<th style="border-top:3px solid ${col};position:relative"><button onclick="removeFromCompare('${p.nctId}')" style="position:absolute;top:4px;right:4px;background:rgba(255,107,107,.2);border:1px solid rgba(255,107,107,.4);color:#FF6B6B;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center;padding:0;line-height:1" title="Remove this trial">✕</button><a href="https://clinicaltrials.gov/study/${p.nctId}" target="_blank" style="color:var(--mint);text-decoration:none"><span style="color:${col}">●</span> ${escHtml(p.nctId)} ↗</a>${drugLabel?`<br><span style="display:inline-block;margin-top:.2rem;padding:.15rem .5rem;border-radius:3px;font-size:.72rem;font-weight:700;color:#fff;background:${col}">${escHtml(drugLabel)}</span>${drugMoa?`<br><span style="font-size:.6rem;font-weight:400;color:#94a3b8;font-family:'Segoe UI',sans-serif">${escHtml(drugMoa)}</span>`:''}`:''}${!drugLabel&&p.moaTypes.length?`<br><span style="font-size:.6rem;color:#94a3b8;font-family:'Segoe UI',sans-serif">${escHtml(p.moaTypes.join(', '))}</span>`:''}<br><span style="font-family:'Segoe UI',sans-serif;font-weight:400;font-size:.72rem;color:#e2e8f0;white-space:normal;display:block;line-height:1.3;margin-top:.2rem">${escHtml(p.title)}</span></th>`;
   }).join('');
   const colCount=parsed.length;
   function rowCells(fn){return parsed.map((p,i)=>fn(p,i)).map(v=>`<td>${v}</td>`).join('');}
@@ -6030,9 +6030,9 @@ function renderCompare(studies){
   // Update AI remaining count
   setTimeout(()=>{
     const infoEl=document.getElementById('aiQuickInfo');
-    if(infoEl&&typeof _isMaster==='function'){
-      if(_isMaster()){infoEl.textContent='Gemini 2.5 Flash · Unlimited (Master)';}
-      else if(_currentUser){
+    if(infoEl&&typeof window._isMaster==='function'){
+      if(window._isMaster()){infoEl.textContent='Gemini 2.5 Flash · Unlimited (Master)';}
+      else if(window._currentUser){
         const mo=JSON.parse(localStorage.getItem('ai_monthly')||'{"month":0,"count":0}');
         const now=new Date().getMonth()+1;
         const used=mo.month===now?mo.count:0;
@@ -6575,9 +6575,11 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 const _sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 let _currentUser=null;
+window._currentUser=null;
 let _pendingAlert=null; // stores alert data when user needs to login first
 const _MASTER_EMAIL='mftsky@gmail.com';
 function _isMaster(){return _currentUser&&_currentUser.email===_MASTER_EMAIL;}
+window._isMaster=_isMaster;
 
 // ── Auth Modal ──
 let _authMode='login';
@@ -6628,7 +6630,7 @@ document.getElementById('authEmailInput')?.addEventListener('keydown',e=>{
 
 // ── Auth State ──
 function updateAuthUI(user){
-  _currentUser=user;
+  _currentUser=user;window._currentUser=user;
   const loggedOut=document.getElementById('authLoggedOut');
   const loggedIn=document.getElementById('authLoggedIn');
   if(user){
@@ -7284,22 +7286,29 @@ function adjustHSL(hex,hShift,sShift,lShift){
 function luminance(hex){const{r,g,b}=hexToRgb(hex);return(0.299*r+0.587*g+0.114*b)/255;}
 
 function ensureContrast(fgHex,bgHex,minDiff){
-  // Ensure sufficient luminance difference between fg (mint/text) and bg (dark/background)
+  // fg = primary (text/accent), bg = secondary (background)
+  // If both are dark, force fg to be bright. If both bright, force bg dark.
   const fgL=luminance(fgHex), bgL=luminance(bgHex);
-  const diff=Math.abs(fgL-bgL);
-  if(diff>=minDiff)return{fg:fgHex,bg:bgHex};
-  // Iteratively adjust until contrast is sufficient (max 5 rounds)
+  if(Math.abs(fgL-bgL)>=minDiff)return{fg:fgHex,bg:bgHex};
+  const fgHsl=hexToHsl(fgHex), bgHsl=hexToHsl(bgHex);
+  // Both dark (luminance < 0.3): lighten fg dramatically
+  if(fgL<0.3&&bgL<0.3){
+    const targetL=Math.min(bgHsl.l+45,85);
+    return{fg:hslToHex(fgHsl.h,Math.min(fgHsl.s+15,90),targetL),bg:bgHex};
+  }
+  // Both light (luminance > 0.5): darken bg dramatically
+  if(fgL>0.5&&bgL>0.5){
+    const targetL=Math.max(fgHsl.l-45,10);
+    return{fg:fgHex,bg:hslToHex(bgHsl.h,Math.min(bgHsl.s+10,80),targetL)};
+  }
+  // Normal case: iterative adjustment
   let fg=fgHex, bg=bgHex;
-  for(let i=0;i<5;i++){
-    const curDiff=Math.abs(luminance(fg)-luminance(bg));
-    if(curDiff>=minDiff)break;
-    const fgHsl=hexToHsl(fg), bgHsl=hexToHsl(bg);
-    if(fgHsl.l>=bgHsl.l){
-      fg=adjustHSL(fg,0,8,12);
-      bg=adjustHSL(bg,0,0,-10);
+  for(let i=0;i<8;i++){
+    if(Math.abs(luminance(fg)-luminance(bg))>=minDiff)break;
+    if(hexToHsl(fg).l>=hexToHsl(bg).l){
+      fg=adjustHSL(fg,0,5,10);bg=adjustHSL(bg,0,0,-8);
     } else {
-      fg=adjustHSL(fg,0,0,-12);
-      bg=adjustHSL(bg,0,8,10);
+      fg=adjustHSL(fg,0,0,-8);bg=adjustHSL(bg,0,5,10);
     }
   }
   return{fg,bg};
