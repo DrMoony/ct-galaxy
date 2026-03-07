@@ -6630,6 +6630,11 @@ window.openAdminPanel=async function(){
     h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#3b82f6">'+(typeCount.compare||0)+'</div><div style="font-size:.7rem;color:#94a3b8">Compares</div></div>';
     h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#f59e0b">'+(typeCount.ai_analysis||0)+'</div><div style="font-size:.7rem;color:#94a3b8">AI Analyses</div></div>';
     h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.5rem;font-weight:800;color:#ef4444">'+(typeCount.alert_push||0)+'</div><div style="font-size:.7rem;color:#94a3b8">Alert Pushes</div></div>';
+    // Total AI tokens
+    let totalIn=0,totalOut=0;
+    activities.filter(a=>a.type==='ai_analysis').forEach(a=>{const t=a.detail?.tokens||{};totalIn+=(t.input||0);totalOut+=(t.output||0);});
+    const totalCost=((totalIn*0.075+totalOut*0.30)/1e6*1400).toFixed(0);
+    h+='<div style="background:#1e293b;padding:1rem;border-radius:8px;text-align:center"><div style="font-size:1.1rem;font-weight:800;color:#00e47c">'+(totalIn/1000).toFixed(1)+'K/<span style="color:#38bdf8">'+(totalOut/1000).toFixed(1)+'K</span></div><div style="font-size:.7rem;color:#94a3b8">AI Tokens (In/Out) ≈ ₩'+Number(totalCost).toLocaleString()+'</div></div>';
     h+='</div>';
 
     // Active Subscriptions
@@ -6643,6 +6648,28 @@ window.openAdminPanel=async function(){
         const sent=s.monthly_sent||0;
         const lastSent=s.last_sent_at?new Date(s.last_sent_at).toLocaleDateString():'Never';
         h+='<tr style="border-bottom:1px solid #1e293b"><td style="padding:.4rem;color:#e2e8f0">'+escHtml(s.email||'')+'</td><td>'+slots+'</td><td>'+schedule+'</td><td>'+sent+'/10</td><td style="color:#64748b">'+lastSent+'</td></tr>';
+      });
+      h+='</table></div>';
+    }
+
+    // AI Usage per User
+    const aiByUser={};
+    activities.filter(a=>a.type==='ai_analysis').forEach(a=>{
+      const e=a.email||'unknown';
+      if(!aiByUser[e])aiByUser[e]={count:0,tokIn:0,tokOut:0};
+      aiByUser[e].count++;
+      const t=a.detail?.tokens||{};
+      aiByUser[e].tokIn+=(t.input||0);
+      aiByUser[e].tokOut+=(t.output||0);
+    });
+    const aiUsers=Object.entries(aiByUser).sort((a,b)=>b[1].tokIn-a[1].tokIn);
+    if(aiUsers.length>0){
+      h+='<h3 style="color:#f59e0b;font-size:.85rem;margin-bottom:.5rem;border-bottom:1px solid #334155;padding-bottom:.3rem">AI Usage per User</h3>';
+      h+='<div style="overflow-x:auto;margin-bottom:1.5rem"><table style="width:100%;border-collapse:collapse;font-size:.75rem">';
+      h+='<tr style="color:#94a3b8;text-align:left;border-bottom:1px solid #334155"><th style="padding:.4rem">Email</th><th>Calls</th><th>Input Tok</th><th>Output Tok</th><th>Est. Cost</th></tr>';
+      aiUsers.forEach(([email,u])=>{
+        const cost=((u.tokIn*0.075+u.tokOut*0.30)/1e6*1400).toFixed(0);
+        h+='<tr style="border-bottom:1px solid #1e293b"><td style="padding:.4rem;color:#e2e8f0">'+escHtml(email)+'</td><td>'+u.count+'</td><td>'+u.tokIn.toLocaleString()+'</td><td>'+u.tokOut.toLocaleString()+'</td><td style="color:#00e47c;font-weight:600">₩'+Number(cost).toLocaleString()+'</td></tr>';
       });
       h+='</table></div>';
     }
@@ -6668,7 +6695,9 @@ window.openAdminPanel=async function(){
         detail=(a.detail?.nctIds||[]).join(', ');
       }else if(a.type==='ai_analysis'){
         const d=a.detail||{};
-        detail=(d.nctIds||[]).join(', ')+(d.tokens?' ('+d.tokens.input+'/'+d.tokens.output+' tok)':'');
+        const toks=d.tokens?(d.tokens.input+'/'+d.tokens.output+' tok'):'';
+        const model=d.model?'['+d.model+']':'';
+        detail=(d.nctIds||[]).join(', ')+(toks?' · '+toks:'')+(model?' · '+model:'');
       }else if(a.type==='alert_push'){
         detail=(a.detail?.filterDesc||'')+(a.detail?.count?' '+a.detail.count+' trials':'');
       }
