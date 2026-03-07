@@ -1,0 +1,24 @@
+name: Weekly Trial Alert
+
+on:
+  schedule:
+    # Every Monday at 09:00 UTC (18:00 KST)
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Manual trigger for testing
+
+jobs:
+  send-alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run weekly alert
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: python weekly_alert.py

@@ -7,6 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -16,6 +17,146 @@
   --bg:#f0faf5;--card:#fff;--border:#c8e6d8;--text:#002E3B;--text-light:#3d7a6a;
   --danger:#dc2626;--warning:#f59e0b;
 }
+
+/* ── Auth UI ── */
+.auth-bar{position:absolute;top:12px;right:16px;z-index:10;display:flex;align-items:center;gap:.5rem}
+.auth-bar .auth-btn{
+  font-family:'Press Start 2P',monospace;font-size:.5rem;padding:.4rem .8rem;
+  border:2px solid var(--mint);border-radius:4px;background:transparent;color:var(--mint);
+  cursor:pointer;transition:all .2s;letter-spacing:1px;
+}
+.auth-bar .auth-btn:hover{background:var(--mint);color:var(--dark)}
+.auth-bar .auth-user{
+  font-size:.65rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:.4rem;
+}
+.auth-bar .auth-user-email{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.auth-bar .auth-avatar{
+  width:28px;height:28px;border-radius:50%;border:2px solid var(--mint);
+  background:var(--dark-mid);color:var(--mint);display:flex;align-items:center;justify-content:center;
+  font-family:'Press Start 2P',monospace;font-size:.45rem;font-weight:700;
+}
+.auth-alerts-badge{
+  display:inline-flex;align-items:center;gap:.25rem;
+  padding:.2rem .5rem;border-radius:10px;
+  background:rgba(0,228,124,.15);border:1px solid rgba(0,228,124,.3);
+  color:var(--mint);font-size:.5rem;font-family:'Press Start 2P',monospace;
+  cursor:pointer;transition:all .2s;
+}
+.auth-alerts-badge:hover{background:rgba(0,228,124,.3)}
+.auth-alerts-badge .badge-count{font-weight:700}
+.auth-modal-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);
+  z-index:10000;display:none;align-items:center;justify-content:center;
+}
+.auth-modal-overlay.show{display:flex}
+.auth-modal{
+  background:var(--card);border:2px solid var(--mint);border-radius:8px;
+  padding:2rem;width:380px;max-width:90vw;box-shadow:0 8px 30px rgba(0,0,0,.4);
+}
+.auth-modal h3{font-family:'Press Start 2P',monospace;font-size:.7rem;margin-bottom:1.2rem;color:var(--dark);text-align:center}
+.auth-modal .field{margin-bottom:1rem}
+.auth-modal .field label{display:block;font-size:.8rem;font-weight:600;margin-bottom:.3rem;color:var(--text-light)}
+.auth-modal .field input{width:100%;padding:.6rem .8rem;border:2px solid var(--border);border-radius:4px;font-size:.9rem}
+.auth-modal .field input:focus{outline:none;border-color:var(--mint);box-shadow:0 0 0 3px rgba(0,228,124,.2)}
+.auth-modal .auth-submit{
+  width:100%;padding:.7rem;border:none;border-radius:4px;
+  background:var(--dark);color:var(--mint);font-family:'Press Start 2P',monospace;
+  font-size:.55rem;cursor:pointer;letter-spacing:1px;transition:all .2s;
+}
+.auth-modal .auth-submit:hover{background:var(--mint);color:var(--dark)}
+.auth-modal .auth-submit:disabled{opacity:.5;cursor:not-allowed}
+.auth-modal .auth-msg{margin-top:.8rem;padding:.5rem;border-radius:4px;font-size:.8rem;display:none;text-align:center}
+.auth-modal .auth-msg.success{display:block;background:var(--mint-bg);color:var(--dark);border:1px solid var(--mint)}
+.auth-modal .auth-msg.error{display:block;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5}
+.auth-modal .auth-footer{margin-top:1rem;text-align:center;font-size:.75rem;color:var(--text-light)}
+.auth-modal .auth-link{color:var(--mint-dark);cursor:pointer;text-decoration:underline;font-weight:600}
+
+/* ── Alert Buttons ── */
+.alert-trigger-btn{
+  display:inline-flex;align-items:center;gap:.3rem;
+  padding:.35rem .7rem;border:2px solid var(--mint);border-radius:4px;
+  background:transparent;color:var(--mint);cursor:pointer;
+  font-family:'Press Start 2P',monospace;font-size:.45rem;
+  transition:all .2s;letter-spacing:.5px;white-space:nowrap;
+}
+.alert-trigger-btn:hover{background:var(--mint);color:var(--dark)}
+.alert-trigger-btn.active{background:var(--mint);color:var(--dark);border-color:var(--mint)}
+.alert-trigger-btn .bell{font-style:normal;font-size:.7rem}
+.alert-modal-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);
+  z-index:10001;display:none;align-items:center;justify-content:center;
+}
+.alert-modal-overlay.show{display:flex}
+.alert-modal{
+  background:var(--card);border:2px solid var(--mint);border-radius:8px;
+  padding:1.5rem;width:420px;max-width:90vw;box-shadow:0 8px 30px rgba(0,0,0,.4);
+}
+.alert-modal h3{font-family:'Press Start 2P',monospace;font-size:.6rem;margin-bottom:.6rem;color:var(--dark);display:flex;align-items:center;gap:.5rem}
+.alert-modal .alert-desc{font-size:.82rem;color:var(--text-light);line-height:1.5;margin-bottom:1rem}
+.alert-modal .alert-filters{
+  background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  padding:.8rem;margin-bottom:1rem;font-size:.78rem;line-height:1.7;
+}
+.alert-modal .alert-filters .af-label{font-weight:700;color:var(--dark);margin-right:.3rem}
+.alert-modal .alert-filters .af-value{color:var(--text-light)}
+.alert-modal .alert-actions{display:flex;gap:.5rem;justify-content:flex-end}
+.alert-modal .alert-actions button{
+  padding:.5rem 1rem;border-radius:4px;cursor:pointer;font-size:.8rem;font-weight:600;
+  transition:all .2s;
+}
+.alert-modal .alert-ok{border:none;background:var(--dark);color:var(--mint)}
+.alert-modal .alert-ok:hover{background:var(--mint);color:var(--dark)}
+.alert-modal .alert-cancel{border:2px solid var(--border);background:transparent;color:var(--text-light)}
+.alert-modal .alert-cancel:hover{background:var(--bg)}
+.alert-toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10002;
+  background:var(--dark);color:var(--mint);border:2px solid var(--mint);border-radius:6px;
+  padding:.6rem 1.2rem;font-size:.82rem;font-weight:600;
+  box-shadow:0 4px 15px rgba(0,0,0,.3);display:none;
+  animation:toastSlide .3s ease;
+}
+@keyframes toastSlide{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.alert-settings{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+.alert-settings .as-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem;font-size:.82rem}
+.alert-settings .as-label{font-weight:600;color:var(--dark);min-width:70px;font-size:.78rem}
+.alert-settings select,.alert-settings input[type="number"]{
+  padding:.3rem .5rem;border:1px solid var(--border);border-radius:4px;font-size:.8rem;
+  background:var(--card);color:var(--text);
+}
+.alert-settings select:focus,.alert-settings input:focus{outline:none;border-color:var(--mint)}
+.alert-manage{
+  background:var(--card);border:2px solid var(--mint);border-radius:8px;
+  padding:1.5rem;width:460px;max-width:90vw;box-shadow:0 8px 30px rgba(0,0,0,.4);
+  max-height:80vh;overflow-y:auto;
+}
+.alert-manage h3{font-family:'Press Start 2P',monospace;font-size:.6rem;margin-bottom:.3rem;color:var(--dark);display:flex;align-items:center;gap:.5rem}
+.alert-manage .am-usage{font-size:.78rem;color:var(--text-light);margin-bottom:1rem}
+.alert-manage .am-usage strong{color:var(--dark)}
+.alert-manage .am-slot{
+  border:1px solid var(--border);border-radius:6px;padding:.7rem;margin-bottom:.6rem;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;
+}
+.alert-manage .am-slot-info{flex:1;font-size:.78rem;line-height:1.6}
+.alert-manage .am-slot-type{
+  font-family:'Press Start 2P',monospace;font-size:.4rem;padding:.15rem .4rem;
+  border-radius:3px;background:var(--mint-bg);color:var(--dark);font-weight:700;
+  display:inline-block;margin-bottom:.3rem;
+}
+.alert-manage .am-slot-filter{color:var(--text-light)}
+.alert-manage .am-slot-actions{display:flex;flex-direction:column;gap:.3rem}
+.alert-manage .am-btn{
+  padding:.3rem .5rem;border-radius:3px;cursor:pointer;font-size:.7rem;
+  border:1px solid var(--border);background:transparent;color:var(--text-light);
+  transition:all .15s;white-space:nowrap;
+}
+.alert-manage .am-btn:hover{border-color:var(--mint);color:var(--dark)}
+.alert-manage .am-btn-push{border-color:var(--mint);color:var(--mint)}
+.alert-manage .am-btn-push:hover{background:var(--mint);color:var(--dark)}
+.alert-manage .am-btn-del{border-color:var(--danger);color:var(--danger)}
+.alert-manage .am-btn-del:hover{background:var(--danger);color:#fff}
+.alert-manage .am-freq{margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--border)}
+.alert-manage .am-freq-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;font-size:.8rem;flex-wrap:wrap}
+.alert-manage .am-freq-label{font-weight:600;color:var(--dark);min-width:80px}
 
 /* ── CI Theme Selector ── */
 .ci-theme-btn{
@@ -557,28 +698,6 @@ th .col-hide-btn{float:right;margin-top:1px}
   font-size:.3rem;color:rgba(255,255,255,.35);letter-spacing:2px;
 }
 
-/* ── Alert Subscription ── */
-.subscribe-section{
-  background:var(--card);border-radius:4px;padding:1.5rem;
-  box-shadow:0 2px 0 var(--mint),0 4px 8px rgba(0,46,59,.1);
-  margin-bottom:1.5rem;border:2px solid var(--border);
-}
-.subscribe-section h2{font-family:'Press Start 2P',monospace;font-size:.75rem;margin-bottom:.8rem;color:var(--dark);display:flex;align-items:center;gap:.5rem}
-.sub-desc{font-size:.85rem;color:var(--text-light);margin-bottom:1rem;line-height:1.6}
-.sub-form{display:flex;gap:.8rem;flex-wrap:wrap;align-items:flex-end}
-.sub-form .field{flex:1;min-width:200px}
-.sub-form .field label{display:block;font-size:.8rem;font-weight:600;margin-bottom:.3rem;color:var(--text-light)}
-.sub-form .field input{width:100%;padding:.6rem .8rem;border:2px solid var(--border);border-radius:4px;font-size:.9rem}
-.sub-form .field input:focus{outline:none;border-color:var(--mint);box-shadow:0 0 0 3px rgba(0,228,124,.2)}
-.sub-keywords-tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem;min-height:28px}
-.sub-kw-tag{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:3px;font-size:.78rem;font-weight:600;background:var(--mint-bg);color:var(--dark);border:1px solid var(--mint)}
-.sub-kw-tag .remove{cursor:pointer;color:var(--danger);font-weight:700;font-size:.9rem;line-height:1}
-.sub-kw-tag .remove:hover{color:#ff0000}
-.sub-status{margin-top:.8rem;padding:.6rem 1rem;border-radius:4px;font-size:.85rem;display:none}
-.sub-status.success{display:block;background:var(--mint-bg);color:var(--dark);border:1px solid var(--mint)}
-.sub-status.error{display:block;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5}
-.sub-manage{margin-top:.8rem;font-size:.8rem;color:var(--text-light)}
-.sub-manage a{color:var(--mint-dark);cursor:pointer;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -587,6 +706,19 @@ th .col-hide-btn{float:right;margin-top:1px}
 <div class="header">
   <div class="header-banner">
     <canvas id="starfieldCanvas"></canvas>
+    <div class="auth-bar" id="authBar">
+      <div id="authLoggedOut">
+        <button class="auth-btn" onclick="showAuthModal('login')">SIGN IN</button>
+      </div>
+      <div id="authLoggedIn" style="display:none">
+        <div class="auth-user">
+          <div class="auth-alerts-badge" id="authAlertsBadge" onclick="openAlertManager()" title="Manage your alerts">🔔 <span class="badge-count" id="authAlertCount">0</span></div>
+          <div class="auth-avatar" id="authAvatar">?</div>
+          <span class="auth-user-email" id="authEmail"></span>
+          <button class="auth-btn" onclick="handleLogout()" style="font-size:.4rem;padding:.3rem .5rem">LOGOUT</button>
+        </div>
+      </div>
+    </div>
     <div class="header-inner">
       <div class="header-icons">
         <!-- Pixel Galaxy Icon -->
@@ -883,6 +1015,7 @@ th .col-hide-btn{float:right;margin-top:1px}
     </div>
     <div class="results-header">
       <span class="results-count" id="resultsCount"></span>
+        <button class="alert-trigger-btn" id="alertSearchBtn" onclick="triggerSearchAlert()" title="Get weekly email alerts for this search"><em class="bell">🔔</em> ALERT</button>
       <div style="display:flex;gap:.5rem;align-items:center">
         <span style="font-size:.7rem;color:var(--text-light)">Show</span>
         <select id="pageSize" style="padding:.3rem .5rem;border-radius:4px;border:1px solid var(--mint);background:var(--dark);color:#fff;font-size:.72rem;font-family:'Press Start 2P',monospace;cursor:pointer;-webkit-appearance:auto" onchange="searchTrials()" title="Results per page">
@@ -931,6 +1064,7 @@ th .col-hide-btn{float:right;margin-top:1px}
   <div class="modal">
     <div class="modal-header">
       <h3 id="modalTitle">Loading...</h3>
+      <button class="alert-trigger-btn" id="alertTrialBtn" onclick="triggerTrialAlert(document.getElementById('modalTitle').textContent.split(' - ')[0])" style="margin-right:.5rem;font-size:.4rem"><em class="bell">🔔</em> WATCH</button>
       <button class="modal-close" onclick="closeModal()">X</button>
     </div>
     <div class="modal-body" id="modalBody">
@@ -953,7 +1087,8 @@ th .col-hide-btn{float:right;margin-top:1px}
   <div class="compare-modal">
     <div class="compare-header">
       <h3 id="compareTitle">TRIAL COMPARISON</h3>
-      <button class="modal-close" onclick="closeCompare()">X</button>
+      <button class="alert-trigger-btn" id="alertCompareBtn" onclick="triggerCompareAlert()" style="margin-right:.5rem" title="Get alerts for drugs in this comparison"><em class="bell">🔔</em> ALERT DRUGS</button>
+        <button class="modal-close" onclick="closeCompare()">X</button>
     </div>
     <div class="compare-body" id="compareBody">
       <div class="modal-loading"><div class="spinner"></div><p>Loading comparison data...</p></div>
@@ -962,27 +1097,6 @@ th .col-hide-btn{float:right;margin-top:1px}
 </div>
 
 
-<!-- ── Alert Subscription ── -->
-<div class="subscribe-section" id="subscribeSection">
-  <h2>WEEKLY TRIAL ALERT</h2>
-  <p class="sub-desc">Register your email and keywords to receive weekly updates on newly registered or updated clinical trials matching your interests.</p>
-  <div class="sub-form" id="subForm">
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="subEmail" placeholder="your@email.com">
-    </div>
-    <div class="field">
-      <label>Keyword (Enter to add)</label>
-      <input type="text" id="subKeywordInput" placeholder="e.g. NASH, GLP-1, pembrolizumab">
-    </div>
-    <button class="btn btn-primary" id="subSubmitBtn" style="height:42px">SUBSCRIBE</button>
-  </div>
-  <div class="sub-keywords-tags" id="subKeywordTags"></div>
-  <div class="sub-status" id="subStatus"></div>
-  <div class="sub-manage" id="subManage" style="display:none">
-    Already subscribed? <a id="subUpdateLink">Update keywords</a> | <a id="subUnsubLink">Unsubscribe</a>
-  </div>
-</div>
 
 <!-- Footer -->
 <div class="footer">
@@ -1820,6 +1934,9 @@ async function searchTrials(pageToken){
     const resp=await fetch(`https://clinicaltrials.gov/api/v2/studies?${params.toString()}`);if(!resp.ok)throw new Error(`API Error: ${resp.status}`);const data=await resp.json();
     let studies=data.studies||[];const totalCount=data.totalCount||0,nextPageToken=data.nextPageToken||null;
     _galaxyTotalCount=totalCount;
+    /* Log search for analytics */
+    if(window._logSearch)window._logSearch({condition:condRaw,intervention:intrRaw,keyword:termRaw,country,phases,statuses,totalCount});
+
     /* Exclude ambiguous conditions via disambiguation */
     const exKey=condRaw||intrRaw||termRaw;
     const disambigKey=exKey.toLowerCase().trim();
@@ -5035,6 +5152,7 @@ function showGalaxyPanel(item){
   let html='';
   if(mode==='molecule'){
     html+=`<h4 style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px" onclick="showMoleculePhasePopup()" title="Click for Phase breakdown details">💊 ${escHtml(item.name)}</h4>`;
+    html+=`<button class="alert-trigger-btn" onclick="event.stopPropagation();triggerDrugAlert('${item.name.replace(/'/g,"\\\\'")}')" style="margin-top:.4rem"><em class="bell">🔔</em> ALERT THIS DRUG</button>`;
   } else {
     html+=`<h4>${escHtml(item.name)}</h4>`;
   }
@@ -6315,124 +6433,439 @@ updateCmpBar();
 // ═══════════════════════════════════════════════════════
 
 // =========================================================
-// -- Alert Subscription (Supabase) --
+// -- Auth & Alert System (Supabase) --
 // =========================================================
-(function initSubscription(){
+(function initAuthAndAlerts(){
 
 const SUPABASE_URL='https://zgoyiwviyyextelsotyd.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpnb3lpd3ZpeXlleHRlbHNvdHlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTc2NjYsImV4cCI6MjA4ODQzMzY2Nn0.CxrxQgF5oMNxqV0BMdh_q3hdwZW0oy3R7RRfmtaXp00';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpnb3lpd3ZpeXlleHRlbHNvdHlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTc2NjYsImV4cCI6MjA4ODQzMzY2Nn0.CxrxQgF5oMNxqV0BMdh_q3hdwZW0oy3R7RRfmtaXp00';
 
-const headers={'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
+const _sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+let _currentUser=null;
+let _pendingAlert=null; // stores alert data when user needs to login first
 
-let subKeywords=[];
+// ── Auth Modal ──
+let _authMode='login';
 
-const emailEl=document.getElementById('subEmail');
-const kwInput=document.getElementById('subKeywordInput');
-const tagsEl=document.getElementById('subKeywordTags');
-const statusEl=document.getElementById('subStatus');
-const submitBtn=document.getElementById('subSubmitBtn');
-const manageEl=document.getElementById('subManage');
+window.showAuthModal=function(mode){
+  _authMode=mode||'login';
+  document.getElementById('authModalTitle').textContent=_authMode==='signup'?'SIGN UP':'SIGN IN';
+  document.getElementById('authSubmitBtn').textContent='SEND MAGIC LINK';
+  document.getElementById('authToggleText').textContent=_authMode==='signup'?'Already have an account? ':'No account? ';
+  document.getElementById('authToggleLink').textContent=_authMode==='signup'?'Sign In':'Sign Up';
+  document.getElementById('authMsg').className='auth-msg';
+  document.getElementById('authMsg').style.display='none';
+  document.getElementById('authEmailInput').value='';
+  document.getElementById('authModalOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('authEmailInput').focus(),100);
+};
 
-function renderTags(){
-  tagsEl.innerHTML=subKeywords.map((kw,i)=>
-    '<span class="sub-kw-tag">'+kw+'<span class="remove" data-i="'+i+'">&times;</span></span>'
-  ).join('');
-  tagsEl.querySelectorAll('.remove').forEach(el=>{
-    el.addEventListener('click',()=>{subKeywords.splice(parseInt(el.dataset.i),1);renderTags();});
+window.hideAuthModal=function(){
+  document.getElementById('authModalOverlay').classList.remove('show');
+};
+
+window.toggleAuthMode=function(){
+  showAuthModal(_authMode==='login'?'signup':'login');
+};
+
+window.handleAuthSubmit=async function(){
+  const email=document.getElementById('authEmailInput').value.trim();
+  if(!email||!email.includes('@')){showAuthMsg('Please enter a valid email.','error');return;}
+  const btn=document.getElementById('authSubmitBtn');
+  btn.disabled=true;btn.textContent='SENDING...';
+  try{
+    const redirectUrl=window.location.href.split('?')[0].split('#')[0];
+    const{error}=await _sb.auth.signInWithOtp({email,options:{emailRedirectTo:redirectUrl}});
+    if(error)throw error;
+    showAuthMsg('Magic link sent! Check your email inbox.','success');
+  }catch(err){showAuthMsg('Error: '+err.message,'error');}
+  finally{btn.disabled=false;btn.textContent='SEND MAGIC LINK';}
+};
+
+function showAuthMsg(msg,type){
+  const el=document.getElementById('authMsg');
+  el.className='auth-msg '+type;el.textContent=msg;el.style.display='block';
+}
+
+document.getElementById('authEmailInput')?.addEventListener('keydown',e=>{
+  if(e.key==='Enter')handleAuthSubmit();
+});
+
+// ── Auth State ──
+function updateAuthUI(user){
+  _currentUser=user;
+  const loggedOut=document.getElementById('authLoggedOut');
+  const loggedIn=document.getElementById('authLoggedIn');
+  if(user){
+    loggedOut.style.display='none';
+    loggedIn.style.display='block';
+    document.getElementById('authEmail').textContent=user.email;
+    document.getElementById('authAvatar').textContent=user.email[0].toUpperCase();
+    hideAuthModal();
+    // Process pending alert if any
+    if(_pendingAlert){
+      const pa=_pendingAlert;_pendingAlert=null;
+      setTimeout(()=>saveAlertToSupabase(pa),500);
+    }
+  }else{
+    loggedOut.style.display='block';
+    loggedIn.style.display='none';
+  }
+}
+
+window.handleLogout=async function(){
+  await _sb.auth.signOut();
+  updateAuthUI(null);
+};
+
+_sb.auth.getSession().then(({data:{session}})=>{
+  updateAuthUI(session?.user||null);
+});
+
+_sb.auth.onAuthStateChange((event,session)=>{
+  if(event==='SIGNED_IN'&&session?.user){updateAuthUI(session.user);}
+  else if(event==='SIGNED_OUT'){updateAuthUI(null);}
+});
+
+// ── Alert System ──
+let _alertData=null;
+
+function showAlertToast(msg){
+  const t=document.getElementById('alertToast');
+  t.textContent=msg;t.style.display='block';
+  setTimeout(()=>{t.style.display='none';},4000);
+}
+
+window.hideAlertModal=function(){
+  document.getElementById('alertModalOverlay').classList.remove('show');
+  _alertData=null;
+};
+
+function showAlertModal(data){
+  _alertData=data;
+  const title=document.getElementById('alertModalTitle');
+  const desc=document.getElementById('alertModalDesc');
+  const filters=document.getElementById('alertModalFilters');
+
+  let html='';
+  if(data.type==='search'){
+    title.textContent='ALERT THIS SEARCH';
+    desc.textContent='You will receive weekly email updates when new trials match these search criteria.';
+    if(data.filters.condition) html+=`<div><span class="af-label">Condition:</span><span class="af-value">${data.filters.condition}</span></div>`;
+    if(data.filters.intervention) html+=`<div><span class="af-label">Intervention:</span><span class="af-value">${data.filters.intervention}</span></div>`;
+    if(data.filters.keyword) html+=`<div><span class="af-label">Keyword:</span><span class="af-value">${data.filters.keyword}</span></div>`;
+    if(data.filters.country) html+=`<div><span class="af-label">Country:</span><span class="af-value">${data.filters.country}</span></div>`;
+    if(data.filters.phases&&data.filters.phases.length) html+=`<div><span class="af-label">Phase:</span><span class="af-value">${data.filters.phases.join(', ')}</span></div>`;
+    if(data.filters.statuses&&data.filters.statuses.length) html+=`<div><span class="af-label">Status:</span><span class="af-value">${data.filters.statuses.join(', ')}</span></div>`;
+  } else if(data.type==='compare'){
+    title.textContent='ALERT THESE DRUGS';
+    desc.textContent='You will receive weekly email updates when new trials involve these drugs/interventions.';
+    html+=`<div><span class="af-label">Drugs:</span><span class="af-value">${data.filters.intervention}</span></div>`;
+  } else if(data.type==='drug'){
+    title.textContent='ALERT THIS DRUG';
+    desc.textContent='You will receive weekly email updates for new trials involving this drug.';
+    html+=`<div><span class="af-label">Drug:</span><span class="af-value">${data.filters.intervention}</span></div>`;
+  } else if(data.type==='trial'){
+    title.textContent='WATCH THIS TRIAL';
+    desc.textContent='You will receive email updates when this trial is updated.';
+    html+=`<div><span class="af-label">NCT ID:</span><span class="af-value">${data.filters.keyword}</span></div>`;
+  }
+
+  filters.innerHTML=html;
+  document.getElementById('alertModalOverlay').classList.add('show');
+}
+
+// 1. Search Alert
+window.triggerSearchAlert=function(){
+  const cond=document.getElementById('inputCond')?.value.trim()||'';
+  const intr=document.getElementById('inputIntr')?.value.trim()||'';
+  const term=document.getElementById('inputTerm')?.value.trim()||'';
+  const country=typeof getCountryFilter==='function'?getCountryFilter():'';
+  const phases=typeof getSelectedPhases==='function'?getSelectedPhases():[];
+  const statuses=typeof getSelectedStatuses==='function'?getSelectedStatuses():[];
+  if(!cond&&!intr&&!term)return;
+  showAlertModal({
+    type:'search',
+    filters:{condition:cond,intervention:intr,keyword:term,country,phases,statuses}
   });
+};
+
+// 2. Compare Alert
+window.triggerCompareAlert=function(){
+  if(typeof compareSet==='undefined'||!compareSet||compareSet.size<2)return;
+  // Collect drugs from compared trials
+  const drugs=new Set();
+  const ids=[...compareSet.keys()];
+  ids.forEach(id=>{
+    const trial=allResults?.find(r=>r.nctId===id);
+    if(trial&&trial.drug){
+      trial.drug.split(', ').forEach(d=>{if(d.trim())drugs.add(d.trim());});
+    }
+  });
+  const drugStr=[...drugs].join(', ');
+  if(!drugStr)return;
+  showAlertModal({
+    type:'compare',
+    filters:{intervention:drugStr}
+  });
+};
+
+// 3. Galaxy Drug Alert
+window.triggerDrugAlert=function(drugName){
+  if(!drugName)return;
+  showAlertModal({
+    type:'drug',
+    filters:{intervention:drugName}
+  });
+};
+
+// 4. Single Trial Watch
+window.triggerTrialAlert=function(nctId){
+  if(!nctId)return;
+  showAlertModal({
+    type:'trial',
+    filters:{keyword:nctId}
+  });
+};
+
+// Confirm alert
+window.confirmAlert=async function(){
+  if(!_alertData)return;
+  if(!_currentUser){
+    // Save pending alert and show login
+    _pendingAlert=_alertData;
+    hideAlertModal();
+    showAuthModal('login');
+    return;
+  }
+  await saveAlertToSupabase(_alertData);
+};
+
+async function saveAlertToSupabase(alertData){
+  const btn=document.getElementById('alertModalConfirm');
+  if(btn){btn.disabled=true;btn.textContent='...';}
+  try{
+    const{data:existing}=await _sb.from('subscriptions').select('id,keywords,monthly_sent').eq('user_id',_currentUser.id).maybeSingle();
+    const newSlot=alertData.filters;
+    if(existing){
+      const slots=existing.keywords||[];
+      const isDup=slots.some(s=>JSON.stringify(s)===JSON.stringify(newSlot));
+      if(isDup){showAlertToast('This alert is already active!');hideAlertModal();return;}
+      if(slots.length>=5){showAlertToast('Maximum 5 alert slots reached.');hideAlertModal();return;}
+      slots.push(newSlot);
+      const{error}=await _sb.from('subscriptions').update({keywords:slots,active:true,email:_currentUser.email}).eq('user_id',_currentUser.id);
+      if(error)throw error;
+    }else{
+      const{error}=await _sb.from('subscriptions').insert({user_id:_currentUser.id,email:_currentUser.email,keywords:[newSlot],active:true});
+      if(error)throw error;
+    }
+    hideAlertModal();
+    showAlertToast('Alert activated! Weekly updates will be sent.');
+    refreshAlertBadge();
+  }catch(err){showAlertToast('Error: '+err.message);}
+  finally{if(btn){btn.disabled=false;btn.textContent='ACTIVATE ALERT';}}
 }
 
-function showStatus(msg,type){
-  statusEl.className='sub-status '+type;
-  statusEl.textContent=msg;
-  if(type==='success')setTimeout(()=>{statusEl.style.display='none';},5000);
+// ── Alert Badge / Manager ──
+async function refreshAlertBadge(){
+  if(!_currentUser)return;
+  try{
+    const{data}=await _sb.from('subscriptions').select('keywords,monthly_sent,frequency,send_day,send_date').eq('user_id',_currentUser.id).eq('active',true).maybeSingle();
+    const count=data?.keywords?.length||0;
+    const badge=document.getElementById('authAlertCount');
+    if(badge)badge.textContent=count;
+    // Cache for manager
+    window._alertSubData=data;
+  }catch(e){}
 }
 
-kwInput.addEventListener('keydown',e=>{
-  if(e.key==='Enter'||e.key===','){
-    e.preventDefault();
-    const kw=kwInput.value.trim().replace(/,$/,'');
-    if(kw && !subKeywords.includes(kw)){
-      subKeywords.push(kw);
-      renderTags();
-    }
-    kwInput.value='';
+window.openAlertManager=async function(){
+  if(!_currentUser){showAuthModal('login');return;}
+  await refreshAlertBadge();
+  const data=window._alertSubData;
+  const slotList=document.getElementById('amSlotList');
+  const usage=document.getElementById('amUsage');
+
+  const slots=data?.keywords||[];
+  const sent=data?.monthly_sent||0;
+  usage.innerHTML=`Monthly usage: <strong>${sent} / 10</strong> emails (free tier)`;
+
+  if(slots.length===0){
+    slotList.innerHTML='<p style="font-size:.82rem;color:var(--text-light);padding:1rem 0;text-align:center">No alerts set. Use the 🔔 buttons in search results, compare, or Galaxy Map to add alerts.</p>';
+  }else{
+    slotList.innerHTML=slots.map((s,i)=>{
+      let typeLabel='SEARCH';
+      let filterHtml='';
+      if(s.condition){filterHtml+=`Condition: ${s.condition}<br>`;typeLabel='SEARCH';}
+      if(s.intervention){filterHtml+=`Intervention: ${s.intervention}<br>`;if(!s.condition&&!s.keyword)typeLabel='DRUG';}
+      if(s.keyword){filterHtml+=`Keyword: ${s.keyword}<br>`;if(!s.condition&&!s.intervention)typeLabel='WATCH';}
+      if(s.country)filterHtml+=`Country: ${s.country}<br>`;
+      if(s.phases&&s.phases.length)filterHtml+=`Phase: ${s.phases.join(', ')}<br>`;
+      if(s.statuses&&s.statuses.length)filterHtml+=`Status: ${s.statuses.join(', ')}`;
+      return`<div class="am-slot">
+        <div class="am-slot-info">
+          <span class="am-slot-type">${typeLabel}</span>
+          <div class="am-slot-filter">${filterHtml}</div>
+        </div>
+        <div class="am-slot-actions">
+          <button class="am-btn am-btn-push" onclick="pushAlertNow(${i})" title="Send alert email now">⚡ Push</button>
+          <button class="am-btn am-btn-del" onclick="deleteAlertSlot(${i})" title="Remove this alert">✕ Del</button>
+        </div>
+      </div>`;
+    }).join('');
   }
-});
 
-submitBtn.addEventListener('click', async ()=>{
-  const email=emailEl.value.trim();
-  if(!email||!email.includes('@')){showStatus('Please enter a valid email.','error');return;}
-  if(subKeywords.length===0){showStatus('Please add at least one keyword.','error');return;}
+  // Set schedule controls
+  const sType=data?.schedule_type||'monthly';
+  const sDay=data?.schedule_day||'monday';
+  const sDate=data?.schedule_date||1;
+  const sOddEven=data?.schedule_odd_even||'odd';
 
-  submitBtn.disabled=true;submitBtn.textContent='...';
+  document.getElementById('amScheduleType').value=sType;
 
-  try{
-    const checkRes=await fetch(SUPABASE_URL+'/rest/v1/subscriptions?email=eq.'+encodeURIComponent(email)+'&select=id,keywords',{headers});
-    const existing=await checkRes.json();
+  // Build day buttons
+  const dayBtnContainer=document.getElementById('amDayButtons');
+  dayBtnContainer.innerHTML='';
+  const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dayValues=['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+  dayValues.forEach((dv,i)=>{
+    const b=document.createElement('button');
+    b.textContent=dayNames[i];
+    b.className='am-btn'+(dv===sDay?' am-btn-push':'');
+    b.style.cssText='padding:.25rem .5rem;font-size:.7rem;min-width:36px;border-radius:4px;cursor:pointer;border:1px solid var(--border);background:'+(dv===sDay?'var(--mint)':'transparent')+';color:'+(dv===sDay?'var(--dark)':'var(--text-light)')+';font-weight:600;transition:all .15s';
+    b.onclick=()=>{
+      dayBtnContainer.querySelectorAll('button').forEach(x=>{x.style.background='transparent';x.style.color='var(--text-light)';x.style.borderColor='var(--border)';});
+      b.style.background='var(--mint)';b.style.color='var(--dark)';b.style.borderColor='var(--mint)';
+      b.dataset.val=dv;updateAlertSettings();
+    };
+    b.dataset.val=dv;
+    dayBtnContainer.appendChild(b);
+  });
 
-    if(existing.length>0){
-      const res=await fetch(SUPABASE_URL+'/rest/v1/subscriptions?email=eq.'+encodeURIComponent(email),{
-        method:'PATCH',
-        headers:{...headers,'Prefer':'return=minimal'},
-        body:JSON.stringify({keywords:subKeywords,active:true})
-      });
-      if(res.ok){showStatus('Subscription updated! Weekly alerts for: '+subKeywords.join(', '),'success');}
-      else{throw new Error('Update failed');}
-    } else {
-      const res=await fetch(SUPABASE_URL+'/rest/v1/subscriptions',{
-        method:'POST',
-        headers:{...headers,'Prefer':'return=minimal'},
-        body:JSON.stringify({email:email,keywords:subKeywords})
-      });
-      if(res.ok){showStatus('Subscribed! Weekly alerts for: '+subKeywords.join(', '),'success');}
-      else{throw new Error('Subscribe failed');}
+  // Build month day selects
+  ['amMonthDay','amBimonthDay'].forEach(selId=>{
+    const sel=document.getElementById(selId);
+    sel.innerHTML='';
+    for(let d=1;d<=28;d++){
+      const opt=document.createElement('option');opt.value=d;
+      opt.textContent=d+(d===1?'st':d===2?'nd':d===3?'rd':'th');
+      sel.appendChild(opt);
     }
-    localStorage.setItem('ct-galaxy-sub-email',email);
-    manageEl.style.display='block';
-  }catch(err){
-    showStatus('Error: '+err.message,'error');
-  }finally{
-    submitBtn.disabled=false;submitBtn.textContent='SUBSCRIBE';
-  }
-});
+    sel.value=sDate;
+  });
 
-document.getElementById('subUnsubLink').addEventListener('click',async()=>{
-  const email=emailEl.value.trim();
-  if(!email){showStatus('Enter your email first.','error');return;}
+  document.getElementById('amOddEven').value=sOddEven;
+  updateScheduleUI();
+  document.getElementById('alertManagerOverlay').classList.add('show');
+};
+
+window.updateScheduleUI=function(){
+  const t=document.getElementById('amScheduleType').value;
+  document.getElementById('amWeeklyRow').style.display=t==='weekly'?'flex':'none';
+  document.getElementById('amMonthlyRow').style.display=t==='monthly'?'flex':'none';
+  document.getElementById('amBimonthlyRow').style.display=t==='bimonthly'?'flex':'none';
+  updateNextSendDisplay();
+};
+
+function updateNextSendDisplay(){
+  const t=document.getElementById('amScheduleType').value;
+  const el=document.getElementById('amNextSend');
+  const now=new Date();
+  let next,label;
+
+  if(t==='weekly'){
+    const selBtn=document.querySelector('#amDayButtons button[style*="var(--mint)"]');
+    const dayVal=selBtn?.dataset?.val||'monday';
+    const dayIdx=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'].indexOf(dayVal);
+    next=new Date(now);
+    next.setDate(now.getDate()+((dayIdx-now.getDay()+7)%7||7));
+    label=`Every ${selBtn?.textContent||'Mon'}`;
+  }else if(t==='monthly'){
+    const d=parseInt(document.getElementById('amMonthDay').value)||1;
+    next=new Date(now.getFullYear(),now.getMonth(),d);
+    if(next<=now)next.setMonth(next.getMonth()+1);
+    label=`Every month on the ${d}${d===1?'st':d===2?'nd':d===3?'rd':'th'}`;
+  }else{
+    const d=parseInt(document.getElementById('amBimonthDay').value)||1;
+    const oe=document.getElementById('amOddEven').value;
+    next=new Date(now.getFullYear(),now.getMonth(),d);
+    if(next<=now)next.setMonth(next.getMonth()+1);
+    const isOdd=((next.getMonth()+1)%2===1);
+    if((oe==='odd'&&!isOdd)||(oe==='even'&&isOdd))next.setMonth(next.getMonth()+1);
+    label=`${oe==='odd'?'Odd':'Even'} months on the ${d}${d===1?'st':d===2?'nd':d===3?'rd':'th'}`;
+  }
+
+  el.innerHTML=`Next: <strong>${next.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</strong> · ${label}`;
+}
+
+window.closeAlertManager=function(){
+  document.getElementById('alertManagerOverlay').classList.remove('show');
+};
+
+window.updateAlertSettings=async function(){
+  if(!_currentUser)return;
+  const scheduleType=document.getElementById('amScheduleType').value;
+  const selBtn=document.querySelector('#amDayButtons button[style*="var(--mint)"]');
+  const scheduleDay=selBtn?.dataset?.val||'monday';
+  const scheduleDate=parseInt(document.getElementById(scheduleType==='bimonthly'?'amBimonthDay':'amMonthDay').value)||1;
+  const scheduleOddEven=document.getElementById('amOddEven').value;
+  updateNextSendDisplay();
   try{
-    const res=await fetch(SUPABASE_URL+'/rest/v1/subscriptions?email=eq.'+encodeURIComponent(email),{
-      method:'PATCH',
-      headers:{...headers,'Prefer':'return=minimal'},
-      body:JSON.stringify({active:false})
+    await _sb.from('subscriptions').update({
+      schedule_type:scheduleType,schedule_day:scheduleDay,
+      schedule_date:scheduleDate,schedule_odd_even:scheduleOddEven
+    }).eq('user_id',_currentUser.id);
+  }catch(e){}
+};
+
+window.deleteAlertSlot=async function(idx){
+  if(!_currentUser)return;
+  try{
+    const{data}=await _sb.from('subscriptions').select('id,keywords').eq('user_id',_currentUser.id).maybeSingle();
+    if(!data)return;
+    const slots=data.keywords||[];
+    slots.splice(idx,1);
+    await _sb.from('subscriptions').update({keywords:slots,active:slots.length>0}).eq('user_id',_currentUser.id);
+    refreshAlertBadge();
+    openAlertManager(); // refresh UI
+  }catch(e){showAlertToast('Error: '+e.message);}
+};
+
+window.pushAlertNow=async function(idx){
+  if(!_currentUser)return;
+  const data=window._alertSubData;
+  if(!data||!data.keywords||!data.keywords[idx])return;
+  const sent=data.monthly_sent||0;
+  if(sent>=10){showAlertToast('Monthly limit reached (10/10). Upgrade for more.');return;}
+  showAlertToast('Sending alert email... please wait.');
+  try{
+    const{data:{session}}=await _sb.auth.getSession();
+    const res=await fetch(SUPABASE_URL+'/functions/v1/push-alert',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json'},
+      body:JSON.stringify({slotIndex:idx})
     });
-    if(res.ok){showStatus('Unsubscribed successfully.','success');manageEl.style.display='none';}
-  }catch(err){showStatus('Error: '+err.message,'error');}
-});
+    const result=await res.json();
+    if(!res.ok)throw new Error(result.error||'Push failed');
+    if(result.count===0){showAlertToast('No trials found for this filter.');}
+    else{showAlertToast('Alert sent! '+result.count+' trial(s). Check your email.');}
+    refreshAlertBadge();
+  }catch(e){showAlertToast('Error: '+e.message);}
+};
 
-document.getElementById('subUpdateLink').addEventListener('click',()=>{
-  kwInput.focus();
-  showStatus('Modify keywords above and click SUBSCRIBE to update.','success');
-});
+// ── Search Logging ──
+window._logSearch=async function(query){
+  if(!_currentUser)return;
+  try{await _sb.from('search_logs').insert({user_id:_currentUser.id,query});}catch(e){}
+};
 
-const savedEmail=localStorage.getItem('ct-galaxy-sub-email');
-if(savedEmail){
-  emailEl.value=savedEmail;
-  fetch(SUPABASE_URL+'/rest/v1/subscriptions?email=eq.'+encodeURIComponent(savedEmail)+'&select=keywords,active',{headers})
-    .then(r=>r.json()).then(data=>{
-      if(data.length>0 && data[0].active){
-        subKeywords=data[0].keywords||[];
-        renderTags();
-        manageEl.style.display='block';
-      }
-    }).catch(()=>{});
-}
-
-emailEl.addEventListener('change',()=>{
-  if(emailEl.value.trim())localStorage.setItem('ct-galaxy-sub-email',emailEl.value.trim());
-});
+// Refresh badge on load
+setTimeout(()=>{if(_currentUser)refreshAlertBadge();},1500);
 
 })();
+
+
+
 
 // ── CI Theme System (V3 Vivid) ──
 // ═══════════════════════════════════════════════════════
@@ -6678,5 +7111,80 @@ if(saved){try{const t=JSON.parse(saved);applyTheme(t.p,t.s);}catch(e){applyTheme
 
 })();
 </script>
+
+<!-- Alert Confirmation Modal -->
+<div class="alert-modal-overlay" id="alertModalOverlay" onclick="if(event.target===this)hideAlertModal()">
+  <div class="alert-modal">
+    <h3><em class="bell">🔔</em> <span id="alertModalTitle">SET ALERT</span></h3>
+    <p class="alert-desc" id="alertModalDesc">You will receive weekly email updates when new trials match these criteria.</p>
+    <div class="alert-filters" id="alertModalFilters"></div>
+    <div class="alert-actions">
+      <button class="alert-cancel" onclick="hideAlertModal()">Cancel</button>
+      <button class="alert-ok" id="alertModalConfirm" onclick="confirmAlert()">ACTIVATE ALERT</button>
+    </div>
+    <p style="margin-top:.6rem;font-size:.72rem;color:var(--text-light);text-align:center">Free tier: 10 alert emails/month · Manage in 🔔 badge after sign in</p>
+  </div>
+</div>
+<div class="alert-toast" id="alertToast"></div>
+
+<!-- Alert Manager Modal -->
+<div class="alert-modal-overlay" id="alertManagerOverlay" onclick="if(event.target===this)closeAlertManager()">
+  <div class="alert-manage">
+    <h3><em class="bell" style="font-style:normal;font-size:.7rem">🔔</em> MY ALERTS</h3>
+    <div class="am-usage" id="amUsage">Monthly usage: <strong>0 / 10</strong> emails (free tier)</div>
+    <div id="amSlotList"></div>
+    <div class="am-freq">
+      <div class="am-freq-row">
+        <span class="am-freq-label">Schedule</span>
+        <select id="amScheduleType" onchange="updateScheduleUI();updateAlertSettings()" style="font-weight:600">
+          <option value="weekly">Every week</option>
+          <option value="bimonthly">Every 2 months</option>
+          <option value="monthly" selected>Every month</option>
+        </select>
+      </div>
+      <div class="am-freq-row" id="amWeeklyRow">
+        <span class="am-freq-label">on</span>
+        <div id="amDayButtons" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+      </div>
+      <div class="am-freq-row" id="amMonthlyRow" style="display:none">
+        <span class="am-freq-label">on the</span>
+        <select id="amMonthDay" onchange="updateAlertSettings()" style="font-weight:600"></select>
+      </div>
+      <div class="am-freq-row" id="amBimonthlyRow" style="display:none">
+        <span class="am-freq-label">in</span>
+        <select id="amOddEven" onchange="updateAlertSettings()" style="font-weight:600">
+          <option value="odd">Odd months (Jan, Mar, May...)</option>
+          <option value="even">Even months (Feb, Apr, Jun...)</option>
+        </select>
+        <span style="font-size:.8rem;margin:0 .3rem">on the</span>
+        <select id="amBimonthDay" onchange="updateAlertSettings()" style="font-weight:600"></select>
+      </div>
+      <div id="amNextSend" style="font-size:.72rem;color:var(--mint-dark);margin-top:.5rem;font-weight:600"></div>
+      <div style="font-size:.68rem;color:var(--text-light);margin-top:.2rem">No results = no email sent, no charge.</div>
+    </div>
+    <div style="margin-top:1rem;display:flex;justify-content:flex-end">
+      <button class="alert-cancel" onclick="closeAlertManager()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Auth Modal -->
+<div class="auth-modal-overlay" id="authModalOverlay" onclick="if(event.target===this)hideAuthModal()">
+  <div class="auth-modal">
+    <h3 id="authModalTitle">SIGN IN</h3>
+    <p style="font-size:.75rem;color:var(--text-light);margin-bottom:1rem;line-height:1.6">We'll send a one-time login link to your email. No password needed.<br><span style="color:var(--danger);font-weight:600">Please double-check your email address</span> — the link can only be re-sent after 60 seconds.</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="authEmailInput" placeholder="your@email.com">
+    </div>
+    <button class="auth-submit" id="authSubmitBtn" onclick="handleAuthSubmit()">SEND MAGIC LINK</button>
+    <div class="auth-msg" id="authMsg"></div>
+    <div class="auth-footer">
+      <span id="authToggleText">No account? </span>
+      <span class="auth-link" id="authToggleLink" onclick="toggleAuthMode()">Sign Up</span>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
