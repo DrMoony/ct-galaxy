@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Clinical Trial Galaxy</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
@@ -7128,15 +7131,17 @@ function _aiCanUse(){const now=new Date().getMonth()+1;if(_aiMonthlyUsed.month!=
 function _aiIncrement(){_aiMonthlyUsed.count++;localStorage.setItem('ai_monthly',JSON.stringify(_aiMonthlyUsed));}
 
 window.runQuickAI=async function(){
+  console.log('[AI] runQuickAI v2 called');
   const btn=document.getElementById('aiQuickBtn');
   const statusEl=document.getElementById('aiQuickStatus');
-  if(!btn||!statusEl)return;
-  if(!_currentUser){statusEl.textContent='Please sign in first';statusEl.style.color='#f59e0b';return;}
+  if(!btn||!statusEl){console.log('[AI] btn or statusEl not found');return;}
+  if(!_currentUser){console.log('[AI] no currentUser');statusEl.textContent='Please sign in first';statusEl.style.color='#f59e0b';return;}
   if(!_isMaster()&&!_aiCanUse()){statusEl.textContent='Monthly limit reached (10/10)';statusEl.style.color='#ef4444';return;}
   const studies=window._cmpStudiesRaw;
-  if(!studies||studies.length<2){statusEl.textContent='Need at least 2 trials';return;}
+  if(!studies||studies.length<2){console.log('[AI] not enough studies:',studies?.length);statusEl.textContent='Need at least 2 trials';return;}
   btn.disabled=true;
   statusEl.textContent='Analyzing with AI...';statusEl.style.color='#10b981';
+  console.log('[AI] calling edge function with',studies.length,'trials');
   try{
     const{data:{session}}=await _sb.auth.getSession();
     if(!session)throw new Error('Not logged in');
