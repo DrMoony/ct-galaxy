@@ -131,6 +131,65 @@ TRIAL ${i + 1}: ${id.nctId || ""}
 ${eligText || "N/A"}`;
     }).join("\n\n" + "=".repeat(80) + "\n");
 
+    // ── Phase 2 data lookup for Phase 3 trials ──
+    // For each P3 drug, find completed P2 trials with results
+    const p3Drugs: string[] = [];
+    trials.slice(0, 4).forEach((t: any) => {
+      const phases = t.protocolSection?.designModule?.phases || [];
+      if (phases.some((p: string) => p.includes("3"))) {
+        const arms = t.protocolSection?.armsInterventionsModule?.interventions || [];
+        arms.filter((iv: any) => iv.type === "DRUG" || iv.type === "BIOLOGICAL")
+          .forEach((iv: any) => { if (!p3Drugs.includes(iv.name)) p3Drugs.push(iv.name); });
+      }
+    });
+
+    async function fetchPhase2Data(drugName: string): Promise<string> {
+      try {
+        const url = `https://clinicaltrials.gov/api/v2/studies?query.term=${encodeURIComponent(drugName)}&filter.phase=PHASE2&filter.overallStatus=COMPLETED&filter.resultsDateRange=,&fields=protocolSection.identificationModule.nctId,protocolSection.identificationModule.briefTitle,protocolSection.designModule.enrollmentInfo,protocolSection.designModule.phases,hasResults,resultsSection.outcomeMeasuresModule&pageSize=2&sort=@relevance`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+        if (!res.ok) return "";
+        const data = await res.json();
+        const studies = data.studies || [];
+        if (studies.length === 0) return "";
+
+        let out = `\nPHASE 2 DATA for "${drugName}":\n`;
+        for (const s of studies) {
+          const proto = s.protocolSection || {};
+          const nctId = proto.identificationModule?.nctId || "";
+          const title = proto.identificationModule?.briefTitle || "";
+          const enrollment = proto.enrollmentInfo?.count || "N/A";
+          out += `  [${nctId}] ${title} (n=${enrollment})\n`;
+
+          // Extract outcome measures with results
+          const outcomes = s.resultsSection?.outcomeMeasuresModule?.outcomeMeasures || [];
+          outcomes.slice(0, 4).forEach((om: any, idx: number) => {
+            const type = om.type || "";
+            const measure = om.title || "";
+            const desc = (om.description || "").slice(0, 200);
+            out += `    ${type}: ${measure}\n`;
+            if (desc) out += `      ${desc}\n`;
+            // Extract group results
+            const groups = om.groups || [];
+            const groupTitles = groups.map((g: any) => g.title || "").slice(0, 4);
+            const classes = om.classes || [];
+            classes.slice(0, 3).forEach((cls: any) => {
+              const catTitle = cls.title || "";
+              const cats = cls.categories || [];
+              cats.slice(0, 2).forEach((cat: any) => {
+                const measurements = cat.measurements || [];
+                const vals = measurements.slice(0, 4).map((m: any, gi: number) =>
+                  `${groupTitles[gi] || "Grp" + gi}: ${m.value || "N/A"}${m.spread ? " ±" + m.spread : ""}`
+                ).join(" | ");
+                if (vals) out += `      ${catTitle ? catTitle + " — " : ""}${vals}\n`;
+              });
+            });
+          });
+          out += "\n";
+        }
+        return out;
+      } catch { return ""; }
+    }
+
     // ── PubMed: fetch top 3 high-IF papers per drug ──
     const HIGH_IF_JOURNALS = '("N Engl J Med"[Journal] OR "Lancet"[Journal] OR "JAMA"[Journal] OR "BMJ"[Journal] OR "Nat Med"[Journal] OR "J Clin Oncol"[Journal] OR "Lancet Oncol"[Journal] OR "Ann Oncol"[Journal] OR "Blood"[Journal] OR "Hepatology"[Journal] OR "Gastroenterology"[Journal] OR "Circulation"[Journal] OR "Eur Heart J"[Journal] OR "Diabetes Care"[Journal] OR "J Hepatol"[Journal] OR "Ann Intern Med"[Journal] OR "Gut"[Journal] OR "JAMA Oncol"[Journal])';
 
@@ -259,33 +318,35 @@ ${eligText || "N/A"}`;
       } catch { return ""; }
     }
 
-    // Parallel fetch: PubMed + FDA (condition) + FDA (drug) + Recent reviews
-    const [pubmedResults, fdaCondResults, fdaDrugResults, reviewResults] = await Promise.all([
+    // Parallel fetch: PubMed + FDA (condition) + FDA (drug) + Recent reviews + Phase 2 data
+    const [pubmedResults, fdaCondResults, fdaDrugResults, reviewResults, p2Results] = await Promise.all([
       Promise.all(drugNames.map(d => searchPubMed(d))),
       Promise.all(conditions.map(c => searchFDAbyCondition(c))),
       Promise.all(drugNames.map(d => searchFDAbyDrug(d))),
       Promise.all(conditions.map(c => searchRecentReviews(c))),
+      Promise.all(p3Drugs.slice(0, 4).map(d => fetchPhase2Data(d))),
     ]);
 
     const pubmedSection = pubmedResults.filter(Boolean).join("\n");
     const fdaCondSection = fdaCondResults.filter(Boolean).join("\n");
     const fdaDrugSection = fdaDrugResults.filter(Boolean).join("\n");
     const reviewSection = reviewResults.filter(Boolean).join("\n");
-    const externalData = [pubmedSection, fdaCondSection, fdaDrugSection, reviewSection].filter(Boolean).join("\n" + "=".repeat(40) + "\n");
+    const p2Section = p2Results.filter(Boolean).join("\n");
+    const externalData = [pubmedSection, fdaCondSection, fdaDrugSection, reviewSection, p2Section].filter(Boolean).join("\n" + "=".repeat(40) + "\n");
 
     const prompt = `You are a senior clinical trial analyst at a top pharma competitive intelligence firm specializing in regulatory strategy. Perform a deep comparative analysis of these ${trials.length} clinical trials.
 
 ${trialSummaries}
 
 ${"=".repeat(80)}
-EXTERNAL REFERENCES (PubMed & FDA):
+EXTERNAL REFERENCES (PubMed, FDA, Phase 2 Results):
 ${externalData || "(No external data retrieved)"}
 ${"=".repeat(80)}
 
 CRITICAL INSTRUCTION: You are NOT a summarizer. You are an expert analyst. Do NOT simply restate what the protocol says. Instead, REASON about what each design choice ACTUALLY MEANS in practice:
 - If a trial uses hard endpoints only (e.g., liver-related clinical events), calculate how long event accrual will realistically take given enrollment size and event rates in this population. A 4500-patient trial with hard endpoints does NOT mean "faster" — it likely means 5+ years to readout.
 - If a trial uses biopsy-based surrogate endpoints (e.g., fibrosis improvement ≥1 stage), explain that this enables accelerated/conditional approval in 2-3 years, while hard endpoint data accumulates in parallel.
-- When discussing MOAs, draw on your knowledge of Phase 2 data including supplementary materials. For example, if a GLP-1/Glucagon dual agonist showed superior fibrosis resolution vs. GLP-1 alone in Phase 2 supplementary data, cite that specific finding.
+- When discussing MOAs, draw on Phase 2 data provided in the EXTERNAL REFERENCES section AND your knowledge of supplementary materials. For Phase 3 trials, the Phase 2 outcome data with actual numerical results is provided above — cite specific response rates, effect sizes, p-values, and group comparisons from that data. For example, if a GLP-1/Glucagon dual agonist showed superior fibrosis resolution vs. GLP-1 alone in Phase 2 supplementary data, cite that specific finding.
 - Do NOT say "master protocol provides competitive advantage" without analyzing whether the endpoint choice within that protocol actually supports faster regulatory path.
 - Always distinguish between: time to data readout vs. time to regulatory submission vs. time to market.
 
