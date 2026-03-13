@@ -414,11 +414,12 @@ Be concrete with dates (e.g., "Q3 2027") rather than vague ("in the coming years
 - Cite the most relevant publications for each drug — what do they show about efficacy/safety from earlier trials?
 - Reference any FDA-approved competitors in this indication — how do approved drugs' profiles compare to what these trials are testing?
 - If key Phase 2 data exists in the literature, summarize the efficacy signals and safety profile that inform Phase 3 expectations.
-- Include PMID links where available: format as <a href="https://pubmed.ncbi.nlm.nih.gov/PMID" style="color:#0284c7;text-decoration:none">PMID:NUMBER</a>
+- When citing publications, write ONLY plain text like "PMID:12345678" — do NOT create hyperlinks for PMIDs. The system will auto-link verified PMIDs after your response. ONLY reference PMIDs that appear in the EXTERNAL REFERENCES section above. NEVER fabricate or guess a PMID.
 If no relevant publications or FDA data were found, state that and rely on your knowledge.</p>
 
 Rules:
 - NEVER cite an NCT ID alone. ALWAYS pair it with the drug name, e.g., "survodutide (NCT06789012)" or "NCT06789012 (survodutide)". A standalone NCT ID without the drug name is FORBIDDEN.
+- CRITICAL LINKING RULE: NCT IDs MUST link to ClinicalTrials.gov, NEVER to PubMed. Format: <a href="https://clinicaltrials.gov/study/NCTXXXXXXXX" target="_blank" style="color:#0284c7;text-decoration:none">NCTXXXXXXXX</a>. PubMed links (pubmed.ncbi.nlm.nih.gov) are ONLY for PMIDs (numeric IDs like 12345678), never for NCT IDs.
 - Be specific: cite exact numbers, drug names, country percentages
 - Be opinionated: give clear assessments and verdicts, not balanced-both-sides descriptions
 - USE the external references (PubMed, FDA labels, recent reviews) provided above to ground your analysis in the LATEST evidence. Reference recent approvals, guideline changes, and regulatory trends from the data. Do NOT rely solely on your training data for regulatory landscape — use the retrieved data.
@@ -470,8 +471,40 @@ Your output MUST be at least ${trials.slice(0,4).length * 1700} tokens. That mea
       });
     }
 
-    const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "No analysis generated.";
+    let text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "No analysis generated.";
     const usage = geminiData.usageMetadata || {};
+
+    // Build set of verified PMIDs (actually fetched from PubMed)
+    const verifiedPmids = new Set<string>();
+    for (const section of pubmedResults) {
+      const matches = section.matchAll(/PMID:(\d+)/g);
+      for (const m of matches) verifiedPmids.add(m[1]);
+    }
+    for (const section of reviewResults) {
+      const matches = section.matchAll(/PMID:(\d+)/g);
+      for (const m of matches) verifiedPmids.add(m[1]);
+    }
+
+    // Post-process: strip ALL AI-generated <a> tags, then re-link with verified data only
+
+    // 1. Strip all hyperlinks around NCT IDs → bare text
+    text = text.replace(/<a\s+[^>]*>(NCT\d{8,})<\/a>/gi, '$1');
+    // 2. Strip all hyperlinks around PMID references → bare text
+    text = text.replace(/<a\s+[^>]*>(PMID[:\s]*\d+)<\/a>/gi, '$1');
+    text = text.replace(/<a\s+[^>]*href\s*=\s*["'][^"']*pubmed[^"']*["'][^>]*>([^<]+)<\/a>/gi, '$1');
+
+    // 3. Auto-link NCT IDs → ClinicalTrials.gov (always valid)
+    text = text.replace(/(?<!["'>/a-zA-Z])(NCT\d{8,})(?![^<]*<\/a>)/g,
+      (nctId) => `<a href="https://clinicaltrials.gov/study/${nctId}" target="_blank" style="color:#0284c7;text-decoration:none">${nctId}</a>`
+    );
+
+    // 4. Auto-link PMIDs → PubMed ONLY if verified
+    text = text.replace(/PMID[:\s]*(\d{6,})/g, (match, pmid) => {
+      if (verifiedPmids.has(pmid)) {
+        return `<a href="https://pubmed.ncbi.nlm.nih.gov/${pmid}/" target="_blank" style="color:#0284c7;text-decoration:none">PMID:${pmid}</a>`;
+      }
+      return `PMID:${pmid}`; // unverified → plain text, no link
+    });
 
     // Log AI usage (skip master)
     const nctIds = trials.slice(0, 4).map((t: any) =>
@@ -500,3 +533,8 @@ Your output MUST be at least ${trials.slice(0,4).length * 1700} tokens. That mea
     });
   }
 });
+
+// v1.1.0 | 2026-03-14
+// - NCT ID 링크: AI 생성 링크 전부 strip 후 clinicaltrials.gov로 재링크
+// - PMID 링크: 실제 PubMed API fetch 결과와 대조, 검증된 것만 링크 생성
+// - 할루시네이션 PMID는 plain text로 유지 (클릭 불가)
