@@ -1140,7 +1140,7 @@ th .col-hide-btn{float:right;margin-top:1px}
     <span>DEVELOPER : DR.MOON KIM & DR.SHERYL SHIN</span>
   </div>
   <div class="footer-powered">POWERED BY CLINICALTRIALS.GOV API V2 & CLAUDE</div>
-  <div style="font-size:.55rem;color:#475569;letter-spacing:.5px;margin-top:4px">v3.0.1 · Updated 2026-03-14</div>
+  <div style="font-size:.55rem;color:#475569;letter-spacing:.5px;margin-top:4px">v3.1.0 · Updated 2026-03-14</div>
 </div>
 
 <script>
@@ -2560,7 +2560,7 @@ function renderDetail(study){
   const ageRange=`${eligMod.minimumAge||'N/A'} ~ ${eligMod.maximumAge||'N/A'}`,sex=eligMod.sex||'ALL',healthy=eligMod.healthyVolunteers==='Yes'?'Yes':'No';
   const studyTypeRaw=(designMod.studyType||'').toUpperCase();
   const trialCat=classifyTrial(interventions,studyTypeRaw);
-  const locations=locMod.locations||[];detailLocations=locations;const countryCounts={};const countryFacilities={};locations.forEach(l=>{if(l.country){countryCounts[l.country]=(countryCounts[l.country]||0)+1;if(!countryFacilities[l.country])countryFacilities[l.country]=[];countryFacilities[l.country].push({facility:l.facility||'Unknown',city:l.city||'',status:l.status||''});}});const countryList=Object.entries(countryCounts).sort((a,b)=>b[1]-a[1]);
+  const locations=locMod.locations||[];detailLocations=locations;const countryCounts={};const countryFacilities={};locations.forEach(l=>{if(l.country){countryCounts[l.country]=(countryCounts[l.country]||0)+1;if(!countryFacilities[l.country])countryFacilities[l.country]=[];countryFacilities[l.country].push({facility:l.facility||'Unknown',city:l.city||'',status:l.status||'',contacts:l.contacts||[]});}});const countryList=Object.entries(countryCounts).sort((a,b)=>b[1]-a[1]);
   document.getElementById('modalBody').innerHTML=`
     <div class="detail-grid">
       <div class="detail-item"><div class="label">NCT ID</div><div class="value">${escHtml(nctId)}</div></div>
@@ -2572,6 +2572,7 @@ function renderDetail(study){
       <div class="detail-item"><div class="label">Last Updated</div><div class="value">${escHtml(lastUpdate)}</div></div>
       <div class="detail-item"><div class="label">Age</div><div class="value">${escHtml(ageRange)}</div></div>
       <div class="detail-item"><div class="label">Sex / Healthy</div><div class="value">${escHtml(sex)} / ${healthy}</div></div>
+      ${(()=>{const officials=(locMod.overallOfficials||[]);const rp=sponsorMod.responsibleParty||{};const piList=officials.filter(o=>o.role==='PRINCIPAL_INVESTIGATOR');const dirs=officials.filter(o=>o.role!=='PRINCIPAL_INVESTIGATOR');let piHtml='';if(piList.length>0)piHtml=piList.map(p=>`<span style="color:#a78bfa">${escHtml(p.name||'')}</span>${p.affiliation?` <span style="color:#64748b;font-size:.7rem">(${escHtml(p.affiliation)})</span>`:''}`).join('<br>');else if(rp.type==='PRINCIPAL_INVESTIGATOR'&&rp.investigatorFullName)piHtml=`<span style="color:#a78bfa">${escHtml(rp.investigatorFullName)}</span>${rp.investigatorAffiliation?` <span style="color:#64748b;font-size:.7rem">(${escHtml(rp.investigatorAffiliation)})</span>`:''}`;if(dirs.length>0&&piHtml)piHtml+='<br>'+dirs.map(d=>`<span style="color:#94a3b8;font-size:.7rem">${escHtml(d.role.replace(/_/g,' '))}: ${escHtml(d.name||'')}</span>`).join('<br>');return piHtml?`<div class="detail-item" style="grid-column:1/-1"><div class="label">Principal Investigator</div><div class="value">${piHtml}</div></div>`:'';})()}
     </div>
     <div class="section-title"><svg width="14" height="14" viewBox="0 0 16 16" style="image-rendering:pixelated;margin-right:6px"><rect x="7" y="1" width="2" height="1" fill="#00E47C"/><rect x="6" y="2" width="4" height="1" fill="#aaa"/><rect x="7" y="3" width="2" height="2" fill="#ddd"/><rect x="5" y="6" width="6" height="1" fill="#ddd"/><rect x="4" y="7" width="8" height="5" fill="#00E47C"/><rect x="4" y="12" width="8" height="1" fill="#ddd"/></svg>INTERVENTION / MOA</div>
     <div class="moa-box">${escHtml(moaText)}</div>
@@ -2579,7 +2580,7 @@ function renderDetail(study){
     <div class="criteria-box">${escHtml(inclusionSummary)}</div>
     <div class="section-title"><svg width="14" height="14" viewBox="0 0 16 16" style="image-rendering:pixelated;margin-right:6px"><rect x="5" y="2" width="6" height="1" fill="#00E47C"/><rect x="3" y="3" width="10" height="1" fill="#004455"/><rect x="2" y="4" width="12" height="6" fill="#004455"/><rect x="4" y="5" width="3" height="2" fill="#00E47C"/><rect x="9" y="6" width="2" height="2" fill="#00E47C"/><rect x="3" y="10" width="10" height="1" fill="#00E47C"/><rect x="5" y="11" width="6" height="1" fill="#004455"/></svg>TRIAL LOCATIONS (${locations.length} sites)</div>
     <div class="location-list">${countryList.map(([c,n])=>`<span class="country-badge" style="cursor:pointer" onclick="zoomToCountry('${c.replace(/'/g,"\\'")}',event)">${escHtml(c)} (${n})</span>`).join('')}</div>
-    <div class="detail-facility-section">${countryList.map(([c,n])=>{const facs=countryFacilities[c]||[];const cid='fac_'+c.replace(/[^a-zA-Z0-9]/g,'_');return `<div class="detail-country-group"><div class="detail-country-header" onclick="toggleFacilityList('${cid}','${c.replace(/'/g,"\\'")}')"><span class="arrow" id="arrow_${cid}">▶</span> ${escHtml(c)}<span class="cnt">${n} site${n>1?'s':''}</span></div><div id="${cid}" style="display:none"><div class="detail-facility-grid">${facs.map(f=>{const stCls=f.status.includes('RECRUITING')&&!f.status.includes('NOT')?'recruiting':f.status.includes('ACTIVE')?'active':f.status.includes('COMPLETED')?'completed':'other-st';const stLabel=f.status?formatStatus(f.status):'';return `<div class="detail-facility-card"><div class="fac-name">${escHtml(f.facility)}</div>${f.city?`<div class="fac-city">${escHtml(f.city)}</div>`:''}${stLabel?`<div class="fac-status ${stCls}">${escHtml(stLabel)}</div>`:''}</div>`;}).join('')}</div></div></div>`;}).join('')}</div>
+    <div class="detail-facility-section">${countryList.map(([c,n])=>{const facs=countryFacilities[c]||[];const cid='fac_'+c.replace(/[^a-zA-Z0-9]/g,'_');return `<div class="detail-country-group"><div class="detail-country-header" onclick="toggleFacilityList('${cid}','${c.replace(/'/g,"\\'")}')"><span class="arrow" id="arrow_${cid}">▶</span> ${escHtml(c)}<span class="cnt">${n} site${n>1?'s':''}</span></div><div id="${cid}" style="display:none"><div class="detail-facility-grid">${facs.map(f=>{const stCls=f.status.includes('RECRUITING')&&!f.status.includes('NOT')?'recruiting':f.status.includes('ACTIVE')?'active':f.status.includes('COMPLETED')?'completed':'other-st';const stLabel=f.status?formatStatus(f.status):'';const pi=(f.contacts||[]).find(c=>c.role==='PRINCIPAL_INVESTIGATOR');const contact=(f.contacts||[]).find(c=>c.role==='CONTACT');const piName=pi?pi.name:(contact?contact.name:'');const piEmail=contact?contact.email:'';return `<div class="detail-facility-card"><div class="fac-name">${escHtml(f.facility)}</div>${f.city?`<div class="fac-city">${escHtml(f.city)}</div>`:''}${stLabel?`<div class="fac-status ${stCls}">${escHtml(stLabel)}</div>`:''}${piName?`<div style="font-size:.65rem;color:#a78bfa;margin-top:3px"><span style="color:#7c3aed">PI:</span> ${escHtml(piName)}</div>`:''}${piEmail?`<div style="font-size:.6rem;color:#64748b;margin-top:1px">${escHtml(piEmail)}</div>`:''}</div>`;}).join('')}</div></div></div>`;}).join('')}</div>
     <div id="detailMap"></div>
     ${renderPublicationsSection(refsMod,nctId,idMod.briefTitle||'')}
     <div style="display:flex;gap:.6rem;align-items:center;margin-top:.8rem">
@@ -2589,7 +2590,114 @@ function renderDetail(study){
   /* ICD-10 mapping for conditions */
   const condArr=(condMod.conditions||[]);
   if(condArr.length>0)renderICD10Badges('icd10badges',condArr.slice(0,5));
+  /* Async: enrich site PI from EU CTIS + 식약처 */
+  enrichSitePIData(nctId,idMod.briefTitle||'',(sponsorMod.leadSponsor||{}).name||'',locations,countryFacilities);
   setTimeout(()=>{if(detailMap){detailMap.remove();detailMap=null;}detailMap=L.map('detailMap').setView([20,0],2);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:18}).addTo(detailMap);const markers=[];locations.forEach(loc=>{if(loc.geoPoint){const m=L.circleMarker([loc.geoPoint.lat,loc.geoPoint.lon],{radius:7,fillColor:'#00E47C',color:'#002E3B',weight:2,opacity:.9,fillOpacity:.7}).addTo(detailMap);m.bindPopup(`<b>${escHtml(loc.facility||'Unknown')}</b><br>${escHtml(loc.city||'')}, ${escHtml(loc.country||'')}`);markers.push(m);}});if(markers.length>0)detailMap.fitBounds(L.featureGroup(markers).getBounds().pad(0.3));},100);
+}
+
+
+/* ── External Site PI Enrichment (EU CTIS + 식약처) ── */
+async function enrichSitePIData(nctId,title,sponsor,locations,countryFacilities){
+  const hasEU=locations.some(l=>['Germany','France','Italy','Spain','Netherlands','Belgium','Austria','Sweden','Denmark','Finland','Norway','Ireland','Poland','Czech Republic','Hungary','Portugal','Greece','Romania','Bulgaria','Croatia','Slovakia','Slovenia','Latvia','Lithuania','Estonia','Luxembourg','Malta','Cyprus'].includes(l.country));
+  const hasKR=locations.some(l=>l.country==='Korea, Republic of'||l.country==='South Korea');
+  const promises=[];
+  if(hasEU)promises.push(fetchEUCTISPI(title,sponsor));
+  if(hasKR)promises.push(fetchMFDSPI(title));
+  if(promises.length===0)return;
+  const results=await Promise.allSettled(promises);
+  let euSites=[], krSites=[];
+  let idx=0;
+  if(hasEU){const r=results[idx++];if(r.status==='fulfilled')euSites=r.value||[];}
+  if(hasKR){const r=results[idx++];if(r.status==='fulfilled')krSites=r.value||[];}
+  if(euSites.length===0&&krSites.length===0)return;
+  /* Merge: find matching facility cards and append PI badges */
+  const allCards=document.querySelectorAll('.detail-facility-card');
+  allCards.forEach(card=>{
+    const facName=(card.querySelector('.fac-name')||{}).textContent||'';
+    const facNameLow=facName.toLowerCase().replace(/[^a-z0-9]/g,'');
+    /* Match EU CTIS */
+    for(const site of euSites){
+      const siteLow=(site.name||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      if(siteLow&&facNameLow&&(facNameLow.includes(siteLow.substring(0,15))||siteLow.includes(facNameLow.substring(0,15)))){
+        if(site.pi&&!card.querySelector('.ext-pi-eu')){
+          const div=document.createElement('div');
+          div.className='ext-pi-eu';
+          div.style.cssText='font-size:.6rem;color:#60a5fa;margin-top:3px;border-top:1px solid rgba(96,165,250,.2);padding-top:3px';
+          div.innerHTML=`<span style="background:#1e3a5f;color:#60a5fa;padding:1px 4px;border-radius:2px;font-size:.5rem;font-weight:700;margin-right:3px">EU CTIS</span> ${escHtml(site.pi)}${site.email?' · <span style="color:#475569">'+escHtml(site.email)+'</span>':''}`;
+          card.appendChild(div);
+        }
+        break;
+      }
+    }
+    /* Match 식약처 */
+    for(const site of krSites){
+      const siteLow=(site.name||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      if(siteLow&&facNameLow&&(facNameLow.includes(siteLow.substring(0,8))||siteLow.includes(facNameLow.substring(0,8)))){
+        if(site.pi&&!card.querySelector('.ext-pi-kr')){
+          const div=document.createElement('div');
+          div.className='ext-pi-kr';
+          div.style.cssText='font-size:.6rem;color:#f59e0b;margin-top:3px;border-top:1px solid rgba(245,158,11,.2);padding-top:3px';
+          div.innerHTML=`<span style="background:#451a03;color:#f59e0b;padding:1px 4px;border-radius:2px;font-size:.5rem;font-weight:700;margin-right:3px">MFDS</span> ${escHtml(site.pi)}`;
+          card.appendChild(div);
+        }
+        break;
+      }
+    }
+  });
+}
+
+/* EU CTIS: search by title, get site-level PI */
+async function fetchEUCTISPI(title,sponsor){
+  try{
+    const searchBody={pagination:{page:0,size:5},sort:{property:'decisionDate',direction:'DESC'},searchCriteria:{containAll:title.split(/\s+/).slice(0,5).join(' ')}};
+    const res=await fetch('https://euclinicaltrials.eu/ctis-public-api/search',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(searchBody),signal:AbortSignal.timeout(8000)
+    });
+    if(!res.ok)return[];
+    const data=await res.json();
+    const trials=data.data||[];
+    if(trials.length===0)return[];
+    /* Get first matching trial detail */
+    const euct=trials[0].ctNumber;
+    if(!euct)return[];
+    const detRes=await fetch(`https://euclinicaltrials.eu/ctis-public-api/retrieve/${euct}`,{signal:AbortSignal.timeout(8000)});
+    if(!detRes.ok)return[];
+    const detail=await detRes.json();
+    const sites=[];
+    const parts=detail.authorizedApplication?.authorizedPartsII||[];
+    parts.forEach(part=>{
+      (part.trialSites||[]).forEach(ts=>{
+        const org=ts.organisationAddressInfo?.organisation?.name||'';
+        const pi=ts.personInfo?((ts.personInfo.firstName||'')+' '+(ts.personInfo.lastName||'')).trim():'';
+        const email=ts.personInfo?.email||ts.organisationAddressInfo?.email||'';
+        const dept=ts.departmentName||'';
+        if(org||pi)sites.push({name:org,pi,email,dept});
+      });
+    });
+    return sites;
+  }catch(e){console.log('EU CTIS fetch error:',e);return[];}
+}
+
+/* 식약처: search by title keyword, get PI info (API ④) */
+const MFDS_API_KEY='%2FbL96YLl%2FCs51frAuagRX8UsHqUKju1g9F1cPhNycc%2BcD1s65e4De%2B%2B1i%2FyisaYYoG%2BtU4eEIibLxXYckU3wgQ%3D%3D';
+async function fetchMFDSPI(title){
+  if(!MFDS_API_KEY)return[];
+  try{
+    /* Extract first meaningful Korean/English keyword from title */
+    const kw=title.split(/[\s:,]+/).filter(w=>w.length>3).slice(0,2).join(' ');
+    const url=`https://apis.data.go.kr/1471000/ClncExamPlanTestPscgService03/getClncExamPlanTestPscgInq03?serviceKey=${encodeURIComponent(MFDS_API_KEY)}&type=json&numOfRows=20&pageNo=1`;
+    const res=await fetch(url,{signal:AbortSignal.timeout(8000)});
+    if(!res.ok)return[];
+    const data=await res.json();
+    const items=(data.body?.items||[]);
+    const sites=items.map(it=>({
+      name:it.INSTT_NAME||'',
+      pi:it.INSPCT_MANAGER_NAME||'',
+      addr:it.INSTT_ADDR||''
+    })).filter(s=>s.pi);
+    return sites;
+  }catch(e){console.log('MFDS fetch error:',e);return[];}
 }
 
 // ── Galaxy View ──
