@@ -2603,7 +2603,7 @@ async function enrichSitePIData(nctId,title,sponsor,locations,countryFacilities,
   const hasKR=locations.some(l=>l.country==='Korea, Republic of'||l.country==='South Korea');
   const promises=[];
   if(hasEU)promises.push(fetchEUCTISPI(title,sponsor));
-  if(hasKR)promises.push(fetchMFDSPI(title,drugNames));
+  if(hasKR)promises.push(fetchMFDSPI(title,drugNames,sponsor));
   if(promises.length===0)return;
   const results=await Promise.allSettled(promises);
   let euSites=[], krSites=[];
@@ -2683,49 +2683,64 @@ async function fetchEUCTISPI(title,sponsor){
 /* 식약처: search by title keyword, get PI info (API ④) */
 const MFDS_API_KEY='%2FbL96YLl%2FCs51frAuagRX8UsHqUKju1g9F1cPhNycc%2BcD1s65e4De%2B%2B1i%2FyisaYYoG%2BtU4eEIibLxXYckU3wgQ%3D%3D';
 
-/* 식약처 2-step: Step1 → API#1 약물명으로 CLNC_TEST_SN 획득, Step2 → API#3 PI 조회 */
-async function fetchMFDSPI(title,drugNames){
+/* 식약처 3-step: sponsor→API#2→CLNC_TEST_SN→API#3→PI */
+async function fetchMFDSPI(title,drugNames,sponsor){
   if(!MFDS_API_KEY)return[];
   try{
-    /* Step 1: 약물명으로 기본정보 검색 → CLNC_TEST_SN 획득 */
     let clncTestSn=null;
-    const searchTerms=[...(drugNames||[])];
-    /* Add uppercase abbreviations from drug names (e.g. Efruxifermin → EFX) */
-    for(const d of (drugNames||[])){
-      if(!d||d.toLowerCase()==='placebo')continue;
-      /* Common pharma abbreviation patterns: first letters of syllables */
-      const upper=d.replace(/[aeiou]/gi,'').substring(0,4).toUpperCase();
-      if(upper.length>=2&&!searchTerms.includes(upper))searchTerms.push(upper);
-      /* Also try first 3 chars uppercase */
-      const abbr3=d.substring(0,3).toUpperCase();
-      if(!searchTerms.includes(abbr3))searchTerms.push(abbr3);
-    }
-    /* Also extract keywords from title */
-    const titleWords=title.split(/[\s:,\-()]+/).filter(w=>w.length>4&&!/^(study|phase|trial|with|from|randomized|double|blind|multi|center|safety|efficacy)$/i.test(w)).slice(0,3);
-    searchTerms.push(...titleWords);
+    const titleLow=title.toLowerCase();
 
-    for(const term of searchTerms){
-      if(clncTestSn)break;
-      try{
-        const url=`https://apis.data.go.kr/1471000/MdcinClincTestInfoService02/getMdcinClincTestInfoList02?serviceKey=${MFDS_API_KEY}&type=json&numOfRows=10&pageNo=1&goods_name=${encodeURIComponent(term)}`;
-        const res=await fetch(url,{signal:AbortSignal.timeout(8000)});
-        if(!res.ok)continue;
-        const data=await res.json();
-        const items=data.body?.items;
-        if(!items)continue;
-        const itemList=Array.isArray(items)?items:(items.item?[items.item]:[]);
-        /* Find best match by comparing English title similarity */
-        const titleLow=title.toLowerCase();
-        for(const it of itemList){
-          const item=it.item||it;
-          const sn=item.CLNC_TEST_SN;
-          if(!sn)continue;
-          /* Check if titles share enough words */
-          const engTitle=(item.CLINIC_EXAM_ENG_TITLE||item.clinic_exam_title||'').toLowerCase();
-          const commonWords=titleLow.split(/\s+/).filter(w=>w.length>3&&engTitle.includes(w));
-          if(commonWords.length>=3){clncTestSn=sn;break;}
-        }
-      }catch(e){/* try next term */}
+    /* Step 1 (Primary): sponsor name → API#2 상세정보 → CLNC_TEST_SN */
+    if(sponsor&&sponsor.length>2){
+      /* Extract first meaningful word from sponsor (e.g. "Akero Therapeutics, Inc." → "Akero") */
+      const sponsorWords=sponsor.split(/[\s,]+/).filter(w=>w.length>2&&!/^(Inc|LLC|Ltd|Corp|Co|Pharma|Therapeutics|Pharmaceuticals|Biosciences|Research|Associates)$/i.test(w));
+      for(const sw of sponsorWords.slice(0,2)){
+        if(clncTestSn)break;
+        try{
+          const url=`https://apis.data.go.kr/1471000/ClncExamPlanDtlService2/getClncExamPlanDtlInq2?serviceKey=${MFDS_API_KEY}&type=json&numOfRows=20&pageNo=1&ORGN_DEV_BSSH_NM=${encodeURIComponent(sw)}`;
+          const res=await fetch(url,{signal:AbortSignal.timeout(8000)});
+          if(!res.ok)continue;
+          const data=await res.json();
+          const items=data.body?.items;
+          if(!items||data.body.totalCount===0)continue;
+          const itemList=Array.isArray(items)?items:(items.item?[items.item]:[]);
+          for(const it of itemList){
+            const item=it.item||it;
+            const sn=item.CLNC_TEST_SN;
+            if(!sn)continue;
+            const engTitle=(item.CLNC_TEST_ENG_TITLE||'').toLowerCase();
+            /* Match by drug name in title */
+            const matchByDrug=(drugNames||[]).some(d=>d.length>3&&d.toLowerCase()!=='placebo'&&engTitle.includes(d.toLowerCase()));
+            /* Or match by title word overlap */
+            const commonWords=titleLow.split(/\s+/).filter(w=>w.length>4&&engTitle.includes(w));
+            if(matchByDrug||commonWords.length>=3){clncTestSn=sn;console.log('MFDS: found SN via sponsor+API#2 =',sn);break;}
+          }
+        }catch(e){/* try next sponsor word */}
+      }
+    }
+
+    /* Step 1b (Fallback): drug name → API#1 goods_name */
+    if(!clncTestSn){
+      const searchTerms=[...(drugNames||[]).filter(d=>d&&d.toLowerCase()!=='placebo')];
+      for(const term of searchTerms){
+        if(clncTestSn)break;
+        try{
+          const url=`https://apis.data.go.kr/1471000/MdcinClincTestInfoService02/getMdcinClincTestInfoList02?serviceKey=${MFDS_API_KEY}&type=json&numOfRows=10&pageNo=1&goods_name=${encodeURIComponent(term)}`;
+          const res=await fetch(url,{signal:AbortSignal.timeout(6000)});
+          if(!res.ok)continue;
+          const data=await res.json();
+          const items=data.body?.items;
+          if(!items||data.body.totalCount===0)continue;
+          const itemList=Array.isArray(items)?items:(items.item?[items.item]:[]);
+          for(const it of itemList){
+            const item=it.item||it;
+            const sn=item.CLNC_TEST_SN;if(!sn)continue;
+            const engTitle=(item.CLINIC_EXAM_ENG_TITLE||item.clinic_exam_title||'').toLowerCase();
+            const commonWords=titleLow.split(/\s+/).filter(w=>w.length>3&&engTitle.includes(w));
+            if(commonWords.length>=3){clncTestSn=sn;console.log('MFDS: found SN via API#1 =',sn);break;}
+          }
+        }catch(e){/* try next */}
+      }
     }
 
     if(clncTestSn){
@@ -2744,59 +2759,7 @@ async function fetchMFDSPI(title,drugNames){
       }
     }
 
-    /* Fallback: API#1 실패 or CLNC_TEST_SN 못찾음 → API#3 기관명 검색 */
-    console.log('MFDS: fallback to institution name search');
-    const krInstitutions=this._krLocations||locations||[];
-    const titleLowFb=title.toLowerCase();
-    const allResults=[];
-    /* 한국 주요기관 매핑 (우편번호/도시 → 기관명) */
-    const KR_INST_ALIASES={'서울대학교병원':'서울대학교병원','분당서울대학교병원':'분당서울대학교병원','연세대학교의과대학세브란스병원':'세브란스병원','재단법인아산사회복지재단서울아산병원':'서울아산병원','삼성서울병원':'삼성서울병원','서울대학교병원':'서울대학교병원','한양대학교병원':'한양대학교병원','경북대학교병원':'경북대학교병원','계명대학교동산병원':'계명대학교동산병원','인하대학교의과대학부속병원':'인하대학교의과대학부속병원','국민건강보험공단일산병원':'국민건강보험공단일산병원','차의과학대학교분당차병원':'분당차병원'};
-    const instNames=Object.keys(KR_INST_ALIASES);
-    for(const instName of instNames){
-      try{
-        const url=`https://apis.data.go.kr/1471000/ClncExamPlanTestPscgService03/getClncExamPlanTestPscgInq03?serviceKey=${MFDS_API_KEY}&type=json&numOfRows=100&pageNo=1&INSTT_NAME=${encodeURIComponent(instName)}`;
-        const res=await fetch(url,{signal:AbortSignal.timeout(5000)});
-        if(!res.ok)continue;
-        const data=await res.json();
-        const items=data.body?.items;
-        if(!items)continue;
-        const itemList=Array.isArray(items)?items:(items.item?[items.item]:[]);
-        /* 약물명 또는 제목으로 해당 시험 필터 */
-        for(const it of itemList){
-          const item=it.item||it;
-          const engTitle=(item.CLINIC_EXAM_ENG_TITLE||'').toLowerCase();
-          const matchByDrug=(drugNames||[]).some(d=>engTitle.includes(d.toLowerCase()));
-          const commonWords=titleLowFb.split(/\s+/).filter(w=>w.length>4&&engTitle.includes(w));
-          if(matchByDrug||commonWords.length>=3){
-            allResults.push({name:item.INSTT_NAME||'',pi:item.INSPCT_MANAGER_NAME||'',dept:item.RESP_RESRC_OFTL||'',addr:item.INSTT_ADDR||''});
-          }
-        }
-      }catch(e){/* skip failed institution */}
-      /* 하나라도 찾으면 해당 시험의 CLNC_TEST_SN으로 전체 PI 재조회 */
-      if(allResults.length>0){
-        const foundItem=itemList.find(it=>{const item=it.item||it;const et=(item.CLINIC_EXAM_ENG_TITLE||'').toLowerCase();return(drugNames||[]).some(d=>et.includes(d.toLowerCase()))||titleLowFb.split(/\s+/).filter(w=>w.length>4&&et.includes(w)).length>=3;});
-        const foundSn=(foundItem?.item||foundItem)?.CLNC_TEST_SN;
-        if(foundSn){
-          console.log('MFDS fallback: found SN via institution =',foundSn);
-          const snUrl=`https://apis.data.go.kr/1471000/ClncExamPlanTestPscgService03/getClncExamPlanTestPscgInq03?serviceKey=${MFDS_API_KEY}&type=json&numOfRows=50&pageNo=1&CLNC_TEST_SN=${foundSn}`;
-          const snRes=await fetch(snUrl,{signal:AbortSignal.timeout(8000)});
-          if(snRes.ok){
-            const snData=await snRes.json();
-            const snItems=snData.body?.items;
-            if(snItems){
-              const snList=Array.isArray(snItems)?snItems:(snItems.item?[snItems.item]:[]);
-              return snList.map(it=>{const item=it.item||it;return{name:item.INSTT_NAME||'',pi:item.INSPCT_MANAGER_NAME||'',dept:item.RESP_RESRC_OFTL||'',addr:item.INSTT_ADDR||''};}).filter(s=>s.pi);
-            }
-          }
-        }
-        return allResults.filter(s=>s.pi);
-      }
-    }
-    if(allResults.length>0){
-      console.log('MFDS fallback: found',allResults.length,'PI(s)');
-      return allResults.filter(s=>s.pi);
-    }
-    console.log('MFDS: no results from fallback either');
+    console.log('MFDS: no CLNC_TEST_SN found via any method');
     return[];
   }catch(e){console.log('MFDS fetch error:',e);return[];}
 }
