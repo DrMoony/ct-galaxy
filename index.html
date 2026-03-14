@@ -2591,18 +2591,19 @@ function renderDetail(study){
   const condArr=(condMod.conditions||[]);
   if(condArr.length>0)renderICD10Badges('icd10badges',condArr.slice(0,5));
   /* Async: enrich site PI from EU CTIS + 식약처 */
-  enrichSitePIData(nctId,idMod.briefTitle||'',(sponsorMod.leadSponsor||{}).name||'',locations,countryFacilities);
+  const drugNamesForPI=interventions.filter(iv=>iv.type==='DRUG'||iv.type==='BIOLOGICAL').map(iv=>iv.name).filter(Boolean);
+  enrichSitePIData(nctId,idMod.briefTitle||'',(sponsorMod.leadSponsor||{}).name||'',locations,countryFacilities,drugNamesForPI);
   setTimeout(()=>{if(detailMap){detailMap.remove();detailMap=null;}detailMap=L.map('detailMap').setView([20,0],2);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:18}).addTo(detailMap);const markers=[];locations.forEach(loc=>{if(loc.geoPoint){const m=L.circleMarker([loc.geoPoint.lat,loc.geoPoint.lon],{radius:7,fillColor:'#00E47C',color:'#002E3B',weight:2,opacity:.9,fillOpacity:.7}).addTo(detailMap);m.bindPopup(`<b>${escHtml(loc.facility||'Unknown')}</b><br>${escHtml(loc.city||'')}, ${escHtml(loc.country||'')}`);markers.push(m);}});if(markers.length>0)detailMap.fitBounds(L.featureGroup(markers).getBounds().pad(0.3));},100);
 }
 
 
 /* ── External Site PI Enrichment (EU CTIS + 식약처) ── */
-async function enrichSitePIData(nctId,title,sponsor,locations,countryFacilities){
+async function enrichSitePIData(nctId,title,sponsor,locations,countryFacilities,drugNames){
   const hasEU=locations.some(l=>['Germany','France','Italy','Spain','Netherlands','Belgium','Austria','Sweden','Denmark','Finland','Norway','Ireland','Poland','Czech Republic','Hungary','Portugal','Greece','Romania','Bulgaria','Croatia','Slovakia','Slovenia','Latvia','Lithuania','Estonia','Luxembourg','Malta','Cyprus'].includes(l.country));
   const hasKR=locations.some(l=>l.country==='Korea, Republic of'||l.country==='South Korea');
   const promises=[];
   if(hasEU)promises.push(fetchEUCTISPI(title,sponsor));
-  if(hasKR)promises.push(fetchMFDSPI(title));
+  if(hasKR)promises.push(fetchMFDSPI(title,drugNames));
   if(promises.length===0)return;
   const results=await Promise.allSettled(promises);
   let euSites=[], krSites=[];
@@ -2637,7 +2638,7 @@ async function enrichSitePIData(nctId,title,sponsor,locations,countryFacilities)
           const div=document.createElement('div');
           div.className='ext-pi-kr';
           div.style.cssText='font-size:.6rem;color:#f59e0b;margin-top:3px;border-top:1px solid rgba(245,158,11,.2);padding-top:3px';
-          div.innerHTML=`<span style="background:#451a03;color:#f59e0b;padding:1px 4px;border-radius:2px;font-size:.5rem;font-weight:700;margin-right:3px">MFDS</span> ${escHtml(site.pi)}`;
+          div.innerHTML=`<span style="background:#451a03;color:#f59e0b;padding:1px 4px;border-radius:2px;font-size:.5rem;font-weight:700;margin-right:3px">MFDS</span> ${escHtml(site.pi)}${site.dept?' · <span style="color:#92400e">'+escHtml(site.dept)+'</span>':''}`;
           card.appendChild(div);
         }
         break;
@@ -2681,22 +2682,62 @@ async function fetchEUCTISPI(title,sponsor){
 
 /* 식약처: search by title keyword, get PI info (API ④) */
 const MFDS_API_KEY='%2FbL96YLl%2FCs51frAuagRX8UsHqUKju1g9F1cPhNycc%2BcD1s65e4De%2B%2B1i%2FyisaYYoG%2BtU4eEIibLxXYckU3wgQ%3D%3D';
-async function fetchMFDSPI(title){
+
+/* 식약처 2-step: Step1 → API#1 약물명으로 CLNC_TEST_SN 획득, Step2 → API#3 PI 조회 */
+async function fetchMFDSPI(title,drugNames){
   if(!MFDS_API_KEY)return[];
   try{
-    /* Extract first meaningful Korean/English keyword from title */
-    const kw=title.split(/[\s:,]+/).filter(w=>w.length>3).slice(0,2).join(' ');
-    const url=`https://apis.data.go.kr/1471000/ClncExamPlanTestPscgService03/getClncExamPlanTestPscgInq03?serviceKey=${encodeURIComponent(MFDS_API_KEY)}&type=json&numOfRows=20&pageNo=1`;
-    const res=await fetch(url,{signal:AbortSignal.timeout(8000)});
-    if(!res.ok)return[];
-    const data=await res.json();
-    const items=(data.body?.items||[]);
-    const sites=items.map(it=>({
-      name:it.INSTT_NAME||'',
-      pi:it.INSPCT_MANAGER_NAME||'',
-      addr:it.INSTT_ADDR||''
-    })).filter(s=>s.pi);
-    return sites;
+    /* Step 1: 약물명으로 기본정보 검색 → CLNC_TEST_SN 획득 */
+    let clncTestSn=null;
+    const searchTerms=[...(drugNames||[])];
+    /* Also extract keywords from title */
+    const titleWords=title.split(/[\s:,\-()]+/).filter(w=>w.length>4&&!/^(study|phase|trial|with|from|randomized|double|blind|multi|center|safety|efficacy)$/i.test(w)).slice(0,3);
+    searchTerms.push(...titleWords);
+
+    for(const term of searchTerms){
+      if(clncTestSn)break;
+      try{
+        const url=`https://apis.data.go.kr/1471000/MdcinClincTestInfoService02/getMdcinClincTestInfoList02?serviceKey=${MFDS_API_KEY}&type=json&numOfRows=10&pageNo=1&goods_name=${encodeURIComponent(term)}`;
+        const res=await fetch(url,{signal:AbortSignal.timeout(8000)});
+        if(!res.ok)continue;
+        const data=await res.json();
+        const items=data.body?.items;
+        if(!items)continue;
+        const itemList=Array.isArray(items)?items:(items.item?[items.item]:[]);
+        /* Find best match by comparing English title similarity */
+        const titleLow=title.toLowerCase();
+        for(const it of itemList){
+          const item=it.item||it;
+          const sn=item.CLNC_TEST_SN;
+          if(!sn)continue;
+          /* Check if titles share enough words */
+          const engTitle=(item.CLINIC_EXAM_ENG_TITLE||item.clinic_exam_title||'').toLowerCase();
+          const commonWords=titleLow.split(/\s+/).filter(w=>w.length>3&&engTitle.includes(w));
+          if(commonWords.length>=3){clncTestSn=sn;break;}
+        }
+      }catch(e){/* try next term */}
+    }
+
+    if(!clncTestSn){console.log('MFDS: no CLNC_TEST_SN found');return[];}
+    console.log('MFDS: found CLNC_TEST_SN =',clncTestSn);
+
+    /* Step 2: CLNC_TEST_SN으로 PI 정보 조회 */
+    const piUrl=`https://apis.data.go.kr/1471000/ClncExamPlanTestPscgService03/getClncExamPlanTestPscgInq03?serviceKey=${MFDS_API_KEY}&type=json&numOfRows=50&pageNo=1&CLNC_TEST_SN=${clncTestSn}`;
+    const piRes=await fetch(piUrl,{signal:AbortSignal.timeout(8000)});
+    if(!piRes.ok)return[];
+    const piData=await piRes.json();
+    const piItems=piData.body?.items;
+    if(!piItems)return[];
+    const piList=Array.isArray(piItems)?piItems:(piItems.item?[piItems.item]:[]);
+    return piList.map(it=>{
+      const item=it.item||it;
+      return{
+        name:item.INSTT_NAME||'',
+        pi:item.INSPCT_MANAGER_NAME||'',
+        dept:item.RESP_RESRC_OFTL||'',
+        addr:item.INSTT_ADDR||''
+      };
+    }).filter(s=>s.pi);
   }catch(e){console.log('MFDS fetch error:',e);return[];}
 }
 
