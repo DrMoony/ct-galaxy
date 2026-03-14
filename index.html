@@ -2591,7 +2591,7 @@ function renderDetail(study){
   const condArr=(condMod.conditions||[]);
   if(condArr.length>0)renderICD10Badges('icd10badges',condArr.slice(0,5));
   /* Async: enrich site PI from EU CTIS + 식약처 */
-  const drugNamesForPI=interventions.filter(iv=>iv.type==='DRUG'||iv.type==='BIOLOGICAL').map(iv=>iv.name).filter(Boolean);
+  const drugNamesForPI=interventions.filter(iv=>iv.type==='DRUG'||iv.type==='BIOLOGICAL').flatMap(iv=>{const names=[iv.name];if(iv.otherNames)names.push(...iv.otherNames);return names;}).filter(Boolean);
   enrichSitePIData(nctId,idMod.briefTitle||'',(sponsorMod.leadSponsor||{}).name||'',locations,countryFacilities,drugNamesForPI);
   setTimeout(()=>{if(detailMap){detailMap.remove();detailMap=null;}detailMap=L.map('detailMap').setView([20,0],2);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:18}).addTo(detailMap);const markers=[];locations.forEach(loc=>{if(loc.geoPoint){const m=L.circleMarker([loc.geoPoint.lat,loc.geoPoint.lon],{radius:7,fillColor:'#00E47C',color:'#002E3B',weight:2,opacity:.9,fillOpacity:.7}).addTo(detailMap);m.bindPopup(`<b>${escHtml(loc.facility||'Unknown')}</b><br>${escHtml(loc.city||'')}, ${escHtml(loc.country||'')}`);markers.push(m);}});if(markers.length>0)detailMap.fitBounds(L.featureGroup(markers).getBounds().pad(0.3));},100);
 }
@@ -2690,6 +2690,16 @@ async function fetchMFDSPI(title,drugNames){
     /* Step 1: 약물명으로 기본정보 검색 → CLNC_TEST_SN 획득 */
     let clncTestSn=null;
     const searchTerms=[...(drugNames||[])];
+    /* Add uppercase abbreviations from drug names (e.g. Efruxifermin → EFX) */
+    for(const d of (drugNames||[])){
+      if(!d||d.toLowerCase()==='placebo')continue;
+      /* Common pharma abbreviation patterns: first letters of syllables */
+      const upper=d.replace(/[aeiou]/gi,'').substring(0,4).toUpperCase();
+      if(upper.length>=2&&!searchTerms.includes(upper))searchTerms.push(upper);
+      /* Also try first 3 chars uppercase */
+      const abbr3=d.substring(0,3).toUpperCase();
+      if(!searchTerms.includes(abbr3))searchTerms.push(abbr3);
+    }
     /* Also extract keywords from title */
     const titleWords=title.split(/[\s:,\-()]+/).filter(w=>w.length>4&&!/^(study|phase|trial|with|from|randomized|double|blind|multi|center|safety|efficacy)$/i.test(w)).slice(0,3);
     searchTerms.push(...titleWords);
