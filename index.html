@@ -2624,7 +2624,7 @@ async function enrichSitePIData(nctId,title,sponsor,locations,countryFacilities,
           const div=document.createElement('div');
           div.className='ext-pi-eu';
           div.style.cssText='font-size:.6rem;color:#60a5fa;margin-top:3px;border-top:1px solid rgba(96,165,250,.2);padding-top:3px';
-          div.innerHTML=`<span style="background:#1e3a5f;color:#60a5fa;padding:1px 4px;border-radius:2px;font-size:.5rem;font-weight:700;margin-right:3px">EU CTIS</span> ${escHtml(site.pi)}${site.email?' · <span style="color:#475569">'+escHtml(site.email)+'</span>':''}`;
+          div.innerHTML=`<span style="background:#1e3a5f;color:#60a5fa;padding:1px 4px;border-radius:2px;font-size:.5rem;font-weight:700;margin-right:3px">EU CTIS</span> ${escHtml(site.pi)}${site.email?' · <span style="color:#475569">'+escHtml(site.email)+'</span>':''} <span title="EU CTIS 데이터와 알고리즘 매칭 결과입니다. 실제 정보와 다를 수 있습니다." style="cursor:help;display:inline-block;width:13px;height:13px;line-height:13px;text-align:center;border-radius:50%;background:#1e3a5f;color:#60a5fa;font-size:.5rem;font-weight:700;vertical-align:middle">!</span>`;
           card.appendChild(div);
         }
         break;
@@ -2638,7 +2638,7 @@ async function enrichSitePIData(nctId,title,sponsor,locations,countryFacilities,
           const div=document.createElement('div');
           div.className='ext-pi-kr';
           div.style.cssText='font-size:.6rem;color:#f59e0b;margin-top:3px;border-top:1px solid rgba(245,158,11,.2);padding-top:3px';
-          div.innerHTML=`<span style="background:#451a03;color:#f59e0b;padding:1px 4px;border-radius:2px;font-size:.5rem;font-weight:700;margin-right:3px">MFDS</span> ${escHtml(site.pi)}${site.dept?' · <span style="color:#92400e">'+escHtml(site.dept)+'</span>':''}`;
+          div.innerHTML=`<span style="background:#451a03;color:#f59e0b;padding:1px 4px;border-radius:2px;font-size:.5rem;font-weight:700;margin-right:3px">MFDS</span> ${escHtml(site.pi)}${site.dept?' · <span style="color:#92400e">'+escHtml(site.dept)+'</span>':''} <span title="MFDS 데이터와 알고리즘 매칭 결과입니다. 실제 정보와 다를 수 있습니다." style="cursor:help;display:inline-block;width:13px;height:13px;line-height:13px;text-align:center;border-radius:50%;background:#92400e;color:#fbbf24;font-size:.5rem;font-weight:700;vertical-align:middle">!</span>`;
           card.appendChild(div);
         }
         break;
