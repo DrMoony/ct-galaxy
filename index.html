@@ -5168,7 +5168,7 @@ function calcSuitabilityScore(opts){
   /* 1. HAQ Score (30%) — direct from index */
   const haqRaw=HAQ_INDEX[ck]||null;
   const haqScore=haqRaw!==null?haqRaw:50;/* default if unknown */
-  const haqWeighted=haqScore*0.30;
+  const haqWeighted=haqScore*0.25;
 
   /* 2. ICH Regulatory Tier (20%) */
   const ichRaw=ICH_TIER[ck]||45;/* default Non-ICH */
@@ -5201,7 +5201,7 @@ function calcSuitabilityScore(opts){
   else if(trialCount>=4)expScore=50;
   else if(trialCount>=2)expScore=35;
   else if(trialCount>=1)expScore=25;
-  const expWeighted=expScore*0.15;
+  const expWeighted=expScore*0.20;
 
   /* 5. Recruitment Pool (10%) — population size, log scale */
   let poolScore=30;
@@ -5215,7 +5215,7 @@ function calcSuitabilityScore(opts){
     else if(population>=100)poolScore=35;
     else poolScore=25;
   }
-  const poolWeighted=poolScore*0.10;
+  const poolWeighted=poolScore*0.05;
 
   const total=Math.round(haqWeighted+ichWeighted+compWeighted+expWeighted+poolWeighted);
   const stars=total>=85?5:total>=70?4:total>=55?3:total>=40?2:1;
@@ -5446,7 +5446,27 @@ async function siteScoutSearch(){
       const cityExpr=[...variants].map(v=>'AREA[LocationCity]'+v).join(' OR ');
       advParts.push('('+cityExpr+')');
     }
-    if(country)advParts.push('AREA[LocationCountry]'+country);
+    /* Country: normalize common aliases to ClinicalTrials.gov format */
+    const _countryAlias={
+      'south korea':'Korea, Republic of','korea':'Korea, Republic of','sk':'Korea, Republic of',
+      'usa':'United States','us':'United States','u.s.':'United States','america':'United States',
+      'uk':'United Kingdom','england':'United Kingdom','great britain':'United Kingdom',
+      'hongkong':'Hong Kong','hk':'Hong Kong',
+      'prc':'China','mainland china':'China',
+      'roc':'Taiwan','taipei':'Taiwan',
+      'jp':'Japan','nippon':'Japan',
+      'de':'Germany','deutschland':'Germany',
+      'fr':'France','es':'Spain','it':'Italy','nl':'Netherlands',
+      'au':'Australia','nz':'New Zealand','sg':'Singapore',
+      'in':'India','br':'Brazil','mx':'Mexico','ru':'Russia',
+      'th':'Thailand','my':'Malaysia','ph':'Philippines','vn':'Vietnam',
+      'il':'Israel','sa':'Saudi Arabia','uae':'United Arab Emirates',
+      'se':'Sweden','no':'Norway','dk':'Denmark','fi':'Finland',
+      'pl':'Poland','cz':'Czech Republic','at':'Austria','ch':'Switzerland','be':'Belgium',
+      'pt':'Portugal','gr':'Greece','tr':'Turkey','ie':'Ireland',
+    };
+    const _normCountry=country?(_countryAlias[country.toLowerCase().trim()]||country):'';
+    if(_normCountry)advParts.push('AREA[LocationCountry]'+_normCountry);
 
     /* Phase filter */
     if(phaseVal==='PHASE1')advParts.push('AREA[Phase]Phase 1');
@@ -5814,7 +5834,7 @@ function renderSiteScoutResults(el,studies,totalCount,cityFilter,countryFilter){
     /* RIGHT: Suitability Score */
     html+=`<div style="padding:.7rem;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.12);border-radius:6px;overflow-y:auto;max-height:400px">`;
     html+=`<div style="font-size:.65rem;font-weight:700;color:#a78bfa;margin-bottom:.3rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">🎯 SUITABILITY SCORE <span style="cursor:help;font-family:sans-serif;font-size:.7rem" title="Composite score (0-100) from 5 factors:\n\n• Healthcare Quality (30%): HAQ Index (Lancet/GBD)\n  Measures healthcare access & quality by country\n\n• Regulatory Framework (20%): ICH membership tier\n  Founding (US/EU/JP) > Member (KR/CN/AU) > Observer > Non-ICH\n\n• Competition (25%): Bell-curve model\n  Sweet spot = 5-15/100K (proven infra, not oversaturated)\n  Too low = untested site · Too high = patient fatigue\n\n• Trial Experience (15%): # of trials in this condition\n  More trials = better CRC/PI expertise, faster IRB\n\n• Recruitment Pool (10%): City/region population\n  Larger pool = easier patient recruitment\n\n★★★★★ (85+) · ★★★★ (70+) · ★★★ (55+) · ★★ (40+) · ★ (<40)">ℹ️</span></div>`;
-    html+=`<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-bottom:.5rem">HAQ 30% · ICH 20% · Competition 25% · Experience 15% · Pool 10%</div>`;
+    html+=`<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-bottom:.5rem">Healthcare 25% · Regulatory 20% · Competition 25% · Experience 20% · Population 5%</div>`;
     if(_suitData.length>0){
       _suitData.forEach(d=>{
         const s=d.score;
@@ -5826,11 +5846,11 @@ function renderSiteScoutResults(el,studies,totalCount,cityFilter,countryFilter){
         html+=`<div style="display:flex;align-items:baseline;gap:.2rem"><span style="font-size:1.1rem;font-weight:800;color:${mainClr}">${s.total}</span><span style="font-size:.5rem;color:rgba(255,255,255,.35)">/100</span></div>`;
         html+=`</div>`;
         const factors=[
-          {label:'HAQ',score:s.haq.score,detail:s.haq.raw!==null?s.haq.raw:'?',clr:'#4ecdc4',tip:'Healthcare Access & Quality Index (Lancet/GBD 2019). Measures preventable mortality across 32 causes. 0-100 scale, higher = better healthcare system.'},
-          {label:'ICH',score:s.regulatory.score,detail:s.regulatory.score>=100?'Found':s.regulatory.score>=85?'Memb':s.regulatory.score>=70?'Obs':'—',clr:'#45B7D1',tip:'International Council for Harmonisation membership tier. Founding (US/EU/JP/CH) = strictest GCP standards. Member (KR/CN/AU/SG) = harmonized. Observer = partial alignment.'},
-          {label:'Comp',score:s.competition.score,detail:s.competition.density!=null?s.competition.density.toFixed(0):'?',clr:s.competition.score>=70?'#22c55e':'#f59e0b',tip:'Competition density (bell curve). Sweet spot = 5-15 trials/100K pop. Too low = untested site. Too high = patient fatigue. Number shown = density per 100K.'},
-          {label:'Exp',score:s.experience.score,detail:s.experience.count,clr:'#FFD700',tip:'Trial experience in this therapeutic area. More trials = experienced CRCs/PIs, faster IRB approval, better GCP compliance. Number shown = trial count.'},
-          {label:'Pool',score:s.pool.score,detail:s.pool.pop?(s.pool.pop>=1000?(s.pool.pop/1000).toFixed(0)+'M':s.pool.pop+'K'):'?',clr:'#A855F7',tip:'Recruitment pool = city/region population size. Larger population = easier patient enrollment. Number shown = estimated population.'},
+          {label:'Healthcare',score:s.haq.score,detail:s.haq.raw!==null?s.haq.raw+'/100':'?',clr:'#4ecdc4',tip:'Healthcare Access & Quality Index (Lancet/GBD 2019). 0-100, higher = better. Weight: 25%'},
+          {label:'Regulatory',score:s.regulatory.score,detail:s.regulatory.score>=100?'Founding':s.regulatory.score>=85?'Member':s.regulatory.score>=70?'Observer':'Other',clr:'#45B7D1',tip:'ICH (International Council for Harmonisation) tier. GCP regulatory framework maturity. Weight: 20%'},
+          {label:'Competition',score:s.competition.score,detail:s.competition.density!=null?s.competition.density.toFixed(1)+'/100K':'?',clr:s.competition.score>=70?'#22c55e':'#f59e0b',tip:'Patient competition density (bell curve). Sweet spot 5-15/100K. Weight: 25%'},
+          {label:'Experience',score:s.experience.score,detail:s.experience.count+' trials',clr:'#FFD700',tip:'Trial experience in this condition at this site. More = faster IRB, skilled CRCs. Weight: 20%'},
+          {label:'Population',score:s.pool.score,detail:s.pool.pop?(s.pool.pop>=1000?(s.pool.pop/1000).toFixed(1)+'M':s.pool.pop+'K'):'?',clr:'#A855F7',tip:'Recruitment pool size. Larger = easier enrollment. Weight: 5%'},
         ];
         html+=`<div style="display:flex;gap:.3rem">`;
         factors.forEach(f=>{
