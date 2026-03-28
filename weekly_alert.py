@@ -82,6 +82,17 @@ def query_ctgov(slot, days=7):
         'sort': 'LastUpdatePostDate:desc',
     }
 
+    # Normalize country names to ClinicalTrials.gov format
+    COUNTRY_ALIASES = {
+        'south korea': 'Korea, Republic of', 'korea': 'Korea, Republic of', 'sk': 'Korea, Republic of',
+        'usa': 'United States', 'us': 'United States', 'u.s.': 'United States', 'america': 'United States',
+        'uk': 'United Kingdom', 'england': 'United Kingdom', 'great britain': 'United Kingdom',
+        'china': 'China', 'prc': 'China', 'taiwan': 'Taiwan', 'roc': 'Taiwan',
+        'japan': 'Japan', 'jp': 'Japan',
+    }
+    def normalize_country(c):
+        return COUNTRY_ALIASES.get(c.lower().strip(), c)
+
     query_parts = []
     if slot.get('condition'):
         query_parts.append(f"AREA[Condition]{slot['condition']}")
@@ -92,7 +103,7 @@ def query_ctgov(slot, days=7):
     if slot.get('keyword'):
         query_parts.append(slot['keyword'])
     if slot.get('country'):
-        query_parts.append(f"AREA[LocationCountry]{slot['country']}")
+        query_parts.append(f"AREA[LocationCountry]{normalize_country(slot['country'])}")
     if query_parts:
         params['query.term'] = ' AND '.join(query_parts)
 

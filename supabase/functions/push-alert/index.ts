@@ -84,12 +84,23 @@ Deno.serve(async (req) => {
     } else {
       // Search/Drug mode: query with filters
       const params = new URLSearchParams({ format: "json", pageSize: "50", sort: "LastUpdatePostDate:desc" });
+
+      // Normalize country names to ClinicalTrials.gov format
+      const COUNTRY_ALIASES: Record<string, string> = {
+        'south korea': 'Korea, Republic of', 'korea': 'Korea, Republic of', 'sk': 'Korea, Republic of',
+        'usa': 'United States', 'us': 'United States', 'u.s.': 'United States', 'america': 'United States',
+        'uk': 'United Kingdom', 'england': 'United Kingdom', 'great britain': 'United Kingdom',
+        'china': 'China', 'prc': 'China', 'taiwan': 'Taiwan', 'roc': 'Taiwan',
+        'japan': 'Japan', 'jp': 'Japan',
+      };
+      const normalizeCountry = (c: string) => COUNTRY_ALIASES[c.toLowerCase().trim()] || c;
+
       const queryParts: string[] = [];
       if (slot.condition) queryParts.push(`AREA[Condition]${slot.condition}`);
       if (slot.intervention) queryParts.push(`AREA[InterventionName]${slot.intervention}`);
       if (slot.sponsor) queryParts.push(`AREA[LeadSponsorName]${slot.sponsor}`);
       if (slot.keyword) queryParts.push(slot.keyword);
-      if (slot.country) queryParts.push(`AREA[LocationCountry]${slot.country}`);
+      if (slot.country) queryParts.push(`AREA[LocationCountry]${normalizeCountry(slot.country)}`);
       if (queryParts.length > 0) params.set("query.term", queryParts.join(" AND "));
 
       const advParts: string[] = [];
