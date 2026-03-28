@@ -230,17 +230,17 @@ body{font-family:'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--t
   background:linear-gradient(135deg,color-mix(in srgb,var(--dark) 30%,#000) 0%,color-mix(in srgb,var(--dark) 60%,#000) 25%,var(--dark) 50%,color-mix(in srgb,var(--dark) 60%,#000) 75%,color-mix(in srgb,var(--dark) 30%,#000) 100%);
 }
 .header-banner canvas{position:absolute;top:0;left:0;width:100%;height:100%}
-.header-inner{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2}
+.header-inner{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;z-index:2;padding-left:2rem;gap:1rem}
 .header h1{
   font-family:'Press Start 2P',monospace;font-size:1.5rem;color:var(--mint);
   text-shadow:0 0 20px rgba(0,228,124,.6),0 0 40px rgba(0,228,124,.3),2px 2px 0 rgba(0,0,0,.7);
-  letter-spacing:4px;margin-bottom:.4rem;
+  letter-spacing:4px;margin:0;
 }
 .header .header-subtitle{
-  font-family:'Press Start 2P',monospace;font-size:.6rem;color:rgba(255,255,255,.5);
-  letter-spacing:5px;margin-top:.3rem;
+  font-family:'Press Start 2P',monospace;font-size:.5rem;color:rgba(255,255,255,.5);
+  letter-spacing:3px;margin-top:.1rem;
 }
-.header-icons{display:flex;justify-content:center;gap:1.2rem;margin-bottom:.6rem}
+.header-icons{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
 @keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
 @keyframes nebula-drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(15px,-10px) scale(1.1)}100%{transform:translate(0,0) scale(1)}}
 
@@ -869,8 +869,10 @@ th .col-hide-btn{float:right;margin-top:1px}
           </defs>
         </svg>
       </div>
-      <h1>CLINICAL TRIAL GALAXY</h1>
-      <div class="header-subtitle">EXPLORE THE UNIVERSE OF CLINICAL RESEARCH</div>
+      <div>
+        <h1>CLINICAL TRIAL GALAXY</h1>
+        <div class="header-subtitle">EXPLORE THE UNIVERSE OF CLINICAL RESEARCH</div>
+      </div>
     </div>
   </div>
 </div>
