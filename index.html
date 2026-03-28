@@ -5013,16 +5013,21 @@ function calcSuitabilityScore(opts){
   const ichRaw=ICH_TIER[ck]||45;/* default Non-ICH */
   const ichWeighted=ichRaw*0.20;
 
-  /* 3. Competition Density (25%) — inverse: lower density = higher score */
+  /* 3. Competition Density (25%) — inverted-U curve (bell curve)
+     Sweet spot: 5-15/100K = proven infra + not oversaturated
+     Too low (<2): untested site, no trial culture → penalty
+     Too high (>30): patient fatigue, enrollment competition → penalty */
   let compScore=50;
   if(density!==null&&density!==undefined){
-    if(density<=2)compScore=95;
-    else if(density<=5)compScore=85;
-    else if(density<=10)compScore=75;
-    else if(density<=20)compScore=60;
-    else if(density<=50)compScore=40;
-    else if(density<=100)compScore=25;
-    else compScore=10;
+    if(density<=1)compScore=40;       /* no trial culture */
+    else if(density<=3)compScore=60;  /* emerging */
+    else if(density<=5)compScore=80;  /* building momentum */
+    else if(density<=10)compScore=95; /* sweet spot — proven + available */
+    else if(density<=15)compScore=90; /* sweet spot upper */
+    else if(density<=25)compScore=70; /* getting crowded */
+    else if(density<=40)compScore=50; /* crowded */
+    else if(density<=60)compScore=35; /* oversaturated */
+    else compScore=20;                /* severe competition */
   }
   const compWeighted=compScore*0.25;
 
@@ -5621,7 +5626,7 @@ function renderSiteScoutResults(el,studies,totalCount,cityFilter,countryFilter){
 
     /* LEFT: Competition Density */
     html+=`<div style="padding:.7rem;background:rgba(0,228,124,.04);border:1px solid rgba(0,228,124,.12);border-radius:6px;overflow-y:auto;max-height:400px">`;
-    html+=`<div style="font-size:.65rem;font-weight:700;color:var(--mint);margin-bottom:.3rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">📊 COMPETITION DENSITY</div>`;
+    html+=`<div style="font-size:.65rem;font-weight:700;color:var(--mint);margin-bottom:.3rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">📊 COMPETITION DENSITY <span style="cursor:help;font-family:sans-serif;font-size:.7rem" title="How this is calculated:\n\n1. For each RECRUITING trial, estimate per-site enrollment:\n   Trial enrollment ÷ total sites in that trial\n2. Sum all per-site estimates for this city\n3. Divide by city population × 100,000\n\nResult = competing enrollment per 100K population.\nHigher = more patient competition for new trials.\n\nLevels: LOW (<5) · MODERATE (5-20) · MEDIUM (20-50) · HIGH (>50)">ℹ️</span></div>`;
     html+=`<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-bottom:.5rem">Recruiting enrollment per 100K pop</div>`;
     if(_densityData.length>0){
       _densityData.forEach(d=>{
@@ -5646,7 +5651,7 @@ function renderSiteScoutResults(el,studies,totalCount,cityFilter,countryFilter){
 
     /* RIGHT: Suitability Score */
     html+=`<div style="padding:.7rem;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.12);border-radius:6px;overflow-y:auto;max-height:400px">`;
-    html+=`<div style="font-size:.65rem;font-weight:700;color:#a78bfa;margin-bottom:.3rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">🎯 SUITABILITY SCORE</div>`;
+    html+=`<div style="font-size:.65rem;font-weight:700;color:#a78bfa;margin-bottom:.3rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">🎯 SUITABILITY SCORE <span style="cursor:help;font-family:sans-serif;font-size:.7rem" title="Composite score (0-100) from 5 factors:\n\n• Healthcare Quality (30%): HAQ Index (Lancet/GBD)\n  Measures healthcare access & quality by country\n\n• Regulatory Framework (20%): ICH membership tier\n  Founding (US/EU/JP) > Member (KR/CN/AU) > Observer > Non-ICH\n\n• Competition (25%): Bell-curve model\n  Sweet spot = 5-15/100K (proven infra, not oversaturated)\n  Too low = untested site · Too high = patient fatigue\n\n• Trial Experience (15%): # of trials in this condition\n  More trials = better CRC/PI expertise, faster IRB\n\n• Recruitment Pool (10%): City/region population\n  Larger pool = easier patient recruitment\n\n★★★★★ (85+) · ★★★★ (70+) · ★★★ (55+) · ★★ (40+) · ★ (<40)">ℹ️</span></div>`;
     html+=`<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-bottom:.5rem">HAQ 30% · ICH 20% · Competition 25% · Experience 15% · Pool 10%</div>`;
     if(_suitData.length>0){
       _suitData.forEach(d=>{
@@ -5687,17 +5692,16 @@ function renderSiteScoutResults(el,studies,totalCount,cityFilter,countryFilter){
   /* Site Allocation Recommendation — country-wide only */
   if(isCountryWide&&_suitData.length>1){
     /* Rank cities by composite allocation score:
-       Suitability (50%) + inverse density penalty (30%) + experience bonus (20%) */
+       Suitability (50%) + Competition bell-curve (30%) + Experience (20%) */
     const allocRanking=_suitData.map(d=>{
       const s=d.score;
-      const densityPenalty=s.competition.density!=null?Math.max(0,100-s.competition.density*2):50;
-      const allocScore=Math.round(s.total*0.50+densityPenalty*0.30+s.experience.score*0.20);
+      const allocScore=Math.round(s.total*0.50+s.competition.score*0.30+s.experience.score*0.20);
       return {...d,allocScore};
     }).sort((a,b)=>b.allocScore-a.allocScore);
 
     html+=`<div style="margin-bottom:1rem;padding:.8rem;background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.15);border-radius:6px">`;
-    html+=`<div style="font-size:.65rem;font-weight:700;color:#FFD700;margin-bottom:.2rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">🏗️ SITE ALLOCATION RECOMMENDATION</div>`;
-    html+=`<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-bottom:.5rem">Priority ranking for new trial site placement. Score = Suitability (50%) + Low Competition (30%) + Experience (20%)</div>`;
+    html+=`<div style="font-size:.65rem;font-weight:700;color:#FFD700;margin-bottom:.2rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">🏗️ SITE ALLOCATION RECOMMENDATION <span style="cursor:help;font-family:sans-serif;font-size:.7rem" title="How allocation priority is calculated:\n\nAlloc Score = Suitability×50% + Competition×30% + Experience×20%\n\nCompetition uses a BELL CURVE model:\n  • 5-15 trials/100K = OPTIMAL (proven site + available patients)\n  • <2/100K = penalty (untested, no trial culture)\n  • >30/100K = penalty (patient fatigue, slow enrollment)\n\nThis means a city with SOME existing trials scores HIGHER\nthan a city with zero trials — experienced sites recruit faster.\n\nVerdicts:\n  STRONG (75+) = High confidence, prioritize\n  GOOD (60-74) = Solid option\n  FAIR (45-59) = Viable but monitor competition\n  CAUTION (<45) = Consider alternatives\n\nData source: ClinicalTrials.gov API (live)\nPopulation: Embedded estimates (2024)\nNo AI/LLM used — pure algorithmic scoring">ℹ️</span></div>`;
+    html+=`<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-bottom:.5rem">Priority ranking for new trial site placement</div>`;
     html+=`<table style="width:100%;border-collapse:collapse;font-size:.68rem">`;
     html+=`<thead><tr style="border-bottom:1px solid rgba(255,215,0,.2)">`;
     html+=`<th style="text-align:left;padding:.3rem .4rem;color:#FFD700;font-size:.55rem">Rank</th>`;
