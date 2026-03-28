@@ -4922,14 +4922,36 @@ const REGION_POPULATION={
 /* Lookup population for a city/state/region (in thousands). Returns null if not found. */
 function lookupPopulation(cityOrRegion){
   if(!cityOrRegion)return null;
-  const key=cityOrRegion.toLowerCase().trim()
-    .replace(/,.*$/,'')/* remove country suffix */
-    .replace(/-si$|-gu$|-do$/,'')/* Korean suffixes */
-    .trim();
-  if(REGION_POPULATION[key])return REGION_POPULATION[key];
-  /* Try partial match */
-  for(const[k,v] of Object.entries(REGION_POPULATION)){
-    if(key.includes(k)||k.includes(key))return v;
+  const raw=cityOrRegion.toLowerCase().trim();
+  /* Try multiple parsing strategies */
+  const candidates=new Set();
+  /* 1. As-is */
+  candidates.add(raw);
+  /* 2. Remove trailing country/region suffix after comma */
+  candidates.add(raw.replace(/,.*$/,'').trim());
+  /* 3. Take part AFTER comma (e.g., "Chiyoda-ku, Tokyo" → "tokyo") */
+  if(raw.includes(',')){
+    const afterComma=raw.split(',').pop().trim();
+    candidates.add(afterComma);
+    candidates.add(afterComma.replace(/-shi$|-si$|-ku$|-do$|-ken$/,'').trim());
+  }
+  /* 4. Strip common suffixes */
+  candidates.add(raw.replace(/-shi$|-si$|-gu$|-do$|-ku$|-ken$|-fu$/,'').trim());
+  candidates.add(raw.replace(/,.*$/,'').replace(/-shi$|-si$|-gu$|-do$|-ku$|-ken$|-fu$/,'').trim());
+  /* 5. Strip "-ku" ward names for Japanese cities (Minato-ku → check parent) */
+  const noWard=raw.replace(/,.*$/,'').replace(/-ku$/,'').trim();
+  candidates.add(noWard);
+
+  for(const key of candidates){
+    if(!key)continue;
+    if(REGION_POPULATION[key])return REGION_POPULATION[key];
+  }
+  /* Partial match as fallback */
+  for(const key of candidates){
+    if(!key||key.length<3)continue;
+    for(const[k,v] of Object.entries(REGION_POPULATION)){
+      if(key.includes(k)||k.includes(key))return v;
+    }
   }
   return null;
 }
