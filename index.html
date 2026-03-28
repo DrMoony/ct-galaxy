@@ -1231,8 +1231,127 @@ th .col-hide-btn{float:right;margin-top:1px}
     <span>DEVELOPER : DR.MOON KIM & DR.SHERYL SHIN</span>
   </div>
   <div class="footer-powered">POWERED BY CLINICALTRIALS.GOV API V2 & CLAUDE</div>
-  <div style="font-size:.55rem;color:#475569;letter-spacing:.5px;margin-top:4px">v3.2.0 · Updated 2026-03-28</div>
+  <div style="font-size:.55rem;color:#475569;letter-spacing:.5px;margin-top:4px;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" onclick="showChangelog()" title="Click to see update history">v3.2.0 · Updated 2026-03-28</div>
 </div>
+
+<!-- Changelog Modal -->
+<div id="changelogOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;padding:2rem;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
+<div style="max-width:700px;margin:0 auto;background:#0a1929;border:2px solid var(--mint);border-radius:8px;padding:1.5rem;color:#fff;position:relative">
+  <button onclick="document.getElementById('changelogOverlay').style.display='none'" style="position:absolute;top:8px;right:12px;background:none;border:none;color:rgba(255,255,255,.5);font-size:1.2rem;cursor:pointer">✕</button>
+  <h3 style="font-family:'Press Start 2P',monospace;font-size:.7rem;color:var(--mint);margin:0 0 1rem;letter-spacing:1px">📋 CHANGELOG</h3>
+
+  <div style="border-left:2px solid rgba(0,228,124,.3);padding-left:1rem">
+
+    <div style="margin-bottom:1.2rem">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+        <span style="font-size:.75rem;font-weight:700;color:var(--mint)">v3.2.0</span>
+        <span style="font-size:.6rem;color:rgba(255,255,255,.4)">2026-03-28</span>
+        <span style="font-size:.5rem;padding:.1rem .4rem;background:rgba(0,228,124,.15);color:var(--mint);border-radius:2px;font-weight:600">LATEST</span>
+      </div>
+      <ul style="font-size:.7rem;color:rgba(255,255,255,.7);line-height:1.8;margin:0;padding-left:1rem">
+        <li><strong style="color:#FFD700">SITE SCOUT</strong> — City/country-based trial competition analysis</li>
+        <li>Competition Density (enrollment per 100K population)</li>
+        <li>Trial Suitability Score (HAQ + ICH + Competition + Experience + Pool)</li>
+        <li>Site Allocation Recommendation with bell-curve competition model</li>
+        <li>Korean institution city-mismatch warnings (50+ institutions)</li>
+        <li>City name aliases for 40+ countries (120+ cities, bidirectional)</li>
+        <li>HEADCOUNT: clickable site bars with drill-down trial list</li>
+        <li>Bidirectional sort controls (Started/Updated/Enrollment ↑↓)</li>
+        <li>Galaxy filter sync with Site Scout (status + time)</li>
+        <li>Country-wide search with collapsible city groups</li>
+        <li>COMBINATION_PRODUCT intervention type support</li>
+        <li>Email fix: South Korea → Korea, Republic of normalization</li>
+        <li>SVG favicon</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.2rem">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+        <span style="font-size:.75rem;font-weight:700;color:#45B7D1">v3.1.0</span>
+        <span style="font-size:.6rem;color:rgba(255,255,255,.4)">2026-03-14</span>
+      </div>
+      <ul style="font-size:.7rem;color:rgba(255,255,255,.7);line-height:1.8;margin:0;padding-left:1rem">
+        <li>Site PI display from ClinicalTrials.gov + EU CTIS + 식약처 API</li>
+        <li>MFDS (식약처) 2-step PI lookup with fallback strategy</li>
+        <li>AI analysis link integrity (NCT verified, PMID cross-checked)</li>
+        <li>Disclaimer badges for external PI data sources</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.2rem">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+        <span style="font-size:.75rem;font-weight:700;color:#45B7D1">v3.0</span>
+        <span style="font-size:.6rem;color:rgba(255,255,255,.4)">2026-03 early</span>
+      </div>
+      <ul style="font-size:.7rem;color:rgba(255,255,255,.7);line-height:1.8;margin:0;padding-left:1rem">
+        <li>Gemini-powered AI competitive analysis (server-side)</li>
+        <li>Multi-language AI output (9 languages)</li>
+        <li>PubMed + openFDA data integration in AI analysis</li>
+        <li>Gemini Flash cascade (3.1 Flash-Lite → 3 Flash → 2.5 Flash)</li>
+        <li>Cat runner loading animation</li>
+        <li>Admin dashboard with activity logs</li>
+        <li>Master account with unlimited access</li>
+        <li>IP logging for abuse monitoring</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.2rem">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+        <span style="font-size:.75rem;font-weight:700;color:#45B7D1">v3.6</span>
+        <span style="font-size:.6rem;color:rgba(255,255,255,.4)">2026-02</span>
+      </div>
+      <ul style="font-size:.7rem;color:rgba(255,255,255,.7);line-height:1.8;margin:0;padding-left:1rem">
+        <li>CI theme system with custom color picker</li>
+        <li>Alert subscription system (email digests via Resend)</li>
+        <li>Version history diff links in alerts</li>
+        <li>HEADCOUNT analytics with site deduplication</li>
+        <li>Security hardening (12 bugs fixed)</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.2rem">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+        <span style="font-size:.75rem;font-weight:700;color:#45B7D1">v3.5</span>
+        <span style="font-size:.6rem;color:rgba(255,255,255,.4)">2026-02</span>
+      </div>
+      <ul style="font-size:.7rem;color:rgba(255,255,255,.7);line-height:1.8;margin:0;padding-left:1rem">
+        <li>Supabase Auth (email + magic link)</li>
+        <li>Email alert subscriptions (4 slots, monthly limit)</li>
+        <li>CI corporate theme integration</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:1.2rem">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+        <span style="font-size:.75rem;font-weight:700;color:#45B7D1">v3.0 Vivid</span>
+        <span style="font-size:.6rem;color:rgba(255,255,255,.4)">2026-01</span>
+      </div>
+      <ul style="font-size:.7rem;color:rgba(255,255,255,.7);line-height:1.8;margin:0;padding-left:1rem">
+        <li>Complete UI rewrite — Galaxy Map with Canvas 2D</li>
+        <li>Phase Vortex, Molecules, Sponsors, World Map views</li>
+        <li>Time Warp, Graveyard, Survival Funnel, Head-to-Head</li>
+        <li>Trial comparison with inclusion/exclusion criteria diff</li>
+        <li>NCI Thesaurus synonym expansion</li>
+        <li>Leaflet.js interactive world map</li>
+      </ul>
+    </div>
+
+    <div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+        <span style="font-size:.75rem;font-weight:700;color:#45B7D1">v1.0 – v2.0</span>
+        <span style="font-size:.6rem;color:rgba(255,255,255,.4)">2025</span>
+      </div>
+      <ul style="font-size:.7rem;color:rgba(255,255,255,.7);line-height:1.8;margin:0;padding-left:1rem">
+        <li>Initial release — ClinicalTrials.gov search + table view</li>
+        <li>v2.0: Enhanced filtering, sponsor comparison, basic analytics</li>
+      </ul>
+    </div>
+
+  </div>
+  <div style="margin-top:1rem;font-size:.55rem;color:rgba(255,255,255,.25);text-align:center">59 commits · <a href="https://github.com/DrMoony/ct-galaxy" target="_blank" style="color:rgba(0,228,124,.4);text-decoration:none">GitHub</a></div>
+</div>
+</div>
+<script>function showChangelog(){document.getElementById('changelogOverlay').style.display='block';}</script>
 
 <script>
 // ── Starfield Banner Animation ──
