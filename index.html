@@ -719,6 +719,94 @@ th .col-hide-btn{float:right;margin-top:1px}
   font-size:.3rem;color:rgba(255,255,255,.35);letter-spacing:2px;
 }
 
+
+/* ── Site Scout ── */
+.ss-container{max-width:1200px;margin:0 auto}
+.ss-search-bar{display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1.2rem;padding:.8rem;background:rgba(0,228,124,.06);border:1px solid rgba(0,228,124,.2);border-radius:6px}
+.ss-field{display:flex;flex-direction:column;gap:.2rem}
+.ss-field label{font-size:.65rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px}
+.ss-field input,.ss-field select{background:rgba(0,20,30,.8);color:#fff;border:1px solid rgba(0,228,124,.3);border-radius:3px;padding:.35rem .5rem;font-size:.8rem;font-family:inherit;min-width:160px}
+.ss-field input:focus,.ss-field select:focus{outline:none;border-color:var(--mint);box-shadow:0 0 6px rgba(0,228,124,.3)}
+.ss-btn{background:var(--mint);color:var(--dark);border:none;padding:.45rem 1.2rem;border-radius:3px;font-weight:700;font-size:.8rem;cursor:pointer;font-family:inherit;white-space:nowrap;height:fit-content;align-self:flex-end}
+.ss-btn:hover{background:var(--mint-dark)}
+.ss-btn:disabled{opacity:.5;cursor:not-allowed}
+.ss-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem;margin-bottom:1.2rem}
+.ss-kpi{background:rgba(0,228,124,.08);border:1px solid rgba(0,228,124,.15);border-radius:4px;padding:.6rem .8rem;text-align:center}
+.ss-kpi .num{font-size:1.5rem;font-weight:700;color:var(--mint)}
+.ss-kpi .lbl{font-size:.65rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-top:.2rem}
+.ss-timeline{position:relative;margin:1rem 0}
+.ss-tl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;padding:0 .3rem}
+.ss-tl-header .axis{display:flex;justify-content:space-between;flex:1;margin-left:260px;font-size:.6rem;color:rgba(255,255,255,.35)}
+.ss-trial-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;padding:.3rem;border-radius:3px;transition:background .15s}
+.ss-trial-row:hover{background:rgba(0,228,124,.06)}
+.ss-trial-info{min-width:250px;max-width:250px;font-size:.72rem;overflow:hidden}
+.ss-trial-info .nct{color:var(--mint);font-weight:600;cursor:pointer;text-decoration:underline}
+.ss-trial-info .nct:hover{color:#fff}
+.ss-trial-info .sponsor{color:rgba(255,255,255,.5);font-size:.65rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ss-trial-info .drug{color:rgba(255,255,255,.7);font-size:.68rem}
+.ss-bar-area{flex:1;position:relative;height:22px}
+.ss-bar{position:absolute;height:100%;border-radius:2px;min-width:3px;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:600;color:rgba(0,0,0,.7);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 4px}
+.ss-bar.recruiting{background:linear-gradient(90deg,#00E47C,#00c96c)}
+.ss-bar.active{background:linear-gradient(90deg,#3b82f6,#2563eb)}
+.ss-bar.completed{background:linear-gradient(90deg,#6b7280,#4b5563)}
+.ss-bar.not-yet{background:linear-gradient(90deg,#f59e0b,#d97706);opacity:.6}
+.ss-bar.other-bar{background:linear-gradient(90deg,#8b5cf6,#7c3aed)}
+.ss-facility-group{margin-bottom:1.2rem}
+.ss-facility-title{font-size:.85rem;font-weight:700;color:#fff;padding:.4rem .6rem;background:rgba(0,228,124,.1);border-left:3px solid var(--mint);border-radius:0 4px 4px 0;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+.ss-facility-title .badge{font-size:.6rem;padding:.1rem .4rem;border-radius:2px;font-weight:400}
+.ss-facility-title .badge.named{background:rgba(0,228,124,.2);color:var(--mint)}
+.ss-facility-title .badge.anon{background:rgba(245,158,11,.2);color:#f59e0b}
+.ss-legend{display:flex;gap:1rem;margin-bottom:.8rem;flex-wrap:wrap}
+.ss-legend-item{display:flex;align-items:center;gap:.3rem;font-size:.65rem;color:rgba(255,255,255,.6)}
+.ss-legend-item .dot{width:10px;height:10px;border-radius:2px}
+.ss-no-results{text-align:center;padding:3rem;color:rgba(255,255,255,.5);font-size:.9rem}
+.ss-loading{text-align:center;padding:2rem;color:var(--mint)}
+.ss-loading .spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(0,228,124,.3);border-top-color:var(--mint);border-radius:50%;animation:spin .6s linear infinite}
+
+
+/* ── Site Scout ── */
+.ss-container{max-width:1200px;margin:0 auto}
+.ss-search-bar{display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1.2rem;padding:.8rem;background:rgba(0,228,124,.06);border:1px solid rgba(0,228,124,.2);border-radius:6px}
+.ss-field{display:flex;flex-direction:column;gap:.2rem}
+.ss-field label{font-size:.65rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px}
+.ss-field input,.ss-field select{background:rgba(0,20,30,.8);color:#fff;border:1px solid rgba(0,228,124,.3);border-radius:3px;padding:.35rem .5rem;font-size:.8rem;font-family:inherit;min-width:160px}
+.ss-field input:focus,.ss-field select:focus{outline:none;border-color:var(--mint);box-shadow:0 0 6px rgba(0,228,124,.3)}
+.ss-btn{background:var(--mint);color:var(--dark);border:none;padding:.45rem 1.2rem;border-radius:3px;font-weight:700;font-size:.8rem;cursor:pointer;font-family:inherit;white-space:nowrap;height:fit-content;align-self:flex-end}
+.ss-btn:hover{background:var(--mint-dark)}
+.ss-btn:disabled{opacity:.5;cursor:not-allowed}
+.ss-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem;margin-bottom:1.2rem}
+.ss-kpi{background:rgba(0,228,124,.08);border:1px solid rgba(0,228,124,.15);border-radius:4px;padding:.6rem .8rem;text-align:center}
+.ss-kpi .num{font-size:1.5rem;font-weight:700;color:var(--mint)}
+.ss-kpi .lbl{font-size:.65rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-top:.2rem}
+.ss-timeline{position:relative;margin:1rem 0}
+.ss-tl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;padding:0 .3rem}
+.ss-tl-header .axis{display:flex;justify-content:space-between;flex:1;margin-left:260px;font-size:.6rem;color:rgba(255,255,255,.35)}
+.ss-trial-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;padding:.3rem;border-radius:3px;transition:background .15s}
+.ss-trial-row:hover{background:rgba(0,228,124,.06)}
+.ss-trial-info{min-width:250px;max-width:250px;font-size:.72rem;overflow:hidden}
+.ss-trial-info .nct{color:var(--mint);font-weight:600;cursor:pointer;text-decoration:underline}
+.ss-trial-info .nct:hover{color:#fff}
+.ss-trial-info .sponsor{color:rgba(255,255,255,.5);font-size:.65rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ss-trial-info .drug{color:rgba(255,255,255,.7);font-size:.68rem}
+.ss-bar-area{flex:1;position:relative;height:22px}
+.ss-bar{position:absolute;height:100%;border-radius:2px;min-width:3px;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:600;color:rgba(0,0,0,.7);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 4px}
+.ss-bar.recruiting{background:linear-gradient(90deg,#00E47C,#00c96c)}
+.ss-bar.active{background:linear-gradient(90deg,#3b82f6,#2563eb)}
+.ss-bar.completed{background:linear-gradient(90deg,#6b7280,#4b5563)}
+.ss-bar.not-yet{background:linear-gradient(90deg,#f59e0b,#d97706);opacity:.6}
+.ss-bar.other-bar{background:linear-gradient(90deg,#8b5cf6,#7c3aed)}
+.ss-facility-group{margin-bottom:1.2rem}
+.ss-facility-title{font-size:.85rem;font-weight:700;color:#fff;padding:.4rem .6rem;background:rgba(0,228,124,.1);border-left:3px solid var(--mint);border-radius:0 4px 4px 0;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+.ss-facility-title .badge{font-size:.6rem;padding:.1rem .4rem;border-radius:2px;font-weight:400}
+.ss-facility-title .badge.named{background:rgba(0,228,124,.2);color:var(--mint)}
+.ss-facility-title .badge.anon{background:rgba(245,158,11,.2);color:#f59e0b}
+.ss-legend{display:flex;gap:1rem;margin-bottom:.8rem;flex-wrap:wrap}
+.ss-legend-item{display:flex;align-items:center;gap:.3rem;font-size:.65rem;color:rgba(255,255,255,.6)}
+.ss-legend-item .dot{width:10px;height:10px;border-radius:2px}
+.ss-no-results{text-align:center;padding:3rem;color:rgba(255,255,255,.5);font-size:.9rem}
+.ss-loading{text-align:center;padding:2rem;color:var(--mint)}
+.ss-loading .spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(0,228,124,.3);border-top-color:var(--mint);border-radius:50%;animation:spin .6s linear infinite}
+
 </style>
 </head>
 <body>
@@ -997,6 +1085,8 @@ th .col-hide-btn{float:right;margin-top:1px}
           <button class="galaxy-sort-btn" data-sort="funnel" onclick="setGalaxySort('funnel',this)" title="Phase transition funnel: how many trials survive from Phase 1 → 2 → 3. Shows attrition rate at each stage.">SURVIVAL FUNNEL</button>
           <button class="galaxy-sort-btn" data-sort="compare" onclick="setGalaxySort('compare',this)" title="Head-to-head comparison of top sponsors: trial counts, phase distribution, enrollment, and therapeutic areas side by side.">HEAD-TO-HEAD</button>
           <button class="galaxy-sort-btn" data-sort="studytype" onclick="setGalaxySort('studytype',this)" title="Breakdown by study type: Interventional vs Observational, randomization, blinding, and primary purpose categories.">STUDY TYPE</button>
+          <span style="border-left:1px solid rgba(0,228,124,.3);height:18px;margin:0 4px"></span>
+          <button class="galaxy-sort-btn" data-sort="sitescout" onclick="setGalaxySort('sitescout',this)" title="Site Scout: Search a city to see all competing clinical trials, enrollment timelines, and patient competition analysis.">SITE SCOUT</button>
         </div>
         <span class="hint-text">Click body → Details</span>
         <div class="galaxy-filters">
@@ -2356,16 +2446,18 @@ function showAnalyticsTrialPopup(title,rawStudies,subtitle){
   });
   /* Store for re-sort */
   window._atpTrials=trials;window._atpTitle=title;window._atpSubtitle=subtitle;
-  _renderAnalyticsPopup(trials,title,subtitle,'lastUpdate');
+  _renderAnalyticsPopup(trials,title,subtitle,'startDate_desc');
 }
 function _renderAnalyticsPopup(trials,title,subtitle,sortKey){
   /* Remove existing popup if any */
   const old=document.getElementById('analyticsTrialPopup');if(old)old.remove();
-  /* Sort */
+  /* Sort — supports bidirectional: key_desc or key_asc */
+  const [sortField,sortDir]=(sortKey.includes('_')?sortKey.split('_'):[sortKey,'desc']);
+  const asc=sortDir==='asc'?1:-1;
   const sorted=trials.slice().sort((a,b)=>{
-    if(sortKey==='startDate')return(b.startDate||'').localeCompare(a.startDate||'');
-    if(sortKey==='enrollment')return(b.enrollment||0)-(a.enrollment||0);
-    return(b.lastUpdate||'').localeCompare(a.lastUpdate||'');
+    if(sortField==='startDate')return asc*((b.startDate||'').localeCompare(a.startDate||''));
+    if(sortField==='enrollment')return asc*((b.enrollment||0)-(a.enrollment||0));
+    return asc*((b.lastUpdate||'').localeCompare(a.lastUpdate||''));
   });
   /* Group by phase */
   const byPhase={'Phase 1':[],'Phase 2':[],'Phase 3':[],'Phase 4':[],'Other':[]};
@@ -2380,7 +2472,7 @@ function _renderAnalyticsPopup(trials,title,subtitle,sortKey){
     if(!placed)byPhase['Other'].push(t);
   });
   const phColors={'Phase 1':'#45B7D1','Phase 2':'#FFD700','Phase 3':'#FF6B6B','Phase 4':'#A855F7','Other':'#B8C4CE'};
-  const sortLabels={'lastUpdate':'Updated ↓','startDate':'Started ↓','enrollment':'Enrollment ↓'};
+  const sortLabels={'lastUpdate':'Updated','startDate':'Started','enrollment':'Enrollment'};
   let html=`<div id="analyticsTrialPopup" style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem" onclick="if(event.target===this)this.remove()">`;
   html+=`<div style="background:var(--dark);border:2px solid var(--mint);border-radius:8px;max-width:1100px;width:95%;max-height:85vh;overflow-y:auto;padding:1.5rem;color:#fff;position:relative">`;
   html+=`<button onclick="this.closest('[style*=fixed]').remove()" style="position:absolute;top:8px;right:12px;background:none;border:none;color:rgba(255,255,255,.6);font-size:1.2rem;cursor:pointer">✕</button>`;
@@ -2388,9 +2480,11 @@ function _renderAnalyticsPopup(trials,title,subtitle,sortKey){
   if(subtitle)html+=`<div style="font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:.5rem">${escHtml(subtitle)}</div>`;
   /* Sort controls */
   html+=`<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;font-size:.72rem;color:rgba(255,255,255,.65)"><span>${sorted.length} trials</span><span style="margin-left:.6rem;color:rgba(255,255,255,.5)">Sort:</span>`;
-  ['lastUpdate','startDate','enrollment'].forEach(k=>{
-    const active=k===sortKey;
-    html+=`<button onclick="if(window._atpTrials)_renderAnalyticsPopup(window._atpTrials,window._atpTitle||'',window._atpSubtitle||'','${k}')" style="padding:.2rem .5rem;border-radius:3px;border:1px solid ${active?'var(--mint)':'rgba(255,255,255,.2)'};background:${active?'rgba(0,228,124,.15)':'transparent'};color:${active?'var(--mint)':'rgba(255,255,255,.6)'};font-size:.62rem;cursor:pointer;font-weight:${active?700:400}">${sortLabels[k]}</button>`;
+  ['startDate','lastUpdate','enrollment'].forEach(k=>{
+    const isActive=sortField===k;
+    const arrow=isActive?(sortDir==='desc'?' ↓':' ↑'):'';
+    const nextDir=isActive?(sortDir==='desc'?'asc':'desc'):'desc';
+    html+=`<button onclick="if(window._atpTrials)_renderAnalyticsPopup(window._atpTrials,window._atpTitle||'',window._atpSubtitle||'','${k}_'+nextDir+'')" style="padding:.2rem .5rem;border-radius:3px;border:1px solid ${isActive?'var(--mint)':'rgba(255,255,255,.2)'};background:${isActive?'rgba(0,228,124,.15)':'transparent'};color:${isActive?'var(--mint)':'rgba(255,255,255,.6)'};font-size:.62rem;cursor:pointer;font-weight:${isActive?700:400}">${sortLabels[k]}${arrow}</button>`;
   });
   html+=`</div>`;
   Object.entries(byPhase).forEach(([phase,pts])=>{
@@ -2510,7 +2604,7 @@ function renderICD10Badges(containerId,conditions){
 }
 
 // ── Detail Modal ──
-async function openDetail(idx){const nctId=allResults[idx].nctId;document.getElementById('modalTitle').textContent=`${nctId} - ${allResults[idx].title}`;document.getElementById('modalBody').innerHTML='<div class="modal-loading"><div class="spinner"></div><p>Loading details...</p></div>';document.getElementById('modalOverlay').classList.add('active');document.body.style.overflow='hidden';try{const resp=await fetch(`https://clinicaltrials.gov/api/v2/studies/${nctId}?format=json`);if(!resp.ok)throw new Error('Failed');renderDetail(await resp.json());}catch(err){document.getElementById('modalBody').innerHTML=`<p style="color:var(--danger)">Failed to load details: ${err.message}</p>`;}}
+async function openDetail(idx,nctIdDirect){const nctId=allResults[idx].nctId;document.getElementById('modalTitle').textContent=`${nctId} - ${allResults[idx].title}`;document.getElementById('modalBody').innerHTML='<div class="modal-loading"><div class="spinner"></div><p>Loading details...</p></div>';document.getElementById('modalOverlay').classList.add('active');document.body.style.overflow='hidden';try{const resp=await fetch(`https://clinicaltrials.gov/api/v2/studies/${nctId}?format=json`);if(!resp.ok)throw new Error('Failed');renderDetail(await resp.json());}catch(err){document.getElementById('modalBody').innerHTML=`<p style="color:var(--danger)">Failed to load details: ${err.message}</p>`;}}
 function closeModal(){document.getElementById('modalOverlay').classList.remove('active');document.body.style.overflow='';if(detailMap){detailMap.remove();detailMap=null;}}
 function toggleFacilityList(cid,country){const el=document.getElementById(cid);const arrow=document.getElementById('arrow_'+cid);if(!el)return;if(el.style.display==='none'){el.style.display='block';if(arrow){arrow.classList.add('open');arrow.textContent='▶';}if(country)zoomToCountry(country,null);}else{el.style.display='none';if(arrow){arrow.classList.remove('open');arrow.textContent='▶';}}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(_galaxyFullscreenActive)closeGalaxyFullscreen();else closeModal();}});
@@ -2814,7 +2908,9 @@ function openGalaxyFullscreen(){
     {key:'failure',label:'GRAVEYARD'},
     {key:'funnel',label:'FUNNEL'},
     {key:'compare',label:'HEAD-TO-HEAD'},
-    {key:'studytype',label:'STUDY TYPE'}
+    {key:'studytype',label:'STUDY TYPE'},
+    {key:'sitescout',label:'SITE SCOUT'},
+    {key:'sitescout',label:'SITE SCOUT'}
   ];
   const ov=document.createElement('div');
   ov.className='galaxy-fullscreen-overlay';
@@ -4106,7 +4202,7 @@ function renderGalaxy(){
   if(galaxySortMode==='phase'){document.getElementById('galaxyAnalytics').classList.remove('show');renderPhaseBlackHole();return;}
   /* Analytics chart views */
   const analyticsEl=document.getElementById('galaxyAnalytics');
-  if(['trends','enrollment','failure','compare','funnel','studytype'].includes(galaxySortMode)){
+  if(['trends','enrollment','failure','compare','funnel','studytype','sitescout'].includes(galaxySortMode)){
     document.getElementById('galaxyPanel').classList.remove('show');
     if(galaxyAnimId){cancelAnimationFrame(galaxyAnimId);galaxyAnimId=null;}
     analyticsEl.classList.add('show');
@@ -4599,7 +4695,1141 @@ function renderAnalyticsView(mode){
   else if(mode==='compare')renderCompareChart(el,studies);
   else if(mode==='funnel')renderFunnelChart(el,studies);
   else if(mode==='studytype')renderStudyTypeChart(el,studies);
+  else if(mode==='sitescout')renderSiteScoutView(el);
 }
+
+
+
+/* Open detail modal by NCT ID (used by Site Scout) */
+async function openDetailByNctId(nctId){
+  /* Try to find in current results first */
+  const idx=allResults.findIndex(r=>r.nctId===nctId);
+  if(idx>=0){openDetail(idx);return;}
+  /* Not in current results — fetch directly */
+  document.getElementById('modalOverlay').classList.add('active');
+  document.body.style.overflow='hidden';
+  document.getElementById('modalBody').innerHTML='<div class="modal-loading"><div class="spinner"></div><p>Loading '+nctId+'...</p></div>';
+  try{
+    const resp=await fetch('https://clinicaltrials.gov/api/v2/studies/'+nctId+'?format=json');
+    if(!resp.ok)throw new Error('Not found');
+    const study=await resp.json();
+    /* Temporarily add to allResults and rawStudies so openDetail works */
+    const parsed=parseStudies([study]);
+    if(parsed.length>0){
+      allResults.push(parsed[0]);
+      if(!allRawStudies)allRawStudies=[];
+      allRawStudies.push(study);
+      rawStudies=allRawStudies;
+      openDetail(allResults.length-1);
+    }
+  }catch(e){
+    document.getElementById('modalBody').innerHTML='<div style="padding:2rem;color:#f87171;text-align:center">Failed to load '+nctId+'</div>';
+  }
+}
+
+/* ══════════════════════════════════════════════
+   SITE SCOUT — City-based trial competition analysis
+   ══════════════════════════════════════════════ */
+let _siteScoutCache={};/* city_country_cond → {trials, timestamp} */
+let _siteScoutAbort=null;
+
+/* Korean clinical trial institution → known primary city mapping.
+   Used for city-mismatch warnings (NOT auto-correction).
+   Multiple campuses: list primary location only; warning lets user double-check. */
+const KR_INSTITUTION_CITY={
+  /* 서울 */
+  'seoul national university hospital':'Seoul',
+  'snu hospital':'Seoul',
+  'smg - snu boramae medical center':'Seoul',
+  'snu boramae medical center':'Seoul',
+  'boramae medical center':'Seoul',
+  'seoul national university bundang hospital':'Seongnam',
+  'snubh':'Seongnam',
+  'asan medical center':'Seoul',
+  'samsung medical center':'Seoul',
+  'severance hospital':'Seoul',
+  'severance hospital, yonsei university':'Seoul',
+  'yonsei university health system severance hospital':'Seoul',
+  'gangnam severance hospital':'Seoul',
+  'konkuk university medical center':'Seoul',
+  'korea university anam hospital':'Seoul',
+  'korea university guro hospital':'Seoul',
+  'korea university ansan hospital':'Ansan',
+  'kyung hee university hospital':'Seoul',
+  'kyung hee university hospital at gangdong':'Seoul',
+  'hanyang university seoul hospital':'Seoul',
+  'hanyang university medical center':'Seoul',
+  'hanyang university guri hospital':'Guri',
+  'ewha womans university mokdong hospital':'Seoul',
+  'ewha womans university seoul hospital':'Seoul',
+  'chung-ang university hospital':'Seoul',
+  'chungang university hospital':'Seoul',
+  'inha university hospital':'Incheon',
+  'inje university sanggye paik hospital':'Seoul',
+  'inje university seoul paik hospital':'Seoul',
+  'inje university ilsan paik hospital':'Goyang',
+  'inje university haeundae paik hospital':'Busan',
+  'inje university busan paik hospital':'Busan',
+  'kangbuk samsung hospital':'Seoul',
+  'nowon eulji medical center':'Seoul',
+  'eulji medical center':'Seoul',
+  'national medical center':'Seoul',
+  'soonchunhyang university hospital seoul':'Seoul',
+  'catholic university seoul st. mary\'s hospital':'Seoul',
+  'seoul st. mary\'s hospital':'Seoul',
+  'st. mary\'s hospital':'Seoul',
+  'yeouido st. mary\'s hospital':'Seoul',
+  'eunpyeong st. mary\'s hospital':'Seoul',
+  'uijeongbu st. mary\'s hospital':'Uijeongbu',
+  'bucheon st. mary\'s hospital':'Bucheon',
+  'incheon st. mary\'s hospital':'Incheon',
+  'catholic university of korea, st. vincent\'s hospital':'Suwon',
+  'st. vincent\'s hospital':'Suwon',
+  /* 경기 */
+  'ajou university hospital':'Suwon',
+  'hallym university sacred heart hospital':'Anyang',
+  'bundang cha medical center':'Seongnam',
+  'cha bundang medical center':'Seongnam',
+  'national health insurance service ilsan hospital':'Goyang',
+  'national health insurance service - ilsan hospital':'Goyang',
+  'myongji hospital':'Goyang',
+  'wonkwang university sanbon hospital':'Gunpo',
+  'soon chun hyang university bucheon hospital':'Bucheon',
+  /* 부산 */
+  'pusan national university hospital':'Busan',
+  'dong-a university hospital':'Busan',
+  'kosin university gospel hospital':'Busan',
+  /* 대구 */
+  'kyungpook national university hospital':'Daegu',
+  'keimyung university dongsan medical center':'Daegu',
+  'yeungnam university medical center':'Daegu',
+  /* 인천 */
+  'gachon university gil medical center':'Incheon',
+  'gil medical center':'Incheon',
+  /* 광주 */
+  'chonnam national university hospital':'Gwangju',
+  'chosun university hospital':'Gwangju',
+  /* 대전 */
+  'chungnam national university hospital':'Daejeon',
+  'eulji university hospital':'Daejeon',
+  'konyang university hospital':'Daejeon',
+  /* 전주/익산 */
+  'chonbuk national university hospital':'Jeonju',
+  'jeonbuk national university hospital':'Jeonju',
+  'wonkwang university hospital':'Iksan',
+  /* 원주 */
+  'yonsei university wonju severance christian hospital':'Wonju',
+  'wonju severance christian hospital':'Wonju',
+  /* 춘천 */
+  'hallym university chuncheon sacred heart hospital':'Chuncheon',
+  'kangwon national university hospital':'Chuncheon',
+  /* 제주 */
+  'jeju national university hospital':'Jeju',
+  /* 울산 */
+  'ulsan university hospital':'Ulsan',
+  /* 창원 */
+  'gyeongsang national university changwon hospital':'Changwon',
+  'changwon gyeongsang national university hospital':'Changwon',
+  /* 진주 */
+  'gyeongsang national university hospital':'Jinju',
+  /* 천안 */
+  'soon chun hyang university cheonan hospital':'Cheonan',
+  'dankook university hospital':'Cheonan',
+};
+
+/* Population data for competition density calculation (approximate, 2024).
+   Key = lowercase city/state/region name. Value = population in thousands. */
+const REGION_POPULATION={
+  /* ── Korea 시/도 ── */
+  'seoul':9411,'busan':3350,'incheon':2980,'daegu':2385,'daejeon':1452,
+  'gwangju':1441,'ulsan':1121,'sejong':388,'suwon':1197,'seongnam':931,
+  'goyang':1089,'yongin':1082,'bucheon':826,'ansan':656,'anyang':553,
+  'namyangju':730,'hwaseong':928,'pyeongtaek':575,'uijeongbu':461,
+  'siheung':513,'gimpo':487,'paju':482,'gwangmyeong':299,'gunpo':271,
+  'hanam':306,'icheon':224,'yangju':232,'guri':195,'osan':234,
+  'jeonju':658,'cheonan':675,'cheongju':850,'changwon':1042,
+  'jinju':342,'gimhae':538,'yangsan':373,'wonju':362,'chuncheon':285,
+  'gangneung':213,'jeju':495,'iksan':273,'gunsan':261,'mokpo':222,
+  'yeosu':278,'suncheon':281,'pohang':503,'gumi':413,'gyeongju':254,
+  'andong':158,'gimcheon':138,'chungju':214,'jecheon':132,
+  /* Korean city aliases */
+  'seongnam-si':931,'suwon-si':1197,'goyang-si':1089,'yongin-si':1082,
+  'anyang-si':553,'bucheon-si':826,'gwangjin-gu':362,/* part of Seoul */
+  'gangnam-gu':529,/* part of Seoul */'songpa-gu':651,
+  'bundang':500,/* part of Seongnam */
+  'ilsan':500,/* part of Goyang */
+  /* Korean provinces (도) */
+  'gyeonggi':13600,'gyeongsang':5100,'jeolla':3500,'chungcheong':3600,
+  'gangwon':1540,'jeju-do':495,
+
+  /* ── US States ── */
+  'alabama':5108,'alaska':733,'arizona':7431,'arkansas':3067,
+  'california':38965,'colorado':5912,'connecticut':3617,'delaware':1018,
+  'florida':22610,'georgia':11029,'hawaii':1435,'idaho':1964,
+  'illinois':12549,'indiana':6862,'iowa':3207,'kansas':2940,
+  'kentucky':4526,'louisiana':4573,'maine':1395,'maryland':6180,
+  'massachusetts':7001,'michigan':10037,'minnesota':5737,'mississippi':2939,
+  'missouri':6196,'montana':1133,'nebraska':1978,'nevada':3194,
+  'new hampshire':1402,'new jersey':9290,'new mexico':2115,'new york':19571,
+  'north carolina':10835,'north dakota':783,'ohio':11780,'oklahoma':4019,
+  'oregon':4233,'pennsylvania':12962,'rhode island':1096,'south carolina':5373,
+  'south dakota':909,'tennessee':7126,'texas':30503,'utah':3417,
+  'vermont':647,'virginia':8683,'washington':7812,'west virginia':1770,
+  'wisconsin':5893,'wyoming':577,'district of columbia':689,
+
+  /* ── US Major Cities (for city-level search) ── */
+  'new york city':8258,'los angeles':3820,'chicago':2665,'houston':2302,
+  'phoenix':1609,'philadelphia':1550,'san antonio':1495,'san diego':1381,
+  'dallas':1288,'san jose':971,'austin':979,'jacksonville':971,
+  'fort worth':956,'columbus':906,'indianapolis':882,'charlotte':879,
+  'san francisco':808,'seattle':749,'denver':711,'washington':689,
+  'nashville':684,'oklahoma city':681,'el paso':677,'boston':654,
+  'portland':635,'las vegas':641,'memphis':628,'louisville':628,
+  'baltimore':569,'milwaukee':563,'albuquerque':559,'tucson':542,
+  'fresno':542,'mesa':508,'sacramento':524,'atlanta':499,
+  'omaha':486,'colorado springs':478,'raleigh':474,'miami':439,
+  'cleveland':362,'tampa':393,'minneapolis':425,'pittsburgh':302,
+  'st. louis':293,'cincinnati':309,'salt lake city':200,
+  'detroit':620,'newark':311,'buffalo':278,'rochester':211,
+  'ann arbor':123,'durham':283,'chapel hill':62,
+  'new haven':134,'stanford':17,'bethesda':68,
+  'houston':2302,'dallas':1288,
+
+  /* ── Japan ── */
+  'tokyo':13960,'osaka':8838,'nagoya':2296,'fukuoka':1613,
+  'sapporo':1973,'kobe':1510,'kyoto':1461,'yokohama':3749,
+
+  /* ── China ── */
+  'beijing':21540,'shanghai':24870,'guangzhou':18676,'shenzhen':17560,
+  'chengdu':16330,'hangzhou':12200,'wuhan':12330,'nanjing':9310,
+
+  /* ── Europe ── */
+  'london':8982,'paris':2161,'berlin':3645,'madrid':3223,'barcelona':1621,
+  'rome':2761,'milan':1352,'amsterdam':872,'brussels':1209,
+  'vienna':1911,'zurich':421,'geneva':201,'munich':1472,
+  'frankfurt':753,'hamburg':1853,'stockholm':975,'copenhagen':794,
+  'oslo':697,'helsinki':655,'dublin':544,'lisbon':505,
+  'warsaw':1791,'prague':1309,'budapest':1752,'bucharest':1794,
+
+  /* ── Other ── */
+  'toronto':2794,'montreal':1762,'vancouver':631,'sydney':5312,
+  'melbourne':5078,'tel aviv':460,'singapore':5686,'hong kong':7413,
+  'taipei':2602,'bangkok':10539,'mumbai':12442,'new delhi':16787,
+  'sao paulo':12325,'buenos aires':3059,'mexico city':9209,
+  'cairo':10230,'johannesburg':5783,'nairobi':4397,'lagos':15946,
+};
+
+/* Lookup population for a city/state/region (in thousands). Returns null if not found. */
+function lookupPopulation(cityOrRegion){
+  if(!cityOrRegion)return null;
+  const key=cityOrRegion.toLowerCase().trim()
+    .replace(/,.*$/,'')/* remove country suffix */
+    .replace(/-si$|-gu$|-do$/,'')/* Korean suffixes */
+    .trim();
+  if(REGION_POPULATION[key])return REGION_POPULATION[key];
+  /* Try partial match */
+  for(const[k,v] of Object.entries(REGION_POPULATION)){
+    if(key.includes(k)||k.includes(key))return v;
+  }
+  return null;
+}
+
+
+/* HAQ Index (Healthcare Access & Quality, Lancet/GBD 2019, 0-100 scale).
+   Key = country name as used in ClinicalTrials.gov. */
+const HAQ_INDEX={
+  'iceland':97,'norway':97,'netherlands':96,'luxembourg':96,'australia':96,
+  'finland':96,'switzerland':96,'sweden':96,'italy':95,'andorra':95,
+  'ireland':95,'japan':94,'austria':94,'canada':94,'belgium':94,
+  'new zealand':93,'denmark':93,'germany':92,'spain':92,'france':92,
+  'slovenia':91,'korea, republic of':90,'south korea':90,'czech republic':90,
+  'united kingdom':90,'greece':90,'singapore':90,'israel':90,
+  'portugal':89,'united states':89,'cyprus':88,'malta':88,
+  'croatia':87,'estonia':87,'cuba':86,'chile':86,
+  'costa rica':85,'poland':85,'taiwan':85,'lebanon':84,
+  'slovakia':84,'hungary':84,'uruguay':83,'argentina':82,
+  'lithuania':82,'latvia':81,'turkey':81,'china':78,'malaysia':78,
+  'thailand':77,'romania':77,'bulgaria':76,'brazil':75,
+  'colombia':74,'mexico':74,'sri lanka':73,'jordan':73,
+  'saudi arabia':73,'united arab emirates':73,'iran':72,
+  'peru':71,'tunisia':71,'algeria':70,'vietnam':69,
+  'egypt':68,'ukraine':68,'south africa':66,'philippines':65,
+  'indonesia':62,'morocco':62,'iraq':60,'india':41,
+  'kenya':40,'ghana':39,'bangladesh':38,'cambodia':37,
+  'nepal':36,'pakistan':35,'myanmar':34,'ethiopia':29,
+  'nigeria':28,'tanzania':27,'congo':25,'mozambique':23,
+};
+
+/* ICH Regulatory Tier.
+   Founding=100, Member=85, Observer=70, Bilateral=60, Non-ICH(regulated)=50, Non-ICH(basic)=35 */
+const ICH_TIER={
+  /* Founding Members */
+  'united states':100,'japan':100,'germany':100,'france':100,'united kingdom':100,
+  'switzerland':100,'canada':100,'sweden':100,'netherlands':100,'belgium':100,
+  'italy':100,'spain':100,'austria':100,'denmark':100,'finland':100,
+  'ireland':100,'norway':100,'portugal':100,'greece':100,'luxembourg':100,
+  'iceland':100,'czech republic':100,'poland':100,'hungary':100,'slovakia':100,
+  'slovenia':100,'croatia':100,'estonia':100,'latvia':100,'lithuania':100,
+  'romania':100,'bulgaria':100,'cyprus':100,'malta':100,
+  /* EU counts as founding */
+
+  /* Members */
+  'korea, republic of':85,'south korea':85,'china':85,'brazil':85,
+  'singapore':85,'australia':85,'new zealand':85,'israel':85,
+  'taiwan':85,'south africa':85,'argentina':85,'saudi arabia':85,
+  'united arab emirates':85,'turkey':85,
+
+  /* Observers / Bilateral */
+  'india':70,'russia':70,'mexico':70,'colombia':70,'chile':70,
+  'egypt':70,'malaysia':70,'thailand':70,'indonesia':70,'vietnam':70,
+  'philippines':70,'ukraine':70,'iran':60,'jordan':60,'lebanon':60,
+  'peru':60,'costa rica':60,'uruguay':60,'cuba':60,
+
+  /* Non-ICH but regulated */
+  'pakistan':50,'bangladesh':50,'kenya':50,'ghana':50,'nigeria':50,
+  'sri lanka':50,'nepal':50,'tunisia':50,'algeria':50,'morocco':50,
+  'iraq':45,'cambodia':45,'myanmar':45,'ethiopia':40,'tanzania':40,
+  'congo':35,'mozambique':35,
+};
+
+/* Get country name from ClinicalTrials.gov format */
+function _getCountryKey(country){
+  if(!country)return '';
+  return country.toLowerCase().trim();
+}
+
+/* Calculate Trial Suitability Score for a region.
+   Returns {total, haq, regulatory, competition, experience, pool, stars, details} */
+function calcSuitabilityScore(opts){
+  const {country,city,density,trialCount,population,totalSites}=opts;
+  const ck=_getCountryKey(country);
+
+  /* 1. HAQ Score (30%) — direct from index */
+  const haqRaw=HAQ_INDEX[ck]||null;
+  const haqScore=haqRaw!==null?haqRaw:50;/* default if unknown */
+  const haqWeighted=haqScore*0.30;
+
+  /* 2. ICH Regulatory Tier (20%) */
+  const ichRaw=ICH_TIER[ck]||45;/* default Non-ICH */
+  const ichWeighted=ichRaw*0.20;
+
+  /* 3. Competition Density (25%) — inverse: lower density = higher score */
+  let compScore=50;
+  if(density!==null&&density!==undefined){
+    if(density<=2)compScore=95;
+    else if(density<=5)compScore=85;
+    else if(density<=10)compScore=75;
+    else if(density<=20)compScore=60;
+    else if(density<=50)compScore=40;
+    else if(density<=100)compScore=25;
+    else compScore=10;
+  }
+  const compWeighted=compScore*0.25;
+
+  /* 4. Trial Experience (15%) — log scale, more trials = better infrastructure */
+  let expScore=20;
+  if(trialCount>=50)expScore=95;
+  else if(trialCount>=30)expScore=85;
+  else if(trialCount>=15)expScore=75;
+  else if(trialCount>=8)expScore=65;
+  else if(trialCount>=4)expScore=50;
+  else if(trialCount>=2)expScore=35;
+  else if(trialCount>=1)expScore=25;
+  const expWeighted=expScore*0.15;
+
+  /* 5. Recruitment Pool (10%) — population size, log scale */
+  let poolScore=30;
+  if(population){
+    if(population>=10000)poolScore=95;/* 10M+ */
+    else if(population>=5000)poolScore=85;
+    else if(population>=2000)poolScore=75;
+    else if(population>=1000)poolScore=65;
+    else if(population>=500)poolScore=55;
+    else if(population>=200)poolScore=45;
+    else if(population>=100)poolScore=35;
+    else poolScore=25;
+  }
+  const poolWeighted=poolScore*0.10;
+
+  const total=Math.round(haqWeighted+ichWeighted+compWeighted+expWeighted+poolWeighted);
+  const stars=total>=85?5:total>=70?4:total>=55?3:total>=40?2:1;
+
+  return {
+    total,stars,
+    haq:{score:haqScore,weighted:haqWeighted,raw:haqRaw},
+    regulatory:{score:ichRaw,weighted:ichWeighted},
+    competition:{score:compScore,weighted:compWeighted,density},
+    experience:{score:expScore,weighted:expWeighted,count:trialCount},
+    pool:{score:poolScore,weighted:poolWeighted,pop:population}
+  };
+}
+
+
+/* Check if a facility name matches a known Korean institution and if city mismatches */
+function checkKrCityMismatch(facility,registeredCity){
+  if(!facility)return null;
+  const fLower=facility.toLowerCase().trim();
+  /* Try exact match first, then partial */
+  let knownCity=KR_INSTITUTION_CITY[fLower];
+  if(!knownCity){
+    /* Partial match: check if any key is contained in the facility name or vice versa */
+    for(const[key,city] of Object.entries(KR_INSTITUTION_CITY)){
+      if(fLower.includes(key)||key.includes(fLower)){
+        knownCity=city;break;
+      }
+    }
+  }
+  if(!knownCity)return null;
+  /* Compare cities (case-insensitive, trim) */
+  const regLower=(registeredCity||'').toLowerCase().trim();
+  const knownLower=knownCity.toLowerCase().trim();
+  /* Allow partial match (e.g., "Seongnam-si" contains "seongnam") */
+  if(regLower.includes(knownLower)||knownLower.includes(regLower))return null;
+  /* Mismatch found */
+  return {knownCity:knownCity,registeredCity:registeredCity};
+}
+
+
+let _ssLastGalaxyFilter='';/* track galaxy filter state for auto-refresh */
+function renderSiteScoutView(el){
+  /* Check if galaxy filters changed since last search → auto re-search */
+  const curFilter=(document.getElementById('galaxyStatusFilter')?.value||'')+'|'+(document.getElementById('galaxyTimeFilter')?.value||'');
+  if(el.querySelector('.ss-container')&&el.querySelector('.ss-trial-row')){
+    if(curFilter===_ssLastGalaxyFilter)return;/* no change, keep current results */
+    /* Filters changed — re-trigger search if inputs exist */
+    if(document.getElementById('ssCity')!==null){
+      _ssLastGalaxyFilter=curFilter;
+      siteScoutSearch();
+      return;
+    }
+  }
+
+  const prevCond=document.getElementById('inputCond')?document.getElementById('inputCond').value:'';
+
+  el.innerHTML=`<div class="ss-container">
+    <h3 style="color:var(--mint);margin:0 0 .8rem;font-size:1rem;font-family:'Press Start 2P',monospace;letter-spacing:1px">
+      &#x1F50D; SITE SCOUT
+      <span style="font-size:.55rem;color:rgba(255,255,255,.4);font-family:inherit;margin-left:.5rem">City-based trial competition analysis</span>
+    </h3>
+    <div class="ss-search-bar">
+      <div class="ss-field" style="flex:1.2">
+        <label>City</label>
+        <input type="text" id="ssCity" placeholder="Leave empty for country-wide" value="">
+      </div>
+      <div class="ss-field">
+        <label>Country</label>
+        <input type="text" id="ssCountry" placeholder="e.g. Korea, Republic of" value="Korea, Republic of">
+      </div>
+      <div class="ss-field" style="flex:1.5">
+        <label>Condition / Therapeutic Area</label>
+        <input type="text" id="ssCond" placeholder="Comma = OR (e.g. Obesity, Diabetes)" value="${escHtml(prevCond)}">
+      </div>
+      <div class="ss-field">
+        <label>Phase</label>
+        <select id="ssPhase">
+          <option value="">All Phases</option>
+          <option value="PHASE1">Phase 1</option>
+          <option value="PHASE2" selected>Phase 2+</option>
+          <option value="PHASE3">Phase 3</option>
+        </select>
+      </div>
+      <button class="ss-btn" id="ssSearchBtn" onclick="siteScoutSearch()">SCOUT</button>
+      <div style="font-size:.55rem;color:rgba(255,255,255,.35);align-self:flex-end;padding-bottom:.3rem">Status &amp; Time filters synced with Galaxy bar ↑</div>
+    </div>
+    <div id="ssResults"></div>
+  </div>`;
+
+  /* Auto-search if condition is pre-filled */
+  if(prevCond)siteScoutSearch();
+}
+
+async function siteScoutSearch(){
+  const city=(document.getElementById('ssCity').value||'').trim();
+  const country=(document.getElementById('ssCountry').value||'').trim();
+  const cond=(document.getElementById('ssCond').value||'').trim();
+  const phaseVal=document.getElementById('ssPhase').value;
+  /* Read Galaxy bar filters */
+  const galaxyStatus=document.getElementById('galaxyStatusFilter')?.value||'all';
+  const galaxyTime=+(document.getElementById('galaxyTimeFilter')?.value||0);
+
+  if(!city&&!country){showError('Please enter at least a city or country.');return;}
+  if(!cond){showError('Please enter a condition or therapeutic area.');return;}
+
+  const resultsEl=document.getElementById('ssResults');
+  resultsEl.innerHTML='<div class="ss-loading"><div class="spinner"></div><p>Searching ClinicalTrials.gov for trials in '+escHtml(city||country)+'...</p></div>';
+  document.getElementById('ssSearchBtn').disabled=true;
+  /* Save galaxy filter state for auto-refresh detection */
+  _ssLastGalaxyFilter=(document.getElementById('galaxyStatusFilter')?.value||'')+'|'+(document.getElementById('galaxyTimeFilter')?.value||'');
+
+  if(_siteScoutAbort){_siteScoutAbort.abort();}_siteScoutAbort=new AbortController();
+  const signal=_siteScoutAbort.signal;
+
+  try{
+    /* Build query: condition + location filters */
+    const params=new URLSearchParams();
+    params.set('format','json');
+    params.set('countTotal','true');
+    params.set('pageSize','100');
+    params.set('query.cond',commaToOr(cond));
+
+    /* Build filter.advanced for location + phase */
+    const advParts=[];
+    /* City: OR multiple variants + Korean romanization aliases */
+    const CITY_ALIASES={
+      /* ── Korea (Revised vs McCune-Reischauer + sub-districts) ── */
+      'busan':['Pusan'],'seoul':['Sŏul'],'daegu':['Taegu'],'daejeon':['Taejon','Daejŏn'],
+      'gwangju':['Kwangju'],'incheon':['Inch\'ŏn','Inchon'],'ulsan':['Ulsan'],
+      'jeonju':['Chonju','Jŏnju'],'cheongju':['Ch\'ŏngju','Chongju'],
+      'wonju':['Wŏnju','Wonju-si'],'chuncheon':['Ch\'unch\'ŏn','Chunchon'],
+      'suwon':['Suwŏn'],'seongnam':['Sŏngnam','Bundang','Bundang Gu','Bundang-gu'],
+      'goyang':['Ilsan','Ilsan-gu'],'anyang':['Anyang-si'],
+      'changwon':['Ch\'angwŏn','Masan','Jinhae'],
+      'jeju':['Cheju','Jeju City'],'sejong':['Sejong City','Sejong-si'],
+      'gimhae':['Kimhae'],'gyeongju':['Kyongju','Kyŏngju'],
+      'pohang':['P\'ohang'],'gumi':['Kumi'],
+      /* ── Japan (macron variants) ── */
+      'tokyo':['Tōkyō','Tokio'],'osaka':['Ōsaka'],'kyoto':['Kyōto'],
+      'kobe':['Kōbe'],'nagoya':['Nagoya-shi'],'yokohama':['Yokohama-shi'],
+      'fukuoka':['Fukuoka-shi'],'sapporo':['Sapporo-shi'],
+      'sendai':['Sendai-shi'],'hiroshima':['Hiroshima-shi'],
+      'chiba':['Chiba-shi'],'kawasaki':['Kawasaki-shi'],
+      /* ── Germany (German ↔ English) ── */
+      'munich':['München','Muenchen'],'cologne':['Köln','Koeln'],
+      'nuremberg':['Nürnberg','Nuernberg'],'frankfurt':['Frankfurt am Main'],
+      'hanover':['Hannover'],'brunswick':['Braunschweig'],
+      'düsseldorf':['Duesseldorf','Dusseldorf'],
+      'münchen':['Munich','Muenchen'],'köln':['Cologne','Koeln'],
+      'nürnberg':['Nuremberg','Nuernberg'],
+      /* ── Italy (Italian ↔ English) ── */
+      'rome':['Roma'],'milan':['Milano'],'florence':['Firenze'],
+      'naples':['Napoli'],'venice':['Venezia'],'turin':['Torino'],
+      'genoa':['Genova'],'padua':['Padova'],'bologna':['Bologna'],
+      'roma':['Rome'],'milano':['Milan'],'firenze':['Florence'],
+      'napoli':['Naples'],'venezia':['Venice'],'torino':['Turin'],
+      /* ── Spain ── */
+      'seville':['Sevilla'],'saragossa':['Zaragoza'],
+      'sevilla':['Seville'],'zaragoza':['Saragossa'],
+      /* ── Austria / Switzerland ── */
+      'vienna':['Wien'],'wien':['Vienna'],
+      'zurich':['Zürich','Zuerich'],'zürich':['Zurich','Zuerich'],
+      'geneva':['Genève','Geneve'],'genève':['Geneva','Geneve'],
+      'bern':['Berne'],'basel':['Basle','Bâle'],
+      /* ── Belgium / Netherlands ── */
+      'brussels':['Bruxelles','Brussel'],'bruxelles':['Brussels','Brussel'],
+      'antwerp':['Antwerpen','Anvers'],'antwerpen':['Antwerp'],
+      'the hague':['Den Haag','\'s-Gravenhage'],'den haag':['The Hague'],
+      'ghent':['Gent','Gand'],'bruges':['Brugge'],
+      /* ── Scandinavia ── */
+      'copenhagen':['København','Kobenhavn'],'københavn':['Copenhagen'],
+      'gothenburg':['Göteborg','Goteborg'],'göteborg':['Gothenburg'],
+      'helsinki':['Helsingfors'],
+      /* ── Eastern Europe ── */
+      'prague':['Praha'],'praha':['Prague'],
+      'warsaw':['Warszawa'],'warszawa':['Warsaw'],
+      'krakow':['Kraków','Cracow'],'kraków':['Krakow','Cracow'],
+      'bucharest':['București','Bucuresti'],'bucurești':['Bucharest'],
+      'budapest':['Budapest'],
+      /* ── Greece / Turkey ── */
+      'athens':['Athina','Athinai','Αθήνα'],'athina':['Athens'],
+      'thessaloniki':['Thessalonike','Salonika'],
+      'istanbul':['İstanbul'],'izmir':['İzmir','Smyrna'],
+      'ankara':['Ankara'],
+      /* ── Portugal ── */
+      'lisbon':['Lisboa'],'lisboa':['Lisbon'],
+      'porto':['Oporto'],
+      /* ── China (Pinyin variants) ── */
+      'beijing':['Peking'],'guangzhou':['Canton'],
+      'xi\'an':['Xian','Xi An'],'chongqing':['Chungking'],
+      /* ── India (old ↔ new names) ── */
+      'mumbai':['Bombay'],'bombay':['Mumbai'],
+      'chennai':['Madras'],'madras':['Chennai'],
+      'kolkata':['Calcutta'],'calcutta':['Kolkata'],
+      'bengaluru':['Bangalore'],'bangalore':['Bengaluru'],
+      'pune':['Poona'],'kochi':['Cochin'],
+      'thiruvananthapuram':['Trivandrum'],'trivandrum':['Thiruvananthapuram'],
+      /* ── Russia ── */
+      'moscow':['Moskva','Москва'],'saint petersburg':['Sankt-Peterburg','St. Petersburg','St Petersburg'],
+      /* ── Israel ── */
+      'tel aviv':['Tel-Aviv','Tel Aviv-Yafo','Tel-Aviv-Yafo'],
+      'jerusalem':['Yerushalayim'],
+      'haifa':['Hefa'],
+      /* ── Brazil ── */
+      'são paulo':['Sao Paulo','São Paulo'],'sao paulo':['São Paulo'],
+      'rio de janeiro':['Rio De Janeiro'],
+      /* ── Australia (generally consistent but state abbreviations) ── */
+      'sydney':['Sydney NSW'],'melbourne':['Melbourne VIC'],
+      /* ── Taiwan ── */
+      'taipei':['Tai-pei','Taibei'],'kaohsiung':['Kao-hsiung'],
+      'taichung':['Tai-chung'],'tainan':['Tai-nan'],
+    };
+    if(city){
+      const cv=city.trim();
+      const variants=new Set([cv]);
+      if(!cv.endsWith('-si'))variants.add(cv+'-si');
+      if(!cv.includes(',')&&country)variants.add(cv+', '+country);
+      /* Add aliases */
+      const aliases=CITY_ALIASES[cv.toLowerCase()];
+      if(aliases)aliases.forEach(a=>variants.add(a));
+      /* Also check if input IS an alias → add canonical */
+      for(const[canonical,alts] of Object.entries(CITY_ALIASES)){
+        if(alts.some(a=>a.toLowerCase()===cv.toLowerCase())){
+          variants.add(canonical.charAt(0).toUpperCase()+canonical.slice(1));
+          variants.add(canonical.charAt(0).toUpperCase()+canonical.slice(1)+'-si');
+        }
+      }
+      const cityExpr=[...variants].map(v=>'AREA[LocationCity]'+v).join(' OR ');
+      advParts.push('('+cityExpr+')');
+    }
+    if(country)advParts.push('AREA[LocationCountry]'+country);
+
+    /* Phase filter */
+    if(phaseVal==='PHASE1')advParts.push('AREA[Phase]Phase 1');
+    else if(phaseVal==='PHASE2')advParts.push('AREA[Phase](Phase 2 OR Phase 3 OR Phase 4)');
+    else if(phaseVal==='PHASE3')advParts.push('AREA[Phase](Phase 3 OR Phase 4)');
+
+    if(advParts.length>0)params.set('filter.advanced',advParts.join(' AND '));
+
+    /* Status filter — synced with Galaxy bar */
+    if(galaxyStatus==='ongoing')params.set('filter.overallStatus','RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION,NOT_YET_RECRUITING');
+
+    /* Fetch all pages */
+    let allStudies=[];
+    let token=null;
+    let totalCount=0;
+
+    do{
+      const p=new URLSearchParams(params);
+      if(token)p.set('pageToken',token);
+      const resp=await rateLimitedFetch('https://clinicaltrials.gov/api/v2/studies?'+p.toString(),{signal});
+      if(!resp)throw new Error('API request failed');
+      const data=await resp.json();
+      totalCount=data.totalCount||0;
+      const studies=data.studies||[];
+      allStudies=allStudies.concat(studies);
+      token=data.nextPageToken||null;
+
+      /* Update loading progress */
+      if(token&&!signal.aborted){
+        resultsEl.querySelector('p').textContent='Loading... '+allStudies.length+' / '+totalCount+' trials';
+      }
+
+      /* Safety: max 500 trials */
+      if(allStudies.length>=500){token=null;}
+    }while(token&&!signal.aborted);
+
+    if(signal.aborted)return;
+
+    /* Apply Galaxy time filter (client-side) */
+    if(galaxyTime>0){
+      const cutoff=new Date(Date.now()-galaxyTime*365.25*24*60*60*1000);
+      allStudies=allStudies.filter(s=>{
+        const upd=((s.protocolSection||{}).statusModule||{}).lastUpdatePostDateStruct;
+        if(!upd||!upd.date)return true;
+        return new Date(upd.date)>=cutoff;
+      });
+    }
+
+    renderSiteScoutResults(resultsEl,allStudies,allStudies.length,city,country);
+
+  }catch(e){
+    if(e.name!=='AbortError'){
+      resultsEl.innerHTML='<div class="ss-no-results">Error: '+escHtml(e.message)+'</div>';
+    }
+  }finally{
+    const btn=document.getElementById('ssSearchBtn');
+    if(btn)btn.disabled=false;
+  }
+}
+
+
+
+/* Build suitability score cards for each region */
+function _buildSuitabilityCards(studies,trialsByFacility,cityFilter,countryFilter,sortedCities,densityData){
+  const results=[];
+  const densityMap=new Map();
+  (densityData||[]).forEach(d=>densityMap.set(d.region.toLowerCase(),d));
+
+  /* Detect country from studies or filter */
+  const _guessCountry=()=>{
+    if(countryFilter)return countryFilter;
+    for(const s of studies){
+      const locs=(s.protocolSection?.contactsLocationsModule?.locations)||[];
+      for(const l of locs){if(l.country)return l.country;}
+    }
+    return '';
+  };
+  const country=_guessCountry();
+
+  if(sortedCities){
+    /* Country-wide: score per city */
+    sortedCities.forEach(([cityName,facilities])=>{
+      const trialCount=facilities.reduce((s,f)=>s+f.fac.trials.length,0);
+      const pop=lookupPopulation(cityName);
+      const dd=densityMap.get(cityName.toLowerCase());
+      const density=dd?dd.density:null;
+      const totalSites=facilities.length;
+
+      const score=calcSuitabilityScore({
+        country,city:cityName,density,trialCount,population:pop,totalSites
+      });
+      results.push({region:cityName,score});
+    });
+  } else {
+    /* Single city */
+    const trialCount=[...trialsByFacility.values()].reduce((s,f)=>s+f.trials.length,0);
+    const pop=lookupPopulation(cityFilter||countryFilter);
+    const dd=densityData&&densityData[0]?densityData[0]:null;
+    const density=dd?dd.density:null;
+    const totalSites=trialsByFacility.size;
+
+    const score=calcSuitabilityScore({
+      country,city:cityFilter,density,trialCount,population:pop,totalSites
+    });
+    results.push({region:cityFilter||countryFilter,score});
+  }
+
+  /* Sort by score desc */
+  results.sort((a,b)=>b.score.total-a.score.total);
+  return results;
+}
+
+/* Calculate competition density per region */
+function _calcCompetitionDensity(studies,trialsByFacility,cityFilter,countryFilter,sortedCities){
+  const results=[];
+  const ONGOING=new Set(['RECRUITING','ENROLLING_BY_INVITATION']);
+
+  if(sortedCities){
+    /* Country-wide: density per city */
+    sortedCities.forEach(([cityName,facilities])=>{
+      let recruitEnroll=0,recruitSites=0,totalSitesInCity=0;
+      facilities.forEach(({fac})=>{
+        totalSitesInCity++;
+        fac.trials.forEach(t=>{
+          if(ONGOING.has(t.facilityStatus||t.overallStatus)){
+            /* Per-site estimate: trial enrollment / total trial sites */
+            const locs=(studies.find(s=>(s.protocolSection?.identificationModule?.nctId)===t.nctId)
+              ?.protocolSection?.contactsLocationsModule?.locations||[]);
+            const nSites=Math.max(locs.length,1);
+            recruitEnroll+=Math.round((t.enrollment||0)/nSites);
+            recruitSites++;
+          }
+        });
+      });
+      if(recruitEnroll===0)return;
+      const pop=lookupPopulation(cityName);
+      if(!pop)return;
+      const density=recruitEnroll/(pop*1000)*100000;
+      results.push({
+        region:cityName,
+        popDisplay:pop>=1000?(pop/1000).toFixed(1)+'M':pop+'K',
+        recruitingEnroll:recruitEnroll,
+        sites:totalSitesInCity,
+        density:density,
+        perSite:recruitSites>0?Math.round(recruitEnroll/recruitSites):0
+      });
+    });
+  } else {
+    /* City-specific: single density */
+    let recruitEnroll=0,recruitSites=0,totalSites=0;
+    trialsByFacility.forEach((fac,key)=>{
+      totalSites++;
+      fac.trials.forEach(t=>{
+        if(ONGOING.has(t.facilityStatus||t.overallStatus)){
+          const locs=(studies.find(s=>(s.protocolSection?.identificationModule?.nctId)===t.nctId)
+            ?.protocolSection?.contactsLocationsModule?.locations||[]);
+          const nSites=Math.max(locs.length,1);
+          recruitEnroll+=Math.round((t.enrollment||0)/nSites);
+          recruitSites++;
+        }
+      });
+    });
+    if(recruitEnroll>0){
+      const region=cityFilter||countryFilter;
+      const pop=lookupPopulation(region);
+      if(pop){
+        const density=recruitEnroll/(pop*1000)*100000;
+        results.push({
+          region:region,
+          popDisplay:pop>=1000?(pop/1000).toFixed(1)+'M':pop+'K',
+          recruitingEnroll:recruitEnroll,
+          sites:totalSites,
+          density:density,
+          perSite:recruitSites>0?Math.round(recruitEnroll/recruitSites):0
+        });
+      }
+    }
+  }
+  /* Sort by density desc */
+  results.sort((a,b)=>b.density-a.density);
+  return results;
+}
+
+function renderSiteScoutResults(el,studies,totalCount,cityFilter,countryFilter){
+  if(!studies.length){
+    el.innerHTML='<div class="ss-no-results">No trials found in '+escHtml(cityFilter||countryFilter)+' for this condition.</div>';
+    return;
+  }
+
+  /* Parse all trials and extract facility-level data for this city */
+  const cityLower=(cityFilter||'').toLowerCase();
+  const trialsByFacility=new Map();/* facilityKey → {name, city, trials:[]} */
+  const allTrialData=[];
+  let totalEnrollment=0;
+  let recruitingCount=0;
+  let activeCount=0;
+  let completedCount=0;
+
+  /* Find global date range */
+  let minDate='2099', maxDate='2000';
+
+  studies.forEach(s=>{
+    const proto=s.protocolSection||{};
+    const id=(proto.identificationModule||{});
+    const nctId=id.nctId||'';
+    const title=id.briefTitle||'';
+    const st=proto.statusModule||{};
+    const design=proto.designModule||{};
+    const sponsor=((proto.sponsorCollaboratorsModule||{}).leadSponsor||{}).name||'';
+    const enrollment=((design.enrollmentInfo||{}).count)||0;
+    const enrollType=((design.enrollmentInfo||{}).type)||'';
+    const overallStatus=st.overallStatus||'';
+    const startDate=(st.startDateStruct||{}).date||'';
+    const primaryCompletion=(st.primaryCompletionDateStruct||{}).date||'';
+    const completionDate=(st.completionDateStruct||{}).date||'';
+    const phases=(design.phases||[]);
+    const lastUpdate=(st.lastUpdatePostDateStruct||{}).date||'';
+
+    /* Extract drug names */
+    const arms=proto.armsInterventionsModule||{};
+    const interventions=(arms.interventions||[]).filter(i=>['DRUG','BIOLOGICAL','COMBINATION_PRODUCT'].includes(i.type));
+    const drugNames=interventions.map(i=>i.name).filter(n=>n&&!/placebo/i.test(n)).join(', ')||'N/A';
+
+    /* Determine effective end date (best available) */
+    const endDate=primaryCompletion||completionDate||'';
+
+    if(startDate&&startDate<minDate)minDate=startDate;
+    if(endDate&&endDate>maxDate)maxDate=endDate;
+    if(startDate&&startDate>maxDate)maxDate=startDate;
+    if(lastUpdate&&lastUpdate>maxDate)maxDate=lastUpdate;
+
+    const trialInfo={
+      nctId, title, sponsor, enrollment, enrollType, overallStatus,
+      startDate, endDate, completionDate:completionDate, primaryCompletion,
+      lastUpdate, phases, drugNames
+    };
+
+    totalEnrollment+=enrollment;
+    if(overallStatus==='RECRUITING')recruitingCount++;
+    else if(overallStatus==='ACTIVE_NOT_RECRUITING')activeCount++;
+    else if(overallStatus==='COMPLETED')completedCount++;
+
+    /* Find matching facilities in this city */
+    const locs=(proto.contactsLocationsModule||{}).locations||[];
+    let matchedFacilities=[];
+
+    locs.forEach(l=>{
+      const fCity=(l.city||'').toLowerCase();
+      const fCountry=(l.country||'').toLowerCase();
+      const countryLower=(countryFilter||'').toLowerCase();
+
+      if(cityLower&&fCity.includes(cityLower)|| (!cityLower&&countryLower&&fCountry.includes(countryLower))){
+        matchedFacilities.push({
+          facility:l.facility||'Unknown',
+          city:l.city||'',
+          status:l.status||overallStatus,
+          contacts:l.contacts||[]
+        });
+      }
+    });
+
+    if(matchedFacilities.length===0){
+      /* If no city-level match but trial exists in search results, add as unspecified */
+      matchedFacilities=[{facility:'(Location in '+escHtml(cityFilter||countryFilter)+')',city:cityFilter||'',status:overallStatus,contacts:[]}];
+    }
+
+    matchedFacilities.forEach(fac=>{
+      const isAnon=_isAnonSite(fac.facility);
+      const key=isAnon?'__anon__'+sponsor.toLowerCase().replace(/[^a-z0-9]/g,'')+'_'+fac.city.toLowerCase()
+                       :fac.facility.toLowerCase().replace(/[^a-z0-9가-힣]/g,'')+'_'+fac.city.toLowerCase();
+
+      if(!trialsByFacility.has(key)){
+        trialsByFacility.set(key,{
+          name:fac.facility,
+          city:fac.city,
+          anon:isAnon,
+          trials:[]
+        });
+      }
+      const _mismatch=checkKrCityMismatch(fac.facility,fac.city);
+      trialsByFacility.get(key).trials.push({
+        ...trialInfo,
+        facilityStatus:fac.status,
+        contacts:fac.contacts,
+        _cityMismatch:_mismatch
+      });
+    });
+
+    allTrialData.push(trialInfo);
+  });
+
+  /* Pad date range */
+  const minYear=parseInt(minDate.substring(0,4))||2020;
+  const maxYear=Math.max(parseInt(maxDate.substring(0,4))||2026,new Date().getFullYear()+1);
+  const rangeStart=minYear+'-01';
+  const rangeEnd=(maxYear+1)+'-01';
+
+  /* Sort facilities: named first (by trial count desc), then anonymous */
+  const sortedFacilities=[...trialsByFacility.entries()].sort((a,b)=>{
+    if(a[1].anon!==b[1].anon)return a[1].anon?1:-1;
+    return b[1].trials.length-a[1].trials.length;
+  });
+
+  /* Group by city if no city filter (country-wide search) */
+  const isCountryWide=!cityFilter;
+  const cityGroups=new Map();/* city → [{key,fac}] */
+  sortedFacilities.forEach(([key,fac])=>{
+    const c=(fac.city||'Unknown').trim()||'Unknown';
+    if(!cityGroups.has(c))cityGroups.set(c,[]);
+    cityGroups.get(c).push({key,fac});
+  });
+  /* Sort cities by total trial count desc */
+  const sortedCities=[...cityGroups.entries()].sort((a,b)=>{
+    const aTrials=a[1].reduce((s,f)=>s+f.fac.trials.length,0);
+    const bTrials=b[1].reduce((s,f)=>s+f.fac.trials.length,0);
+    return bTrials-aTrials;
+  });
+
+  /* Build HTML */
+  let html='';
+
+  /* KPI Summary */
+  html+=`<div class="ss-summary">
+    <div class="ss-kpi"><div class="num">${totalCount}</div><div class="lbl">Total Trials</div></div>
+    <div class="ss-kpi"><div class="num" style="color:#00E47C">${recruitingCount}</div><div class="lbl">Recruiting</div></div>
+    <div class="ss-kpi"><div class="num" style="color:#3b82f6">${activeCount}</div><div class="lbl">Enrolled (Active)</div></div>
+    <div class="ss-kpi"><div class="num" style="color:#6b7280">${completedCount}</div><div class="lbl">Completed</div></div>
+    <div class="ss-kpi"><div class="num">${totalEnrollment.toLocaleString()}</div><div class="lbl">Total Enrollment</div></div>
+    <div class="ss-kpi"><div class="num">${sortedFacilities.filter(([k,v])=>!v.anon).length}</div><div class="lbl">Named Sites</div></div>
+    ${isCountryWide?'<div class="ss-kpi"><div class="num">'+sortedCities.length+'</div><div class="lbl">Cities</div></div>':''}
+  </div>`;
+
+  /* Competition Density + Suitability Score — side by side */
+  const _densityData=_calcCompetitionDensity(studies,trialsByFacility,cityFilter,countryFilter,isCountryWide?sortedCities:null);
+  const _suitData=_buildSuitabilityCards(studies,trialsByFacility,cityFilter,countryFilter,isCountryWide?sortedCities:null,_densityData);
+  if(_densityData.length>0||_suitData.length>0){
+    html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem">`;
+
+    /* LEFT: Competition Density */
+    html+=`<div style="padding:.7rem;background:rgba(0,228,124,.04);border:1px solid rgba(0,228,124,.12);border-radius:6px;overflow-y:auto;max-height:400px">`;
+    html+=`<div style="font-size:.65rem;font-weight:700;color:var(--mint);margin-bottom:.3rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">📊 COMPETITION DENSITY</div>`;
+    html+=`<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-bottom:.5rem">Recruiting enrollment per 100K pop</div>`;
+    if(_densityData.length>0){
+      _densityData.forEach(d=>{
+        const lvl=d.density>50?'high':d.density>20?'medium':d.density>5?'moderate':'low';
+        const clr=lvl==='high'?'#ef4444':lvl==='medium'?'#f59e0b':lvl==='moderate'?'#3b82f6':'#22c55e';
+        const lvlLabel=lvl==='high'?'HIGH':lvl==='medium'?'MEDIUM':lvl==='moderate'?'MODERATE':'LOW';
+        html+=`<div style="padding:.4rem .5rem;background:rgba(0,0,0,.2);border-radius:3px;border-left:3px solid ${clr};margin-bottom:.35rem">`;
+        html+=`<div style="display:flex;justify-content:space-between;align-items:center">`;
+        html+=`<span style="font-size:.68rem;font-weight:700;color:#fff">${escHtml(d.region)}</span>`;
+        html+=`<span style="font-size:.5rem;padding:.1rem .3rem;border-radius:2px;background:${clr}22;color:${clr};font-weight:700;border:1px solid ${clr}44">${lvlLabel}</span>`;
+        html+=`</div>`;
+        html+=`<div style="display:flex;align-items:baseline;gap:.3rem;margin-top:.15rem">`;
+        html+=`<span style="font-size:.9rem;font-weight:700;color:${clr}">${d.density.toFixed(1)}</span>`;
+        html+=`<span style="font-size:.5rem;color:rgba(255,255,255,.35)">/100K</span>`;
+        html+=`<span style="font-size:.52rem;color:rgba(255,255,255,.4);margin-left:auto">Pop ${d.popDisplay} · ${d.sites} sites · ~${d.perSite}/site</span>`;
+        html+=`</div></div>`;
+      });
+    } else {
+      html+=`<div style="font-size:.65rem;color:rgba(255,255,255,.3)">No population data available</div>`;
+    }
+    html+=`</div>`;
+
+    /* RIGHT: Suitability Score */
+    html+=`<div style="padding:.7rem;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.12);border-radius:6px;overflow-y:auto;max-height:400px">`;
+    html+=`<div style="font-size:.65rem;font-weight:700;color:#a78bfa;margin-bottom:.3rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">🎯 SUITABILITY SCORE</div>`;
+    html+=`<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-bottom:.5rem">HAQ 30% · ICH 20% · Competition 25% · Experience 15% · Pool 10%</div>`;
+    if(_suitData.length>0){
+      _suitData.forEach(d=>{
+        const s=d.score;
+        const mainClr=s.total>=85?'#22c55e':s.total>=70?'#3b82f6':s.total>=55?'#f59e0b':s.total>=40?'#ef4444':'#6b7280';
+        const starStr='★'.repeat(s.stars)+'☆'.repeat(5-s.stars);
+        html+=`<div style="padding:.5rem .6rem;background:rgba(0,0,0,.25);border-radius:4px;border:1px solid ${mainClr}33;margin-bottom:.35rem">`;
+        html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">`;
+        html+=`<div><span style="font-size:.72rem;font-weight:700;color:#fff">${escHtml(d.region)}</span> <span style="color:${mainClr};font-size:.6rem;letter-spacing:1px">${starStr}</span></div>`;
+        html+=`<div style="display:flex;align-items:baseline;gap:.2rem"><span style="font-size:1.1rem;font-weight:800;color:${mainClr}">${s.total}</span><span style="font-size:.5rem;color:rgba(255,255,255,.35)">/100</span></div>`;
+        html+=`</div>`;
+        const factors=[
+          {label:'HAQ',score:s.haq.score,detail:s.haq.raw!==null?s.haq.raw:'?',clr:'#4ecdc4'},
+          {label:'ICH',score:s.regulatory.score,detail:s.regulatory.score>=100?'Found':s.regulatory.score>=85?'Memb':s.regulatory.score>=70?'Obs':'—',clr:'#45B7D1'},
+          {label:'Comp',score:s.competition.score,detail:s.competition.density!=null?s.competition.density.toFixed(0):'?',clr:s.competition.score>=70?'#22c55e':'#f59e0b'},
+          {label:'Exp',score:s.experience.score,detail:s.experience.count,clr:'#FFD700'},
+          {label:'Pool',score:s.pool.score,detail:s.pool.pop?(s.pool.pop>=1000?(s.pool.pop/1000).toFixed(0)+'M':s.pool.pop+'K'):'?',clr:'#A855F7'},
+        ];
+        html+=`<div style="display:flex;gap:.3rem">`;
+        factors.forEach(f=>{
+          const barH=Math.max(f.score/100*28,2);
+          html+=`<div style="flex:1;text-align:center">`;
+          html+=`<div style="height:28px;display:flex;align-items:flex-end;justify-content:center"><div style="width:100%;height:${barH}px;background:${f.clr};border-radius:1px;opacity:.7"></div></div>`;
+          html+=`<div style="font-size:.45rem;color:rgba(255,255,255,.4);margin-top:.1rem">${f.label}</div>`;
+          html+=`<div style="font-size:.45rem;color:rgba(255,255,255,.5)">${f.detail}</div>`;
+          html+=`</div>`;
+        });
+        html+=`</div></div>`;
+      });
+    } else {
+      html+=`<div style="font-size:.65rem;color:rgba(255,255,255,.3)">No data available</div>`;
+    }
+    html+=`</div>`;
+
+    html+=`</div>`;/* close grid */
+  }
+
+  /* Legend */
+  html+=`<div class="ss-legend">
+    <div class="ss-legend-item"><div class="dot" style="background:#00E47C"></div>Recruiting</div>
+    <div class="ss-legend-item"><div class="dot" style="background:#3b82f6"></div>Active (enrollment done)</div>
+    <div class="ss-legend-item"><div class="dot" style="background:#6b7280"></div>Completed</div>
+    <div class="ss-legend-item"><div class="dot" style="background:#f59e0b"></div>Not Yet Recruiting</div>
+    <div class="ss-legend-item"><div class="dot" style="background:#8b5cf6"></div>Other</div>
+  </div>`;
+
+  /* Year axis labels */
+  const years=[];
+  for(let y=minYear;y<=maxYear;y++)years.push(y);
+
+  /* Render: if country-wide, wrap in city sections */
+  const _renderFacilities=(facilityList)=>{
+    facilityList.forEach(({key,fac})=>{
+    const badge=fac.anon?'<span class="badge anon">Anonymous</span>':'<span class="badge named">Named</span>';
+    const facMismatch=checkKrCityMismatch(fac.name,fac.city);
+    const mismatchBadge=facMismatch?'<span class="badge" style="background:rgba(245,158,11,.2);color:#f59e0b" title="CT.gov registered city: '+escHtml(facMismatch.registeredCity)+'. Known primary location: '+escHtml(facMismatch.knownCity)+'">⚠️ Known loc: '+escHtml(facMismatch.knownCity)+'</span>':'';
+    html+=`<div class="ss-facility-group">
+      <div class="ss-facility-title">${escHtml(fac.name)} ${badge} ${mismatchBadge} <span style="font-size:.65rem;color:rgba(255,255,255,.4)">${fac.trials.length} trial${fac.trials.length>1?'s':''}</span></div>`;
+
+    /* Timeline header */
+    html+=`<div class="ss-tl-header"><div style="min-width:250px;max-width:250px"></div><div class="axis">`;
+    years.forEach(y=>{html+=`<span>${y}</span>`;});
+    html+=`</div></div>`;
+
+    /* Sort trials: recruiting first, then by start date */
+    fac.trials.sort((a,b)=>{
+      const statusOrder={'RECRUITING':0,'NOT_YET_RECRUITING':1,'ACTIVE_NOT_RECRUITING':2,'ENROLLING_BY_INVITATION':2,'COMPLETED':3,'TERMINATED':4,'WITHDRAWN':5,'SUSPENDED':5};
+      const sa=statusOrder[a.facilityStatus]??statusOrder[a.overallStatus]??9;
+      const sb=statusOrder[b.facilityStatus]??statusOrder[b.overallStatus]??9;
+      if(sa!==sb)return sa-sb;
+      return (a.startDate||'').localeCompare(b.startDate||'');
+    });
+
+    fac.trials.forEach(t=>{
+      const st=t.facilityStatus||t.overallStatus;
+      const barClass=st==='RECRUITING'?'recruiting'
+        :st==='ACTIVE_NOT_RECRUITING'||st==='ENROLLING_BY_INVITATION'?'active'
+        :st==='COMPLETED'?'completed'
+        :st==='NOT_YET_RECRUITING'?'not-yet'
+        :'other-bar';
+
+      /* Calculate bar position as percentage of timeline */
+      const totalMonths=(maxYear-minYear+1)*12;
+      const startMonths=_dateToMonths(t.startDate,minYear);
+      const endMonths=t.endDate?_dateToMonths(t.endDate,minYear):_dateToMonths(t.lastUpdate||new Date().toISOString().slice(0,10),minYear);
+      const leftPct=Math.max(0,(startMonths/totalMonths)*100);
+      const widthPct=Math.max(2,((endMonths-startMonths)/totalMonths)*100);
+
+      /* Phase label */
+      let phaseLabel='';
+      t.phases.forEach(p=>{if(p.includes('3'))phaseLabel='P3';else if(p.includes('2')&&phaseLabel!=='P3')phaseLabel='P2';else if(p.includes('1')&&!phaseLabel)phaseLabel='P1';});
+
+      const enrollLabel=t.enrollment?(t.enrollType==='ACTUAL'?t.enrollment+'✓':t.enrollment+'est'):'';
+      const barText=[phaseLabel,enrollLabel].filter(Boolean).join(' · ');
+
+      const statusLabel=st==='RECRUITING'?'Recruiting'
+        :st==='ACTIVE_NOT_RECRUITING'?'Enrolled'
+        :st==='COMPLETED'?'Completed'
+        :st==='NOT_YET_RECRUITING'?'Not Yet'
+        :st==='TERMINATED'?'Terminated'
+        :st.replace(/_/g,' ').toLowerCase();
+
+      html+=`<div class="ss-trial-row">
+        <div class="ss-trial-info">
+          <div><span class="nct" onclick="closeGalaxyFullscreenIfOpen();openDetailByNctId('${t.nctId}')" title="${escHtml(t.title)}">${t.nctId}</span> <span style="font-size:.6rem;color:rgba(255,255,255,.35)">${phaseLabel}</span></div>
+          <div class="drug">${escHtml(t.drugNames)}</div>
+          <div class="sponsor">${escHtml(t.sponsor)}</div>
+          ${t._cityMismatch?'<div style="font-size:.6rem;color:#f59e0b;margin-top:.1rem" title="Registered city: '+escHtml(t._cityMismatch.registeredCity)+'. Known location: '+escHtml(t._cityMismatch.knownCity)+'. Please verify.">⚠️ City mismatch — known loc: '+escHtml(t._cityMismatch.knownCity)+'</div>':''}
+        </div>
+        <div class="ss-bar-area">
+          <div class="ss-bar ${barClass}" style="left:${leftPct.toFixed(1)}%;width:${widthPct.toFixed(1)}%" title="${statusLabel} | ${t.startDate||'?'} → ${t.endDate||'ongoing'} | Enrollment: ${t.enrollment||'?'} (${t.enrollType||'?'})\n${escHtml(t.title)}">${barText}</div>
+        </div>
+      </div>`;
+    });
+
+    html+=`</div>`;
+    });
+  };/* end _renderFacilities */
+
+  if(isCountryWide){
+    /* Country-wide: collapsible city groups */
+    sortedCities.forEach(([cityName,facilities],ci)=>{
+      const cityTrials=facilities.reduce((s,f)=>s+f.fac.trials.length,0);
+      const cityRecruits=facilities.reduce((s,f)=>s+f.fac.trials.filter(t=>(t.facilityStatus||t.overallStatus)==='RECRUITING').length,0);
+      const isFirst=ci<3;/* auto-expand top 3 cities */
+      const cityId='ss-city-'+ci;
+      html+=`<div style="margin-bottom:.3rem">`;
+      html+=`<div onclick="const b=document.getElementById('${cityId}');b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.arrow').textContent=b.style.display==='none'?'▶':'▼'" style="cursor:pointer;padding:.5rem .7rem;background:rgba(0,228,124,.06);border:1px solid rgba(0,228,124,.12);border-radius:4px;display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;color:#fff">`;
+      html+=`<span class="arrow" style="font-size:.6rem;color:var(--mint)">${isFirst?'▼':'▶'}</span>`;
+      html+=`<span>📍 ${escHtml(cityName)}</span>`;
+      html+=`<span style="font-size:.62rem;font-weight:400;color:rgba(255,255,255,.5)">${facilities.length} site${facilities.length>1?'s':''} · ${cityTrials} trial${cityTrials>1?'s':''}${cityRecruits>0?' · <span style="color:#00E47C">'+cityRecruits+' recruiting</span>':''}</span>`;
+      html+=`</div>`;
+      html+=`<div id="${cityId}" style="display:${isFirst?'block':'none'};padding:.3rem 0 .3rem 1rem">`;
+      _renderFacilities(facilities);
+      html+=`</div></div>`;
+    });
+  } else {
+    /* City-specific: flat list as before */
+    _renderFacilities(sortedFacilities.map(([key,fac])=>({key,fac})));
+  }
+
+  /* Competition warning */
+  if(recruitingCount>=3){
+    html+=`<div style="margin-top:1.5rem;padding:.8rem;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:4px;font-size:.8rem;color:#fbbf24">
+      ⚠️ <strong>${recruitingCount} trials actively recruiting</strong> in ${escHtml(cityFilter||countryFilter)} for this condition.
+      Estimated competing enrollment: <strong>${totalEnrollment.toLocaleString()}</strong> patients.
+      Consider patient availability before placing a new trial here.
+    </div>`;
+  }
+
+  el.innerHTML=html;
+}
+
+/* Helper: detect anonymous site names */
+function _isAnonSite(fac){
+  if(!fac)return true;
+  const n=fac.toLowerCase().trim();
+  if(n.length<5)return true;
+  if(/^(clinical|study|investigat|research|trial|medical)\s*(site|center|centre|facility|location|unit)/i.test(n))return true;
+  if(/^site\s*(#|\d|number)/i.test(n))return true;
+  if(/^(local|private)\s*(institution|practice)/i.test(n))return true;
+  if(/\b(investigational|investigative)\s*(site|center)\b/i.test(n)&&!/\b(hospital|university|medical center|clinic|institute)\b/i.test(n))return true;
+  /* Sponsor-prefixed anonymous sites */
+  if(/^(gsk|pfizer|novartis|roche|sanofi|merck|bayer|astrazeneca|lilly|abbvie|amgen|bms|janssen|novo nordisk|takeda|gilead|regeneron|boehringer|eli lilly|akero|viking|inventiva|madrigal)\s*(investigat|study|clinical|research)/i.test(n))return true;
+  return false;
+}
+
+/* Helper: convert date string to months offset from minYear */
+function _dateToMonths(dateStr,minYear){
+  if(!dateStr)return 0;
+  const parts=dateStr.split('-');
+  const y=parseInt(parts[0])||minYear;
+  const m=parseInt(parts[1])||1;
+  return (y-minYear)*12+(m-1);
+}
+
+/* Helper: close galaxy fullscreen before opening detail */
+function closeGalaxyFullscreenIfOpen(){
+  const fsOv=document.querySelector('.galaxy-fullscreen-overlay');
+  if(fsOv)fsOv.remove();
+  _galaxyFullscreenActive=false;
+}
+
 
 /* ── 1. TRIAL TRENDS (Year-over-Year) ── */
 function renderTrendsChart(el,studies){
@@ -4683,6 +5913,20 @@ function renderTrendsChart(el,studies){
 }
 
 /* ── 2. ENROLLMENT ANALYTICS (Recruitment Analysis) ── */
+
+/* Click handler for site bars in HEADCOUNT — opens trial list popup */
+function _hcSiteClick(siteDisplayName){
+  const bySite=window._hcBySite;
+  if(!bySite)return;
+  const info=bySite.get(siteDisplayName);
+  if(!info||!info.rawStudies||!info.rawStudies.length)return;
+  showAnalyticsTrialPopup(
+    siteDisplayName,
+    info.rawStudies,
+    info.trials+' trial'+(info.trials>1?'s':'')+' · '+info.enrollment.toLocaleString()+' enrolled'
+  );
+}
+
 function renderEnrollmentChart(el,studies){
   const byCountry=new Map(),byPhase=new Map();
   const byPhaseStudies=new Map();/* phaseLabel → [rawStudy] */
@@ -4736,7 +5980,7 @@ function renderEnrollmentChart(el,studies){
         const isAnon=sk.startsWith('__anon__');
         /* Global site tracking — use normKey for cross-study dedup */
         if(!globalSiteSeen.has(sk)){
-          globalSiteSeen.set(sk,{displayName:l.facility?`${l.facility}, ${l.city||''}, ${l.country||''}`:`${l.city||''}, ${l.country||''}`,trials:0,enrollment:0,country:l.country||'',city:l.city||'',anon:isAnon});
+          globalSiteSeen.set(sk,{displayName:l.facility?`${l.facility}, ${l.city||''}, ${l.country||''}`:`${l.city||''}, ${l.country||''}`,trials:0,enrollment:0,country:l.country||'',city:l.city||'',anon:isAnon,rawStudies:[]});
           totalSites++;
           /* Track globally unique sites per country */
           const cLower=(l.country||'').trim();
@@ -4746,7 +5990,7 @@ function renderEnrollmentChart(el,studies){
           }
         }
         const gi=globalSiteSeen.get(sk);
-        gi.trials++;gi.enrollment+=enrollment;
+        gi.trials++;gi.enrollment+=enrollment;gi.rawStudies.push(s);
       }
     });
     /* Country trial count */
@@ -4779,7 +6023,7 @@ function renderEnrollmentChart(el,studies){
   });
   /* Sort each country's sites by trial count desc */
   countrySiteList.forEach((arr,c)=>arr.sort((a,b)=>b.trials-a.trials));
-  window._hcPhaseStudies=byPhaseStudies;window._hcCountryStudies=byCountryStudies;window._hcCountrySites=countrySiteList;
+  window._hcPhaseStudies=byPhaseStudies;window._hcCountryStudies=byCountryStudies;window._hcCountrySites=countrySiteList;window._hcGlobalSiteSeen=globalSiteSeen;window._hcBySite=bySite;
   const totalAnon=[...bySite.values()].filter(v=>v.anon).length;
   let html=`<div class="ga-title">👥 HEADCOUNT</div><div class="ga-subtitle">${studies.length} studies · ${totalEnroll.toLocaleString()} enrolled · ${totalSites.toLocaleString()} unique sites${totalAnon>0?` (${totalAnon} anonymous)`:''}</div>`;
   /* Summary cards */
@@ -4846,9 +6090,9 @@ function renderEnrollmentChart(el,studies){
       const facName=(facParts[0]||site).trim();
       const label=facName.length>38?facName.substring(0,36)+'..':facName;
       const bp=Math.max(info.trials/maxSiteT*50,1);
-      html+=`<div class="ga-bar-row" style="margin-bottom:.15rem;align-items:center">`;
+      html+=`<div class="ga-bar-row" style="margin-bottom:.15rem;align-items:center;cursor:pointer" onclick="_hcSiteClick('${escHtml(site).replace(/'/g,"\\'")}')">`;
       html+=`<div style="width:18px;text-align:right;font-size:.6rem;color:rgba(255,255,255,.35);margin-right:.3rem">${i+1}</div>`;
-      html+=`<div class="ga-bar-label" style="min-width:180px;font-size:.62rem" title="${escHtml(site)}">${escHtml(label)}</div>`;
+      html+=`<div class="ga-bar-label" style="min-width:180px;font-size:.62rem" title="${escHtml(site)} — Click to see trials">${escHtml(label)}</div>`;
       html+=`<div class="ga-bar" style="width:${bp}%;background:linear-gradient(90deg,#4ECDC4,#00E47C);height:14px">${info.trials>1&&bp>4?'<span class="ga-bar-val" style="font-size:.58rem">'+info.trials+' trials</span>':''}</div>`;
       if(info.trials>1&&bp<=4)html+=`<span style="font-size:.6rem;font-weight:700;color:rgba(255,255,255,.7);margin-left:3px">${info.trials} trials</span>`;
       html+=`<div style="min-width:140px;text-align:right;font-size:.6rem;display:flex;align-items:center;justify-content:flex-end;gap:.3rem">${_countryTag(info.country)}</div>`;
@@ -4882,7 +6126,7 @@ function renderEnrollmentChart(el,studies){
       const _rSvg=cc?COUNTRY_FLAG_SVG[cc]:'';
       const _rFlag=_rSvg?`<span class="flag-svg" style="width:14px;height:10px;display:inline-block;border-radius:1px;overflow:hidden;vertical-align:middle;box-shadow:0 0 0 .5px rgba(0,0,0,.15)">${_rSvg}</span> `:'';
       const bp=Math.max(s.trials/maxR*45,1);
-      html+=`<div class="ga-bar-row" style="margin-bottom:.15rem"><div class="ga-bar-label" style="min-width:190px;font-size:.6rem" title="${escHtml(s.site)}">${_rFlag}${escHtml(label)}</div>`;
+      html+=`<div class="ga-bar-row" style="margin-bottom:.15rem;cursor:pointer" onclick="_hcSiteClick('${escHtml(s.site).replace(/'/g,"\\'")}')"><div class="ga-bar-label" style="min-width:190px;font-size:.6rem" title="${escHtml(s.site)} — Click to see trials">${_rFlag}${escHtml(label)}</div>`;
       html+=`<div class="ga-bar" style="width:${bp}%;background:${rClr}88;height:13px">${s.trials>1&&bp>6?'<span class="ga-bar-val" style="font-size:.56rem">'+s.trials+' trials</span>':''}</div>`;
       if(s.trials>1&&bp<=6)html+=`<span style="font-size:.58rem;font-weight:700;color:rgba(255,255,255,.65);margin-left:3px">${s.trials} trials</span>`;
       html+=`<span style="font-size:.58rem;color:rgba(255,255,255,.4);margin-left:.3rem">${cc||s.country}</span></div>`;
