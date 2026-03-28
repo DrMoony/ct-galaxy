@@ -5684,6 +5684,52 @@ function renderSiteScoutResults(el,studies,totalCount,cityFilter,countryFilter){
     html+=`</div>`;/* close grid */
   }
 
+  /* Site Allocation Recommendation — country-wide only */
+  if(isCountryWide&&_suitData.length>1){
+    /* Rank cities by composite allocation score:
+       Suitability (50%) + inverse density penalty (30%) + experience bonus (20%) */
+    const allocRanking=_suitData.map(d=>{
+      const s=d.score;
+      const densityPenalty=s.competition.density!=null?Math.max(0,100-s.competition.density*2):50;
+      const allocScore=Math.round(s.total*0.50+densityPenalty*0.30+s.experience.score*0.20);
+      return {...d,allocScore};
+    }).sort((a,b)=>b.allocScore-a.allocScore);
+
+    html+=`<div style="margin-bottom:1rem;padding:.8rem;background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.15);border-radius:6px">`;
+    html+=`<div style="font-size:.65rem;font-weight:700;color:#FFD700;margin-bottom:.2rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">🏗️ SITE ALLOCATION RECOMMENDATION</div>`;
+    html+=`<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-bottom:.5rem">Priority ranking for new trial site placement. Score = Suitability (50%) + Low Competition (30%) + Experience (20%)</div>`;
+    html+=`<table style="width:100%;border-collapse:collapse;font-size:.68rem">`;
+    html+=`<thead><tr style="border-bottom:1px solid rgba(255,215,0,.2)">`;
+    html+=`<th style="text-align:left;padding:.3rem .4rem;color:#FFD700;font-size:.55rem">Rank</th>`;
+    html+=`<th style="text-align:left;padding:.3rem;color:#FFD700;font-size:.55rem">City</th>`;
+    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem">Alloc Score</th>`;
+    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem">Suitability</th>`;
+    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem">Competition</th>`;
+    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem">Experience</th>`;
+    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem">Pop</th>`;
+    html+=`<th style="text-align:left;padding:.3rem;color:#FFD700;font-size:.55rem">Verdict</th>`;
+    html+=`</tr></thead><tbody>`;
+    allocRanking.forEach((d,i)=>{
+      const s=d.score;
+      const tierClr=d.allocScore>=75?'#22c55e':d.allocScore>=60?'#3b82f6':d.allocScore>=45?'#f59e0b':'#ef4444';
+      const tier=d.allocScore>=75?'STRONG':d.allocScore>=60?'GOOD':d.allocScore>=45?'FAIR':'CAUTION';
+      const densityTxt=s.competition.density!=null?s.competition.density.toFixed(1)+'/100K':'—';
+      const popTxt=s.pool.pop?(s.pool.pop>=1000?(s.pool.pop/1000).toFixed(1)+'M':s.pool.pop+'K'):'—';
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      html+=`<tr style="border-bottom:1px solid rgba(255,255,255,.05)${i<3?';background:rgba(255,215,0,.03)':''}">`;
+      html+=`<td style="padding:.3rem .4rem;font-weight:700;color:rgba(255,255,255,.5)">${medal||'#'+(i+1)}</td>`;
+      html+=`<td style="padding:.3rem;font-weight:700;color:#fff">${escHtml(d.region)}</td>`;
+      html+=`<td style="padding:.3rem;text-align:center"><span style="font-weight:800;color:${tierClr};font-size:.8rem">${d.allocScore}</span></td>`;
+      html+=`<td style="padding:.3rem;text-align:center;color:rgba(255,255,255,.6)">${s.total}</td>`;
+      html+=`<td style="padding:.3rem;text-align:center;color:${s.competition.score>=70?'#22c55e':'#f59e0b'}">${densityTxt}</td>`;
+      html+=`<td style="padding:.3rem;text-align:center;color:rgba(255,255,255,.6)">${s.experience.count} trials</td>`;
+      html+=`<td style="padding:.3rem;text-align:center;color:rgba(255,255,255,.5);font-size:.6rem">${popTxt}</td>`;
+      html+=`<td style="padding:.3rem"><span style="font-size:.5rem;padding:.1rem .3rem;border-radius:2px;background:${tierClr}22;color:${tierClr};font-weight:700;border:1px solid ${tierClr}44">${tier}</span></td>`;
+      html+=`</tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  }
+
   /* Legend */
   html+=`<div class="ss-legend">
     <div class="ss-legend-item"><div class="dot" style="background:#00E47C"></div>Recruiting</div>
