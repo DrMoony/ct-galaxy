@@ -5626,7 +5626,7 @@ function renderSiteScoutResults(el,studies,totalCount,cityFilter,countryFilter){
 
     /* LEFT: Competition Density */
     html+=`<div style="padding:.7rem;background:rgba(0,228,124,.04);border:1px solid rgba(0,228,124,.12);border-radius:6px;overflow-y:auto;max-height:400px">`;
-    html+=`<div style="font-size:.65rem;font-weight:700;color:var(--mint);margin-bottom:.3rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">📊 COMPETITION DENSITY <span style="cursor:help;font-family:sans-serif;font-size:.7rem" title="How this is calculated:\n\n1. For each RECRUITING trial, estimate per-site enrollment:\n   Trial enrollment ÷ total sites in that trial\n2. Sum all per-site estimates for this city\n3. Divide by city population × 100,000\n\nResult = competing enrollment per 100K population.\nHigher = more patient competition for new trials.\n\nLevels: LOW (<5) · MODERATE (5-20) · MEDIUM (20-50) · HIGH (>50)">ℹ️</span></div>`;
+    html+=`<div style="font-size:.65rem;font-weight:700;color:var(--mint);margin-bottom:.3rem;font-family:'Press Start 2P',monospace;letter-spacing:.5px">📊 COMPETITION DENSITY <span style="cursor:help;font-family:sans-serif;font-size:.7rem" title="How this is calculated:\n\n1. For each RECRUITING trial, estimate per-site enrollment:\n   Trial enrollment ÷ total sites in that trial\n2. Sum all per-site estimates for this city\n3. Divide by city population × 100,000\n\nResult = competing enrollment per 100K population.\nHigher = more patient competition for new trials.\n\nLevels: LOW (<5) · MODERATE (5-20) · MEDIUM (20-50) · HIGH (>50)\n\n⚠️ LIMITATION: Per-site enrollment is a rough estimate.\nActual allocation varies by country, site capacity, and\nsponsor strategy. Total N ÷ total sites ≠ real per-site target.\nUse as directional indicator, not absolute number.">ℹ️</span></div>`;
     html+=`<div style="font-size:.55rem;color:rgba(255,255,255,.35);margin-bottom:.5rem">Recruiting enrollment per 100K pop</div>`;
     if(_densityData.length>0){
       _densityData.forEach(d=>{
@@ -5641,9 +5641,10 @@ function renderSiteScoutResults(el,studies,totalCount,cityFilter,countryFilter){
         html+=`<div style="display:flex;align-items:baseline;gap:.3rem;margin-top:.15rem">`;
         html+=`<span style="font-size:.9rem;font-weight:700;color:${clr}">${d.density.toFixed(1)}</span>`;
         html+=`<span style="font-size:.5rem;color:rgba(255,255,255,.35)">/100K</span>`;
-        html+=`<span style="font-size:.52rem;color:rgba(255,255,255,.4);margin-left:auto">Pop ${d.popDisplay} · ${d.sites} sites · ~${d.perSite}/site</span>`;
+        html+=`<span style="font-size:.52rem;color:rgba(255,255,255,.4);margin-left:auto;cursor:help" title="⚠️ Rough estimate only. Per-site enrollment = total trial enrollment ÷ total global sites. Actual allocation varies by country, site capacity, and sponsor strategy. This does NOT reflect real per-site contracts.">Pop ${d.popDisplay} · ${d.sites} sites · ~${d.perSite}/site*</span>`;
         html+=`</div></div>`;
       });
+      html+=`<div style="font-size:.48rem;color:rgba(255,255,255,.25);margin-top:.4rem;font-style:italic">* Per-site estimate = total enrollment ÷ global sites. Actual per-site allocation varies by country and sponsor strategy.</div>`;
     } else {
       html+=`<div style="font-size:.65rem;color:rgba(255,255,255,.3)">No population data available</div>`;
     }
