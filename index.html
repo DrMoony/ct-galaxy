@@ -5664,16 +5664,16 @@ function renderSiteScoutResults(el,studies,totalCount,cityFilter,countryFilter){
         html+=`<div style="display:flex;align-items:baseline;gap:.2rem"><span style="font-size:1.1rem;font-weight:800;color:${mainClr}">${s.total}</span><span style="font-size:.5rem;color:rgba(255,255,255,.35)">/100</span></div>`;
         html+=`</div>`;
         const factors=[
-          {label:'HAQ',score:s.haq.score,detail:s.haq.raw!==null?s.haq.raw:'?',clr:'#4ecdc4'},
-          {label:'ICH',score:s.regulatory.score,detail:s.regulatory.score>=100?'Found':s.regulatory.score>=85?'Memb':s.regulatory.score>=70?'Obs':'—',clr:'#45B7D1'},
-          {label:'Comp',score:s.competition.score,detail:s.competition.density!=null?s.competition.density.toFixed(0):'?',clr:s.competition.score>=70?'#22c55e':'#f59e0b'},
-          {label:'Exp',score:s.experience.score,detail:s.experience.count,clr:'#FFD700'},
-          {label:'Pool',score:s.pool.score,detail:s.pool.pop?(s.pool.pop>=1000?(s.pool.pop/1000).toFixed(0)+'M':s.pool.pop+'K'):'?',clr:'#A855F7'},
+          {label:'HAQ',score:s.haq.score,detail:s.haq.raw!==null?s.haq.raw:'?',clr:'#4ecdc4',tip:'Healthcare Access & Quality Index (Lancet/GBD 2019). Measures preventable mortality across 32 causes. 0-100 scale, higher = better healthcare system.'},
+          {label:'ICH',score:s.regulatory.score,detail:s.regulatory.score>=100?'Found':s.regulatory.score>=85?'Memb':s.regulatory.score>=70?'Obs':'—',clr:'#45B7D1',tip:'International Council for Harmonisation membership tier. Founding (US/EU/JP/CH) = strictest GCP standards. Member (KR/CN/AU/SG) = harmonized. Observer = partial alignment.'},
+          {label:'Comp',score:s.competition.score,detail:s.competition.density!=null?s.competition.density.toFixed(0):'?',clr:s.competition.score>=70?'#22c55e':'#f59e0b',tip:'Competition density (bell curve). Sweet spot = 5-15 trials/100K pop. Too low = untested site. Too high = patient fatigue. Number shown = density per 100K.'},
+          {label:'Exp',score:s.experience.score,detail:s.experience.count,clr:'#FFD700',tip:'Trial experience in this therapeutic area. More trials = experienced CRCs/PIs, faster IRB approval, better GCP compliance. Number shown = trial count.'},
+          {label:'Pool',score:s.pool.score,detail:s.pool.pop?(s.pool.pop>=1000?(s.pool.pop/1000).toFixed(0)+'M':s.pool.pop+'K'):'?',clr:'#A855F7',tip:'Recruitment pool = city/region population size. Larger population = easier patient enrollment. Number shown = estimated population.'},
         ];
         html+=`<div style="display:flex;gap:.3rem">`;
         factors.forEach(f=>{
           const barH=Math.max(f.score/100*28,2);
-          html+=`<div style="flex:1;text-align:center">`;
+          html+=`<div style="flex:1;text-align:center;cursor:help" title="${f.tip}">`;
           html+=`<div style="height:28px;display:flex;align-items:flex-end;justify-content:center"><div style="width:100%;height:${barH}px;background:${f.clr};border-radius:1px;opacity:.7"></div></div>`;
           html+=`<div style="font-size:.45rem;color:rgba(255,255,255,.4);margin-top:.1rem">${f.label}</div>`;
           html+=`<div style="font-size:.45rem;color:rgba(255,255,255,.5)">${f.detail}</div>`;
@@ -5706,12 +5706,12 @@ function renderSiteScoutResults(el,studies,totalCount,cityFilter,countryFilter){
     html+=`<thead><tr style="border-bottom:1px solid rgba(255,215,0,.2)">`;
     html+=`<th style="text-align:left;padding:.3rem .4rem;color:#FFD700;font-size:.55rem">Rank</th>`;
     html+=`<th style="text-align:left;padding:.3rem;color:#FFD700;font-size:.55rem">City</th>`;
-    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem">Alloc Score</th>`;
-    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem">Suitability</th>`;
-    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem">Competition</th>`;
-    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem">Experience</th>`;
-    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem">Pop</th>`;
-    html+=`<th style="text-align:left;padding:.3rem;color:#FFD700;font-size:.55rem">Verdict</th>`;
+    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem;cursor:help" title="Composite allocation score = Suitability×50% + Competition×30% + Experience×20%">Alloc Score</th>`;
+    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem;cursor:help" title="Trial Suitability Score (0-100): HAQ 30% + ICH Regulatory 20% + Competition 25% + Experience 15% + Population 10%">Suitability</th>`;
+    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem;cursor:help" title="Competition density per 100K population. Recruiting trial enrollment ÷ regional pop × 100K. Bell curve: 5-15 = optimal">Competition</th>`;
+    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem;cursor:help" title="Number of clinical trials for this condition in this city. More = experienced sites, faster IRB">Experience</th>`;
+    html+=`<th style="text-align:center;padding:.3rem;color:#FFD700;font-size:.55rem;cursor:help" title="City/region population (estimated 2024). Larger = easier patient recruitment">Pop</th>`;
+    html+=`<th style="text-align:left;padding:.3rem;color:#FFD700;font-size:.55rem;cursor:help" title="STRONG (75+): High confidence, prioritize. GOOD (60-74): Solid. FAIR (45-59): Viable. CAUTION (<45): Consider alternatives">Verdict</th>`;
     html+=`</tr></thead><tbody>`;
     allocRanking.forEach((d,i)=>{
       const s=d.score;
