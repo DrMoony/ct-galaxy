@@ -1,0 +1,27 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Daily at 12:00 UTC (21:00 KST) — offset from weekly-alert (Mon 09:00 UTC)
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          response=$(curl -sS -o /tmp/body -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/subscriptions?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_SERVICE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}")
+          echo "HTTP ${response}"
+          cat /tmp/body
+          if [ "${response}" != "200" ]; then
+            echo "::error::Unexpected status ${response}"
+            exit 1
+          fi
