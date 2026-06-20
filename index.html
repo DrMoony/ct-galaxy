@@ -1247,7 +1247,7 @@ th .col-hide-btn{float:right;margin-top:1px}
       <rect x="3" y="10" width="2" height="1" fill="#FFC107"/><rect x="6" y="10" width="2" height="1" fill="#DAA520"/>
       <rect x="4" y="11" width="4" height="1" fill="#DAA520"/>
     </svg>
-    <span>DEVELOPER : DR.MOON KIM & DR.SHERYL SHIN</span>
+    <span>DEVELOPER : DR.MOON KIM</span>
   </div>
   <div class="footer-powered">POWERED BY CLINICALTRIALS.GOV API V2 & CLAUDE</div>
   <div style="font-size:.55rem;color:#475569;letter-spacing:.5px;margin-top:4px;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" onclick="showChangelog()" title="Click to see update history">v3.2.0 · Updated 2026-03-28</div>
@@ -1374,7 +1374,7 @@ th .col-hide-btn{float:right;margin-top:1px}
 
 <script>
 // ── Starfield Banner Animation ──
-let _starfieldRAF=0;
+let _starfieldRAF=0,_starfieldResize=null;
 function initStarfield(){
   if(_starfieldRAF)cancelAnimationFrame(_starfieldRAF);
   const c=document.getElementById('starfieldCanvas');
@@ -1383,7 +1383,7 @@ function initStarfield(){
   let W,H;
   const stars=[];const STAR_COUNT=200;const NEBULA_COUNT=5;const nebulae=[];
   function resize(){W=c.width=c.parentElement.offsetWidth;H=c.height=c.parentElement.offsetHeight;}
-  resize();window.addEventListener('resize',resize);
+  resize();if(_starfieldResize)window.removeEventListener('resize',_starfieldResize);_starfieldResize=resize;window.addEventListener('resize',resize);
   for(let i=0;i<STAR_COUNT;i++){
     stars.push({x:Math.random()*2000-500,y:Math.random()*400-100,r:Math.random()*1.8+.3,
       twinkleSpeed:.5+Math.random()*2,twinkleOffset:Math.random()*Math.PI*2,
@@ -2162,7 +2162,7 @@ async function searchTrials(pageToken){
   hideAll();document.getElementById('loadingArea').style.display='block';document.getElementById('btnSearch').disabled=true;
 
   /* Expand synonyms (async: tries local dict first, then NCI EVS API) */
-  const condExp=await expandSynonyms(condRaw),intrExp=await expandSynonyms(intrRaw);
+  const [condExp,intrExp]=await Promise.all([expandSynonyms(condRaw),expandSynonyms(intrRaw)]);
   const synInfo=document.getElementById('synonymInfo');
   if(condExp.synonyms||intrExp.synonyms){
     let msg='Search terms auto-expanded';
@@ -2417,11 +2417,12 @@ function getStatusBadgeClass(s){s=(s||'').toUpperCase();if(s.includes('RECRUITIN
 function formatPhase(p){if(!p||!p.length)return'<span class="badge badge-default">N/A</span>';return p.map(x=>{let s=x.replace('EARLY_PHASE1','E1').replace('PHASE','');return`<span class="phase-badge">${s}</span>`;}).join('');}
 function formatStatus(s){const m={'RECRUITING':'Recruiting','ACTIVE_NOT_RECRUITING':'Active','COMPLETED':'Completed','ENROLLING_BY_INVITATION':'Enrolling','NOT_YET_RECRUITING':'Not Yet','SUSPENDED':'Suspended','TERMINATED':'Terminated','WITHDRAWN':'Withdrawn','UNKNOWN':'Unknown'};return m[s]||s;}
 
-function renderTable(){document.getElementById('resultsBody').innerHTML=allResults.map((r,i)=>{const chk=compareSet.has(r.nctId)?'checked':'';const drugList=r.drug?r.drug.split(', ').filter(Boolean):[];const moaBadges=drugList.length?drugList.map(d=>{const moa=getDrugMoA(d);if(moa)return`<span style="display:inline-block;padding:.1rem .35rem;border-radius:3px;font-size:.65rem;font-weight:600;background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25);margin:1px;white-space:nowrap">${escHtml(moa)}</span>`;const lw=d.toLowerCase().trim();if(_moaApiCache[lw]===undefined)return`<span style="display:inline-block;padding:.1rem .35rem;border-radius:3px;font-size:.6rem;color:#888;margin:1px;white-space:nowrap" title="Loading MoA...">⏳</span>`;return'';}).filter(Boolean).join('')||'<span style="color:#666;font-size:.65rem">—</span>':'<span style="color:#666;font-size:.65rem">—</span>';const condBadges=r.conditions?r.conditions.split(', ').slice(0,3).map(c=>`<span style="display:inline-block;padding:.1rem .3rem;border-radius:3px;font-size:.6rem;background:rgba(0,228,124,.08);color:#4ecdc4;border:1px solid rgba(78,205,196,.2);margin:1px">${escHtml(c.length>30?c.substring(0,28)+'..':c)}</span>`).join('')+(r.conditions.split(', ').length>3?`<span style="font-size:.55rem;color:#888"> +${r.conditions.split(', ').length-3}</span>`:''):'<span style="color:#666;font-size:.65rem">—</span>';return`<tr class="clickable" data-idx="${i}"><td data-label="CMP" onclick="event.stopPropagation();const cb=this.querySelector('input');cb.checked=!cb.checked;toggleCompare(cb)" style="cursor:pointer;text-align:center"><input type="checkbox" class="cmp-check" data-nct="${r.nctId}" data-idx="${i}" ${chk} onchange="toggleCompare(this)" onclick="event.stopPropagation()"></td><td data-label="Type" data-col="type" onclick="openDetail(${i})" style="white-space:nowrap">${getCategoryBadge(r.category)}</td><td data-label="NCT ID" data-col="nctId" onclick="openDetail(${i})"><span class="trial-link">${r.nctId}</span></td><td data-label="Title" data-col="title" onclick="openDetail(${i})" style="min-width:200px;max-width:320px">${escHtml(r.title)}</td><td data-label="Conditions" data-col="conditions" onclick="openDetail(${i})" style="max-width:220px;white-space:normal" title="${escHtml(r.conditions)}">${condBadges}</td><td data-label="MoA" data-col="moa" onclick="openDetail(${i})" style="max-width:140px;white-space:normal">${moaBadges}</td><td data-label="Drug" data-col="drug" style="max-width:180px;white-space:normal">${r.drug?r.drug.split(', ').map(d=>`<span style="cursor:pointer;color:var(--mint);text-decoration:underline dotted;text-underline-offset:2px;display:inline-block;margin:1px 0" onclick="event.stopPropagation();showDrugPopup('${escHtml(d.replace(/'/g,"\\\\'"))}')">${escHtml(d)}</span>`).join(', '):'<span style="color:#666;font-size:.65rem">—</span>'}</td><td data-label="Status" data-col="status" onclick="openDetail(${i})" style="padding:0 .3rem"><span class="badge ${getStatusBadgeClass(r.status)}">${formatStatus(r.status)}</span></td><td data-label="Phase" data-col="phase" onclick="openDetail(${i})" style="white-space:nowrap;padding:0 .3rem"><div class="phase-badges">${formatPhase(r.phases)}</div></td><td data-label="Sponsor" data-col="sponsor" onclick="openDetail(${i})" style="max-width:180px" title="${r.sponsorOrig&&r.sponsorOrig!==r.sponsor?escHtml('Originally: '+r.sponsorOrig):''}">${getSponsorFlag(r.sponsor,r.countries)} ${escHtml(r.sponsor)}${r.sponsorOrig&&r.sponsorOrig!==r.sponsor?'<span style=\"font-size:.6rem;color:var(--text-light)\"> ←'+escHtml(r.sponsorOrig.substring(0,15))+'</span>':''}</td><td data-label="Countries" data-col="countries">${r.countries.length>0?`<span class="country-toggle" onclick="event.stopPropagation();this.nextElementSibling.classList.toggle('show');this.querySelector('.ct-arrow').textContent=this.nextElementSibling.classList.contains('show')?'▾':'▸'" style="cursor:pointer;white-space:nowrap;font-size:.72rem;color:var(--dark-mid);font-weight:600;user-select:none"><span class="ct-arrow" style="font-size:.6rem;margin-right:2px">▸</span>${r.countries.length===1?'1 nation':r.countries.length+' nations'}</span><div class="ct-dropdown" style="display:none;margin-top:3px;max-height:120px;overflow-y:auto">${r.countries.map(c=>`<span class="country-badge" onclick="event.stopPropagation();openDetail(${i})">${escHtml(c)}</span>`).join('')}</div>`:`<span style="color:#888;font-size:.7rem">—</span>`}</td><td data-label="Started" data-col="started" onclick="openDetail(${i})" style="font-size:.75rem">${r.startDate||'—'}</td><td data-label="Updated" data-col="updated" onclick="openDetail(${i})" style="font-size:.75rem">${r.lastUpdate}</td><td data-label="" onclick="event.stopPropagation()" style="text-align:center"><button onclick="deleteTrialRow(${i})" class="btn-del-row" title="Remove from list">✕</button></td></tr>`;}).join('');initColResize();if(_hiddenCols.size>0)applyHiddenCols();}
+function renderTable(){document.getElementById('resultsBody').innerHTML=allResults.map((r,i)=>{const chk=compareSet.has(r.nctId)?'checked':'';const drugList=r.drug?r.drug.split(', ').filter(Boolean):[];const moaBadges=drugList.length?drugList.map(d=>{const moa=getDrugMoA(d);if(moa)return`<span style="display:inline-block;padding:.1rem .35rem;border-radius:3px;font-size:.65rem;font-weight:600;background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25);margin:1px;white-space:nowrap">${escHtml(moa)}</span>`;const lw=d.toLowerCase().trim();if(_moaApiCache[lw]===undefined)return`<span style="display:inline-block;padding:.1rem .35rem;border-radius:3px;font-size:.6rem;color:#888;margin:1px;white-space:nowrap" title="Loading MoA...">⏳</span>`;return'';}).filter(Boolean).join('')||'<span style="color:#666;font-size:.65rem">—</span>':'<span style="color:#666;font-size:.65rem">—</span>';const condBadges=r.conditions?r.conditions.split(', ').slice(0,3).map(c=>`<span style="display:inline-block;padding:.1rem .3rem;border-radius:3px;font-size:.6rem;background:rgba(0,228,124,.08);color:#4ecdc4;border:1px solid rgba(78,205,196,.2);margin:1px">${escHtml(c.length>30?c.substring(0,28)+'..':c)}</span>`).join('')+(r.conditions.split(', ').length>3?`<span style="font-size:.55rem;color:#888"> +${r.conditions.split(', ').length-3}</span>`:''):'<span style="color:#666;font-size:.65rem">—</span>';return`<tr class="clickable" data-idx="${i}"><td data-label="CMP" onclick="event.stopPropagation();const cb=this.querySelector('input');cb.checked=!cb.checked;toggleCompare(cb)" style="cursor:pointer;text-align:center"><input type="checkbox" class="cmp-check" data-nct="${r.nctId}" data-idx="${i}" ${chk} onchange="toggleCompare(this)" onclick="event.stopPropagation()"></td><td data-label="Type" data-col="type" onclick="openDetail(${i})" style="white-space:nowrap">${getCategoryBadge(r.category)}</td><td data-label="NCT ID" data-col="nctId" onclick="openDetail(${i})"><span class="trial-link">${r.nctId}</span></td><td data-label="Title" data-col="title" onclick="openDetail(${i})" style="min-width:200px;max-width:320px">${escHtml(r.title)}</td><td data-label="Conditions" data-col="conditions" onclick="openDetail(${i})" style="max-width:220px;white-space:normal" title="${escHtml(r.conditions)}">${condBadges}</td><td data-label="MoA" data-col="moa" onclick="openDetail(${i})" style="max-width:140px;white-space:normal">${moaBadges}</td><td data-label="Drug" data-col="drug" style="max-width:180px;white-space:normal">${r.drug?r.drug.split(', ').map(d=>`<span style="cursor:pointer;color:var(--mint);text-decoration:underline dotted;text-underline-offset:2px;display:inline-block;margin:1px 0" onclick="event.stopPropagation();showDrugPopup('${jsAttr(d)}')">${escHtml(d)}</span>`).join(', '):'<span style="color:#666;font-size:.65rem">—</span>'}</td><td data-label="Status" data-col="status" onclick="openDetail(${i})" style="padding:0 .3rem"><span class="badge ${getStatusBadgeClass(r.status)}">${formatStatus(r.status)}</span></td><td data-label="Phase" data-col="phase" onclick="openDetail(${i})" style="white-space:nowrap;padding:0 .3rem"><div class="phase-badges">${formatPhase(r.phases)}</div></td><td data-label="Sponsor" data-col="sponsor" onclick="openDetail(${i})" style="max-width:180px" title="${r.sponsorOrig&&r.sponsorOrig!==r.sponsor?escHtml('Originally: '+r.sponsorOrig):''}">${getSponsorFlag(r.sponsor,r.countries)} ${escHtml(r.sponsor)}${r.sponsorOrig&&r.sponsorOrig!==r.sponsor?'<span style=\"font-size:.6rem;color:var(--text-light)\"> ←'+escHtml(r.sponsorOrig.substring(0,15))+'</span>':''}</td><td data-label="Countries" data-col="countries">${r.countries.length>0?`<span class="country-toggle" onclick="event.stopPropagation();this.nextElementSibling.classList.toggle('show');this.querySelector('.ct-arrow').textContent=this.nextElementSibling.classList.contains('show')?'▾':'▸'" style="cursor:pointer;white-space:nowrap;font-size:.72rem;color:var(--dark-mid);font-weight:600;user-select:none"><span class="ct-arrow" style="font-size:.6rem;margin-right:2px">▸</span>${r.countries.length===1?'1 nation':r.countries.length+' nations'}</span><div class="ct-dropdown" style="display:none;margin-top:3px;max-height:120px;overflow-y:auto">${r.countries.map(c=>`<span class="country-badge" onclick="event.stopPropagation();openDetail(${i})">${escHtml(c)}</span>`).join('')}</div>`:`<span style="color:#888;font-size:.7rem">—</span>`}</td><td data-label="Started" data-col="started" onclick="openDetail(${i})" style="font-size:.75rem">${r.startDate||'—'}</td><td data-label="Updated" data-col="updated" onclick="openDetail(${i})" style="font-size:.75rem">${r.lastUpdate}</td><td data-label="" onclick="event.stopPropagation()" style="text-align:center"><button onclick="deleteTrialRow(${i})" class="btn-del-row" title="Remove from list">✕</button></td></tr>`;}).join('');initColResize();if(_hiddenCols.size>0)applyHiddenCols();}
 
 function renderPagination(next,cur){const a=document.getElementById('paginationArea');a.innerHTML='';if(cur){const b=document.createElement('button');b.className='btn btn-secondary btn-sm';b.textContent='← Previous';b.onclick=()=>searchTrials(pageTokenStack.pop()||undefined);a.appendChild(b);}if(next){const b=document.createElement('button');b.className='btn btn-primary btn-sm';b.textContent='Next →';b.onclick=()=>{if(cur)pageTokenStack.push(cur);searchTrials(next);};a.appendChild(b);}}
 function sortBy(field){if(sortField===field)sortAsc=!sortAsc;else{sortField=field;sortAsc=true;}allResults.sort((a,b)=>{let va=a[field],vb=b[field];if(Array.isArray(va))va=va.join(',');if(Array.isArray(vb))vb=vb.join(',');return sortAsc?(va<vb?-1:va>vb?1:0):(va>vb?-1:va<vb?1:0);});renderTable();}
 function escHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function jsAttr(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 /* ── Column Hide/Show ── */
 const _hiddenCols=new Set();
@@ -2484,7 +2485,7 @@ function showDrugPopup(drugName){
       html+=`<td style="padding:.3rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;color:#4ecdc4">${escHtml((t.conditions||'').substring(0,30))}</td>`;
       html+=`<td style="padding:.3rem"><span class="badge ${getStatusBadgeClass(t.status)}" style="font-size:.6rem">${formatStatus(t.status)}</span></td>`;
       html+=`<td style="padding:.3rem;color:#aaa">${escHtml((t.sponsor||'').substring(0,25))}</td>`;
-      html+=`<td style="padding:.3rem;color:#aaa;font-size:.65rem">${t.countries.length?t.countries.slice(0,3).join(', ')+(t.countries.length>3?' +'+( t.countries.length-3):''):'—'}</td>`;
+      html+=`<td style="padding:.3rem;color:#aaa;font-size:.65rem">${t.countries.length?escHtml(t.countries.slice(0,3).join(', '))+(t.countries.length>3?' +'+( t.countries.length-3):''):'—'}</td>`;
       html+=`<td style="padding:.3rem;color:#888;font-size:.65rem">${t.lastUpdate}</td>`;
       html+=`</tr>`;
     });
@@ -2812,12 +2813,12 @@ function renderDetail(study){
     <div class="section-title"><svg width="14" height="14" viewBox="0 0 16 16" style="image-rendering:pixelated;margin-right:6px"><rect x="3" y="2" width="10" height="1" fill="#002E3B"/><rect x="3" y="3" width="10" height="10" fill="#fff" stroke="#002E3B"/><rect x="4" y="4" width="1" height="1" fill="#00E47C"/><rect x="6" y="4" width="5" height="1" fill="#ccc"/><rect x="4" y="6" width="1" height="1" fill="#00E47C"/><rect x="6" y="6" width="5" height="1" fill="#ccc"/><rect x="4" y="8" width="1" height="1" fill="#00E47C"/><rect x="6" y="8" width="5" height="1" fill="#ccc"/></svg>INCLUSION CRITERIA</div>
     <div class="criteria-box">${escHtml(inclusionSummary)}</div>
     <div class="section-title"><svg width="14" height="14" viewBox="0 0 16 16" style="image-rendering:pixelated;margin-right:6px"><rect x="5" y="2" width="6" height="1" fill="#00E47C"/><rect x="3" y="3" width="10" height="1" fill="#004455"/><rect x="2" y="4" width="12" height="6" fill="#004455"/><rect x="4" y="5" width="3" height="2" fill="#00E47C"/><rect x="9" y="6" width="2" height="2" fill="#00E47C"/><rect x="3" y="10" width="10" height="1" fill="#00E47C"/><rect x="5" y="11" width="6" height="1" fill="#004455"/></svg>TRIAL LOCATIONS (${locations.length} sites)</div>
-    <div class="location-list">${countryList.map(([c,n])=>`<span class="country-badge" style="cursor:pointer" onclick="zoomToCountry('${c.replace(/'/g,"\\'")}',event)">${escHtml(c)} (${n})</span>`).join('')}</div>
-    <div class="detail-facility-section">${countryList.map(([c,n])=>{const facs=countryFacilities[c]||[];const cid='fac_'+c.replace(/[^a-zA-Z0-9]/g,'_');return `<div class="detail-country-group"><div class="detail-country-header" onclick="toggleFacilityList('${cid}','${c.replace(/'/g,"\\'")}')"><span class="arrow" id="arrow_${cid}">▶</span> ${escHtml(c)}<span class="cnt">${n} site${n>1?'s':''}</span></div><div id="${cid}" style="display:none"><div class="detail-facility-grid">${facs.map(f=>{const stCls=f.status.includes('RECRUITING')&&!f.status.includes('NOT')?'recruiting':f.status.includes('ACTIVE')?'active':f.status.includes('COMPLETED')?'completed':'other-st';const stLabel=f.status?formatStatus(f.status):'';const pi=(f.contacts||[]).find(c=>c.role==='PRINCIPAL_INVESTIGATOR');const contact=(f.contacts||[]).find(c=>c.role==='CONTACT');const piName=pi?pi.name:(contact?contact.name:'');const piEmail=contact?contact.email:'';return `<div class="detail-facility-card"><div class="fac-name">${escHtml(f.facility)}</div>${f.city?`<div class="fac-city">${escHtml(f.city)}</div>`:''}${stLabel?`<div class="fac-status ${stCls}">${escHtml(stLabel)}</div>`:''}${piName?`<div style="font-size:.65rem;color:#a78bfa;margin-top:3px"><span style="color:#7c3aed">PI:</span> ${escHtml(piName)}</div>`:''}${piEmail?`<div style="font-size:.6rem;color:#64748b;margin-top:1px">${escHtml(piEmail)}</div>`:''}</div>`;}).join('')}</div></div></div>`;}).join('')}</div>
+    <div class="location-list">${countryList.map(([c,n])=>`<span class="country-badge" style="cursor:pointer" onclick="zoomToCountry('${jsAttr(c)}',event)">${escHtml(c)} (${n})</span>`).join('')}</div>
+    <div class="detail-facility-section">${countryList.map(([c,n])=>{const facs=countryFacilities[c]||[];const cid='fac_'+c.replace(/[^a-zA-Z0-9]/g,'_');return `<div class="detail-country-group"><div class="detail-country-header" onclick="toggleFacilityList('${cid}','${jsAttr(c)}')"><span class="arrow" id="arrow_${cid}">▶</span> ${escHtml(c)}<span class="cnt">${n} site${n>1?'s':''}</span></div><div id="${cid}" style="display:none"><div class="detail-facility-grid">${facs.map(f=>{const stCls=f.status.includes('RECRUITING')&&!f.status.includes('NOT')?'recruiting':f.status.includes('ACTIVE')?'active':f.status.includes('COMPLETED')?'completed':'other-st';const stLabel=f.status?formatStatus(f.status):'';const pi=(f.contacts||[]).find(c=>c.role==='PRINCIPAL_INVESTIGATOR');const contact=(f.contacts||[]).find(c=>c.role==='CONTACT');const piName=pi?pi.name:(contact?contact.name:'');const piEmail=contact?contact.email:'';return `<div class="detail-facility-card"><div class="fac-name">${escHtml(f.facility)}</div>${f.city?`<div class="fac-city">${escHtml(f.city)}</div>`:''}${stLabel?`<div class="fac-status ${stCls}">${escHtml(stLabel)}</div>`:''}${piName?`<div style="font-size:.65rem;color:#a78bfa;margin-top:3px"><span style="color:#7c3aed">PI:</span> ${escHtml(piName)}</div>`:''}${piEmail?`<div style="font-size:.6rem;color:#64748b;margin-top:1px">${escHtml(piEmail)}</div>`:''}</div>`;}).join('')}</div></div></div>`;}).join('')}</div>
     <div id="detailMap"></div>
     ${renderPublicationsSection(refsMod,nctId,idMod.briefTitle||'')}
     <div style="display:flex;gap:.6rem;align-items:center;margin-top:.8rem">
-      <button onclick="addToCart('${nctId}','${(idMod.briefTitle||'').replace(/'/g,"\\'").substring(0,50)}')" style="background:${compareSet.has(nctId)?'#ff6b6b':'var(--mint)'};color:${compareSet.has(nctId)?'#fff':'var(--dark)'};border:2px solid var(--dark);padding:.4rem 1rem;border-radius:4px;font-size:.8rem;cursor:pointer;font-weight:700;font-family:'Press Start 2P',monospace;font-size:.55rem">${compareSet.has(nctId)?'✓ Remove':'+ Add to Compare'}</button>
+      <button onclick="addToCart('${nctId}','${jsAttr((idMod.briefTitle||'').substring(0,50))}')" style="background:${compareSet.has(nctId)?'#ff6b6b':'var(--mint)'};color:${compareSet.has(nctId)?'#fff':'var(--dark)'};border:2px solid var(--dark);padding:.4rem 1rem;border-radius:4px;font-size:.8rem;cursor:pointer;font-weight:700;font-family:'Press Start 2P',monospace;font-size:.55rem">${compareSet.has(nctId)?'✓ Remove':'+ Add to Compare'}</button>
       <a class="detail-link trial-link" href="https://clinicaltrials.gov/study/${nctId}" target="_blank">View full details on ClinicalTrials.gov →</a>
     </div>`;
   /* ICD-10 mapping for conditions */
@@ -3812,6 +3813,14 @@ const _moaApiCache=(function(){
   return clean;
 })();
 const _moaApiPending={};
+let _moaPersistTimer=0;
+function _persistMoaCache(){
+  if(_moaPersistTimer)return; /* debounce: coalesce bursts of writes */
+  _moaPersistTimer=setTimeout(()=>{
+    _moaPersistTimer=0;
+    try{const ts=Date.now();const cacheObj={};for(const[k,v] of Object.entries(_moaApiCache)){cacheObj[k]={v,t:ts};}localStorage.setItem('moaApiCache',JSON.stringify(cacheObj));}catch(e){}
+  },500);
+}
 const EPC_SHORT_MAP={
   'glucagon-like peptide-1 (glp-1) receptor agonist':'GLP-1 RA','glp-1 receptor agonist':'GLP-1 RA',
   'sodium-glucose cotransporter 2 inhibitor':'SGLT2i','sodium glucose co-transporter 2 inhibitor':'SGLT2i',
@@ -3897,8 +3906,8 @@ async function fetchDrugMoAFromAPI(drugName){
           _moaApiCache[key]=suffixMoa||short;
         } else {_moaApiCache[key]='';}
       } else {_moaApiCache[key]='';}
-      /* Persist cache with timestamp */
-      try{const ts=Date.now();const cacheObj={};for(const[k,v] of Object.entries(_moaApiCache)){cacheObj[k]={v,t:ts};}localStorage.setItem('moaApiCache',JSON.stringify(cacheObj));}catch(e){}
+      /* Persist cache with timestamp (debounced to avoid O(n²) writes during batch) */
+      _persistMoaCache();
       return _moaApiCache[key];
     }catch(e){_moaApiCache[key]='';return '';}
     finally{delete _moaApiPending[key];}
@@ -4745,7 +4754,7 @@ function renderGalaxy(){
     exPanel.style.display='block';
     let h='<div style="font-size:.5rem;font-family:\'Press Start 2P\',monospace;color:#FF6B6B;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><span>EXCLUDED</span><span onclick="galaxyRestoreAll()" style="cursor:pointer;color:rgba(255,255,255,.6);font-size:.45rem;text-decoration:underline" title="Restore all">Reset</span></div>';
     [...exSet].forEach(name=>{
-      const eName=escHtml(name).replace(/'/g,"\\'");
+      const eName=jsAttr(name);
       h+=`<div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:rgba(255,255,255,.75);padding:2px 0;border-bottom:1px solid rgba(255,255,255,.06)"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(name)}">${escHtml(name.length>22?name.substring(0,20)+'..':name)}</span><span onclick="galaxyRestore('${eName}')" style="cursor:pointer;color:#00E47C;font-size:.55rem;font-weight:700;padding:0 4px" title="Restore">↩</span></div>`;
     });
     exPanel.innerHTML=h;
@@ -4852,15 +4861,11 @@ async function openDetailByNctId(nctId){
     const resp=await fetch('https://clinicaltrials.gov/api/v2/studies/'+nctId+'?format=json');
     if(!resp.ok)throw new Error('Not found');
     const study=await resp.json();
-    /* Temporarily add to allResults and rawStudies so openDetail works */
+    /* Render directly without mutating shared global state (allResults/rawStudies) */
     const parsed=parseStudies([study]);
-    if(parsed.length>0){
-      allResults.push(parsed[0]);
-      if(!allRawStudies)allRawStudies=[];
-      allRawStudies.push(study);
-      rawStudies=allRawStudies;
-      openDetail(allResults.length-1);
-    }
+    const title=parsed.length>0?parsed[0].title:'';
+    document.getElementById('modalTitle').textContent=nctId+(title?' - '+title:'');
+    renderDetail(study);
   }catch(e){
     document.getElementById('modalBody').innerHTML='<div style="padding:2rem;color:#f87171;text-align:center">Failed to load '+nctId+'</div>';
   }
@@ -6322,7 +6327,7 @@ function renderEnrollmentChart(el,studies){
       const facName=(facParts[0]||site).trim();
       const label=facName.length>38?facName.substring(0,36)+'..':facName;
       const bp=Math.max(info.trials/maxSiteT*50,1);
-      html+=`<div class="ga-bar-row" style="margin-bottom:.15rem;align-items:center;cursor:pointer" onclick="_hcSiteClick('${escHtml(site).replace(/'/g,"\\'")}')">`;
+      html+=`<div class="ga-bar-row" style="margin-bottom:.15rem;align-items:center;cursor:pointer" onclick="_hcSiteClick('${jsAttr(site)}')">`;
       html+=`<div style="width:18px;text-align:right;font-size:.6rem;color:rgba(255,255,255,.35);margin-right:.3rem">${i+1}</div>`;
       html+=`<div class="ga-bar-label" style="min-width:180px;font-size:.62rem" title="${escHtml(site)} — Click to see trials">${escHtml(label)}</div>`;
       html+=`<div class="ga-bar" style="width:${bp}%;background:linear-gradient(90deg,#4ECDC4,#00E47C);height:14px">${info.trials>1&&bp>4?'<span class="ga-bar-val" style="font-size:.58rem">'+info.trials+' trials</span>':''}</div>`;
@@ -6358,7 +6363,7 @@ function renderEnrollmentChart(el,studies){
       const _rSvg=cc?COUNTRY_FLAG_SVG[cc]:'';
       const _rFlag=_rSvg?`<span class="flag-svg" style="width:14px;height:10px;display:inline-block;border-radius:1px;overflow:hidden;vertical-align:middle;box-shadow:0 0 0 .5px rgba(0,0,0,.15)">${_rSvg}</span> `:'';
       const bp=Math.max(s.trials/maxR*45,1);
-      html+=`<div class="ga-bar-row" style="margin-bottom:.15rem;cursor:pointer" onclick="_hcSiteClick('${escHtml(s.site).replace(/'/g,"\\'")}')"><div class="ga-bar-label" style="min-width:190px;font-size:.6rem" title="${escHtml(s.site)} — Click to see trials">${_rFlag}${escHtml(label)}</div>`;
+      html+=`<div class="ga-bar-row" style="margin-bottom:.15rem;cursor:pointer" onclick="_hcSiteClick('${jsAttr(s.site)}')"><div class="ga-bar-label" style="min-width:190px;font-size:.6rem" title="${escHtml(s.site)} — Click to see trials">${_rFlag}${escHtml(label)}</div>`;
       html+=`<div class="ga-bar" style="width:${bp}%;background:${rClr}88;height:13px">${s.trials>1&&bp>6?'<span class="ga-bar-val" style="font-size:.56rem">'+s.trials+' trials</span>':''}</div>`;
       if(s.trials>1&&bp<=6)html+=`<span style="font-size:.58rem;font-weight:700;color:rgba(255,255,255,.65);margin-left:3px">${s.trials} trials</span>`;
       html+=`<span style="font-size:.58rem;color:rgba(255,255,255,.4);margin-left:.3rem">${cc||s.country}</span></div>`;
@@ -6373,7 +6378,7 @@ function _buildCountryBar(c,trials,sites,idx,maxT,anonMap){
   const bp=Math.max(trials/maxT*55,1);const vr=bv(trials,bp,6,'trials');
   const anonN=anonMap.get(c)||0;
   const anonTag=anonN>0?` <span style="color:rgba(255,255,255,.35);font-size:.6rem">(anon ${anonN})</span>`:'';
-  const safeC=escHtml(c).replace(/'/g,"\\'");
+  const safeC=jsAttr(c);
   const cc=COUNTRY_NAME_TO_CODE[(c||'').toLowerCase()]||'';
   const svg=cc?COUNTRY_FLAG_SVG[cc]:'';
   const flag=svg?`<span class="flag-svg" style="width:14px;height:10px;display:inline-block;border-radius:1px;overflow:hidden;vertical-align:middle;box-shadow:0 0 0 .5px rgba(0,0,0,.15)">${svg}</span> `:'';
@@ -6526,7 +6531,7 @@ function renderCompareChart(el,studies){
   html+=`<div class="ga-legend"><span><i style="background:#45B7D1"></i>Phase 1</span><span><i style="background:#FFD700"></i>Phase 2</span><span><i style="background:#FF6B6B"></i>Phase 3</span></div>`;
   topN.forEach(sp=>{
     const w=65;
-    const eName=escHtml(sp.name).replace(/'/g,"\\'");
+    const eName=jsAttr(sp.name);
     html+=`<div class="ga-bar-row" style="cursor:pointer" onclick="showSponsorTrials('${eName}')" title="Click to see ${sp.trials} trials"><div class="ga-bar-label" style="min-width:130px" title="${escHtml(sp.name)}">${getSponsorFlag(sp.name)} ${escHtml(sp.name.length>18?sp.name.substring(0,16)+'..':sp.name)}</div><div style="flex:1;display:flex;align-items:center;height:18px">`;
     if(sp.p1){const bp=sp.p1/maxTrials*w;const vr=bv(sp.p1>1?sp.p1:0,bp,4,'');html+=`<div style="width:${bp}%;background:#45B7D1;border-radius:3px 0 0 3px;position:relative;height:100%">${vr.inside}</div>${vr.outside}`;}
     if(sp.p2){const bp=sp.p2/maxTrials*w;const vr=bvs(sp.p2>1?sp.p2:0,bp,'color:#333',4);html+=`<div style="width:${bp}%;background:#FFD700;position:relative;height:100%">${vr.inside}</div>${vr.outside}`;}
@@ -6545,7 +6550,7 @@ function updateCompareDetail(){
   const bName=document.getElementById('cmpSponsorB')?.value;
   if(!aName||!bName||!sm.has(aName)||!sm.has(bName)){area.innerHTML='';return;}
   const a=sm.get(aName),b=sm.get(bName);
-  const aE=escHtml(aName).replace(/'/g,"\\'"), bE=escHtml(bName).replace(/'/g,"\\'");
+  const aE=jsAttr(aName), bE=jsAttr(bName);
   let html=`<div class="ga-grid">`;
   /* Side-by-side stat cards */
   const metrics=[['Trials','trials'],['Enrollment','enrollment'],['Phase 1','p1'],['Phase 2','p2'],['Phase 3','p3'],['Ongoing','ongoing'],['Completed','completed'],['Terminated','terminated']];
@@ -6867,7 +6872,7 @@ function showGalaxyPanel(item){
   let html='';
   if(mode==='molecule'){
     html+=`<h4 style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px" onclick="showMoleculePhasePopup()" title="Click for Phase breakdown details">💊 ${escHtml(item.name)}</h4>`;
-    html+=`<button class="alert-trigger-btn" onclick="event.stopPropagation();triggerDrugAlert('${item.name.replace(/'/g,"\\\\'")}')" style="margin-top:.4rem"><em class="bell">🔔</em> ALERT THIS DRUG</button>`;
+    html+=`<button class="alert-trigger-btn" onclick="event.stopPropagation();triggerDrugAlert('${jsAttr(item.name)}')" style="margin-top:.4rem"><em class="bell">🔔</em> ALERT THIS DRUG</button>`;
   } else {
     html+=`<h4>${escHtml(item.name)}</h4>`;
   }
@@ -6946,7 +6951,7 @@ function showGalaxyPanel(item){
     }
 
     /* Drug Similarity via Open Targets */
-    html+=`<div style="margin-top:.8rem"><button onclick="loadDrugSimilarity('${escHtml(item.name).replace(/'/g,"\\'")}',this)" style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:#A855F7;padding:.35rem .8rem;border-radius:4px;font-size:.65rem;font-weight:700;cursor:pointer;font-family:'Press Start 2P',monospace;font-size:.4rem">🔬 FIND SIMILAR DRUGS (Open Targets)</button><div id="drugSimResults" style="margin-top:.5rem"></div></div>`;
+    html+=`<div style="margin-top:.8rem"><button onclick="loadDrugSimilarity('${jsAttr(item.name)}',this)" style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:#A855F7;padding:.35rem .8rem;border-radius:4px;font-size:.65rem;font-weight:700;cursor:pointer;font-family:'Press Start 2P',monospace;font-size:.4rem">🔬 FIND SIMILAR DRUGS (Open Targets)</button><div id="drugSimResults" style="margin-top:.5rem"></div></div>`;
 
   } else if(mode==='sponsor'){
     html+=`<div>${getSponsorFlag(item.name)} Total Enrollment: <strong style="color:var(--mint)">${(item.totalEnroll||0).toLocaleString()}</strong></div>`;
@@ -6991,7 +6996,7 @@ function _renderGpTrials(trials){
     if(t.startDate)h+=`<span style="color:rgba(255,255,255,.45)" title="Start date">🚀${t.startDate}</span>`;
     if(t.lastUpdate)h+=`<span style="color:rgba(255,255,255,.55)" title="Last updated">📅${t.lastUpdate}</span>`;
     const inCart=compareSet.has(t.nctId);
-    h+=`</div><div style="margin-top:.3rem"><button onclick="event.stopPropagation();addToCart('${t.nctId}','${(t.title||'').replace(/'/g,"\\'").substring(0,50)}')" style="background:${inCart?'#ff6b6b':'var(--mint)'};color:${inCart?'#fff':'var(--dark)'};border:none;padding:.15rem .5rem;border-radius:2px;font-size:.65rem;cursor:pointer;font-weight:700">${inCart?'✓ Remove':'+ Compare'}</button></div></div>`;
+    h+=`</div><div style="margin-top:.3rem"><button onclick="event.stopPropagation();addToCart('${t.nctId}','${jsAttr((t.title||'').substring(0,50))}')" style="background:${inCart?'#ff6b6b':'var(--mint)'};color:${inCart?'#fff':'var(--dark)'};border:none;padding:.15rem .5rem;border-radius:2px;font-size:.65rem;cursor:pointer;font-weight:700">${inCart?'✓ Remove':'+ Compare'}</button></div></div>`;
   });
   if(trials.length>50)h+=`<div style="color:rgba(255,255,255,.55);font-size:.75rem;margin-top:.3rem">... +${trials.length-50} more</div>`;
   return h;
@@ -7675,7 +7680,7 @@ function renderCompare(studies){
   html+=`<div class="site-dash"><h4>SITE COMPARISON DASHBOARD</h4>`;
   html+=`<div style="margin-bottom:.6rem;font-size:.82rem;color:var(--dark)">Total Sites: <strong>${globalFacMap.size}</strong> — Common <strong style="color:var(--mint)">${commonFacCount}</strong>, Unique <strong style="color:#f59e0b">${uniqueFacCount}</strong> <span style="font-size:.72rem;color:var(--text-light)">(matched by facility name + city)</span></div>`;
   html+=`<div class="site-legend"><span><span class="dot" style="background:var(--mint)"></span> Common Sites</span><span><span class="dot" style="background:#f59e0b"></span> Unique Sites</span></div>`;
-  html+=`<div class="site-country-tabs" id="cmpCountryTabs">${allCountries.map((c,i)=>`<span class="site-country-tab${i===0?' active':''}" onclick="showCountrySites('${c.replace(/'/g,"\\'")}',this)">${getCountryFlag(c)} ${escHtml(c)}</span>`).join('')}</div>`;
+  html+=`<div class="site-country-tabs" id="cmpCountryTabs">${allCountries.map((c,i)=>`<span class="site-country-tab${i===0?' active':''}" onclick="showCountrySites('${jsAttr(c)}',this)">${getCountryFlag(c)} ${escHtml(c)}</span>`).join('')}</div>`;
   html+=`<div id="compareMap"></div>`;
   html+=`<div id="cmpSiteCards"></div></div>`;
 
@@ -8323,7 +8328,7 @@ window._adminFilter=function(range){
     h+='<div style="overflow-x:auto;margin-top:.5rem"><table style="width:100%;border-collapse:collapse;font-size:.73rem">';
     h+='<tr style="color:#94a3b8;text-align:left;border-bottom:1px solid #334155"><th style="padding:.4rem">Email</th><th>Slots</th><th>Schedule</th><th>Sent</th><th>Last Sent</th></tr>';
     subs.forEach(s=>{
-      h+='<tr style="border-bottom:1px solid #1e293b;cursor:pointer" onclick="window._admShowDetail('+escHtml(JSON.stringify(JSON.stringify(s)))+')"><td style="padding:.4rem;color:#e2e8f0">'+escHtml(s.email||'')+'</td><td>'+(s.keywords||[]).length+'</td><td>'+(s.schedule_type||'monthly')+'</td><td>'+(s.monthly_sent||0)+'/10</td><td style="color:#64748b">'+(s.last_sent_at?new Date(s.last_sent_at).toLocaleDateString():'Never')+'</td></tr>';
+      h+='<tr style="border-bottom:1px solid #1e293b;cursor:pointer" onclick="window._admShowDetail(\''+btoa(unescape(encodeURIComponent(JSON.stringify(s))))+'\')"><td style="padding:.4rem;color:#e2e8f0">'+escHtml(s.email||'')+'</td><td>'+(s.keywords||[]).length+'</td><td>'+(s.schedule_type||'monthly')+'</td><td>'+(s.monthly_sent||0)+'/10</td><td style="color:#64748b">'+(s.last_sent_at?new Date(s.last_sent_at).toLocaleDateString():'Never')+'</td></tr>';
     });
     h+='</table></div>';
   }
