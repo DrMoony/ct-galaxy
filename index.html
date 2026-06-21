@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -321,7 +321,7 @@ body{font-family:'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--t
   /* Header */
   .header-banner{min-height:80px!important}
   .header-banner h1{font-size:.7rem!important}
-  .header-banner .subtitle{font-size:.45rem!important}
+  .header-subtitle{font-size:.45rem!important}
   /* Compare bar */
   .cmp-bar{flex-direction:column;gap:.3rem;padding:.5rem}
   .cmp-bar .btn{width:100%;justify-content:center}
@@ -765,48 +765,6 @@ th .col-hide-btn{float:right;margin-top:1px}
 .ss-loading .spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(0,228,124,.3);border-top-color:var(--mint);border-radius:50%;animation:spin .6s linear infinite}
 
 
-/* ── Site Scout ── */
-.ss-container{max-width:1200px;margin:0 auto}
-.ss-search-bar{display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1.2rem;padding:.8rem;background:rgba(0,228,124,.06);border:1px solid rgba(0,228,124,.2);border-radius:6px}
-.ss-field{display:flex;flex-direction:column;gap:.2rem}
-.ss-field label{font-size:.65rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px}
-.ss-field input,.ss-field select{background:rgba(0,20,30,.8);color:#fff;border:1px solid rgba(0,228,124,.3);border-radius:3px;padding:.35rem .5rem;font-size:.8rem;font-family:inherit;min-width:160px}
-.ss-field input:focus,.ss-field select:focus{outline:none;border-color:var(--mint);box-shadow:0 0 6px rgba(0,228,124,.3)}
-.ss-btn{background:var(--mint);color:var(--dark);border:none;padding:.45rem 1.2rem;border-radius:3px;font-weight:700;font-size:.8rem;cursor:pointer;font-family:inherit;white-space:nowrap;height:fit-content;align-self:flex-end}
-.ss-btn:hover{background:var(--mint-dark)}
-.ss-btn:disabled{opacity:.5;cursor:not-allowed}
-.ss-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem;margin-bottom:1.2rem}
-.ss-kpi{background:rgba(0,228,124,.08);border:1px solid rgba(0,228,124,.15);border-radius:4px;padding:.6rem .8rem;text-align:center}
-.ss-kpi .num{font-size:1.5rem;font-weight:700;color:var(--mint)}
-.ss-kpi .lbl{font-size:.65rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-top:.2rem}
-.ss-timeline{position:relative;margin:1rem 0}
-.ss-tl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;padding:0 .3rem}
-.ss-tl-header .axis{display:flex;justify-content:space-between;flex:1;margin-left:260px;font-size:.6rem;color:rgba(255,255,255,.35)}
-.ss-trial-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;padding:.3rem;border-radius:3px;transition:background .15s}
-.ss-trial-row:hover{background:rgba(0,228,124,.06)}
-.ss-trial-info{min-width:250px;max-width:250px;font-size:.72rem;overflow:hidden}
-.ss-trial-info .nct{color:var(--mint);font-weight:600;cursor:pointer;text-decoration:underline}
-.ss-trial-info .nct:hover{color:#fff}
-.ss-trial-info .sponsor{color:rgba(255,255,255,.5);font-size:.65rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ss-trial-info .drug{color:rgba(255,255,255,.7);font-size:.68rem}
-.ss-bar-area{flex:1;position:relative;height:22px}
-.ss-bar{position:absolute;height:100%;border-radius:2px;min-width:3px;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:600;color:rgba(0,0,0,.7);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 4px}
-.ss-bar.recruiting{background:linear-gradient(90deg,#00E47C,#00c96c)}
-.ss-bar.active{background:linear-gradient(90deg,#3b82f6,#2563eb)}
-.ss-bar.completed{background:linear-gradient(90deg,#6b7280,#4b5563)}
-.ss-bar.not-yet{background:linear-gradient(90deg,#f59e0b,#d97706);opacity:.6}
-.ss-bar.other-bar{background:linear-gradient(90deg,#8b5cf6,#7c3aed)}
-.ss-facility-group{margin-bottom:1.2rem}
-.ss-facility-title{font-size:.85rem;font-weight:700;color:#fff;padding:.4rem .6rem;background:rgba(0,228,124,.1);border-left:3px solid var(--mint);border-radius:0 4px 4px 0;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
-.ss-facility-title .badge{font-size:.6rem;padding:.1rem .4rem;border-radius:2px;font-weight:400}
-.ss-facility-title .badge.named{background:rgba(0,228,124,.2);color:var(--mint)}
-.ss-facility-title .badge.anon{background:rgba(245,158,11,.2);color:#f59e0b}
-.ss-legend{display:flex;gap:1rem;margin-bottom:.8rem;flex-wrap:wrap}
-.ss-legend-item{display:flex;align-items:center;gap:.3rem;font-size:.65rem;color:rgba(255,255,255,.6)}
-.ss-legend-item .dot{width:10px;height:10px;border-radius:2px}
-.ss-no-results{text-align:center;padding:3rem;color:rgba(255,255,255,.5);font-size:.9rem}
-.ss-loading{text-align:center;padding:2rem;color:var(--mint)}
-.ss-loading .spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(0,228,124,.3);border-top-color:var(--mint);border-radius:50%;animation:spin .6s linear infinite}
 
 </style>
 </head>
@@ -823,7 +781,7 @@ th .col-hide-btn{float:right;margin-top:1px}
       <div id="authLoggedIn" style="display:none">
         <div class="auth-user">
           <div class="auth-admin-btn" id="authAdminBtn" onclick="openAdminPanel()" title="Admin Dashboard" style="display:none;cursor:pointer;font-size:.7rem;background:#7c3aed;color:#fff;padding:.25rem .5rem;border-radius:4px;font-weight:700;margin-right:.3rem">ADMIN</div>
-          <div class="auth-alerts-badge" id="authAlertsBadge" onclick="openAlertManager()" title="Manage your alerts">🔔 <span class="badge-count" id="authAlertCount">0</span></div>
+          <div class="auth-alerts-badge" id="authAlertsBadge" role="button" tabindex="0" aria-label="Manage your alerts" onclick="openAlertManager()" title="Manage your alerts">🔔 <span class="badge-count" id="authAlertCount">0</span></div>
           <div class="auth-avatar" id="authAvatar">?</div>
           <span class="auth-user-email" id="authEmail"></span>
           <button class="auth-btn" onclick="handleLogout()" style="font-size:.4rem;padding:.3rem .5rem">LOGOUT</button>
@@ -877,62 +835,9 @@ th .col-hide-btn{float:right;margin-top:1px}
   </div>
 </div>
 
-<!-- hidden old pixel icons kept for reference -->
-<div style="display:none">
-      <svg class="pixel-char" width="40" height="40" viewBox="0 0 16 16" style="image-rendering:pixelated">
-        <rect x="5" y="2" width="1" height="1" fill="#00E47C"/><rect x="6" y="2" width="1" height="1" fill="#00E47C"/><rect x="7" y="2" width="1" height="1" fill="#00E47C"/>
-        <rect x="4" y="3" width="1" height="1" fill="#00E47C"/><rect x="8" y="3" width="1" height="1" fill="#00E47C"/>
-        <rect x="3" y="4" width="1" height="1" fill="#00E47C"/><rect x="9" y="4" width="1" height="1" fill="#00E47C"/>
-        <rect x="3" y="5" width="1" height="1" fill="#00E47C"/><rect x="9" y="5" width="1" height="1" fill="#00E47C"/>
-        <rect x="3" y="6" width="1" height="1" fill="#00E47C"/><rect x="9" y="6" width="1" height="1" fill="#00E47C"/>
-        <rect x="3" y="7" width="1" height="1" fill="#00E47C"/><rect x="9" y="7" width="1" height="1" fill="#00E47C"/>
-        <rect x="4" y="8" width="1" height="1" fill="#00E47C"/><rect x="8" y="8" width="1" height="1" fill="#00E47C"/>
-        <rect x="5" y="9" width="1" height="1" fill="#00E47C"/><rect x="6" y="9" width="1" height="1" fill="#00E47C"/><rect x="7" y="9" width="1" height="1" fill="#00E47C"/>
-        <rect x="9" y="9" width="1" height="1" fill="#fff"/><rect x="10" y="10" width="1" height="1" fill="#fff"/>
-        <rect x="11" y="11" width="1" height="1" fill="#fff"/><rect x="12" y="12" width="1" height="1" fill="#fff"/>
-        <rect x="5" y="4" width="4" height="4" fill="rgba(0,228,124,.15)"/>
-      </svg>
-      <!-- Pixel Researcher -->
-      <svg class="pixel-char" width="40" height="40" viewBox="0 0 16 16" style="image-rendering:pixelated">
-        <rect x="6" y="1" width="4" height="1" fill="#fff"/><rect x="5" y="2" width="6" height="1" fill="#fff"/>
-        <rect x="6" y="3" width="4" height="1" fill="#FDBF60"/>
-        <rect x="6" y="4" width="1" height="1" fill="#002E3B"/><rect x="9" y="4" width="1" height="1" fill="#002E3B"/>
-        <rect x="7" y="4" width="2" height="1" fill="#FDBF60"/><rect x="7" y="5" width="2" height="1" fill="#FDBF60"/>
-        <rect x="5" y="6" width="6" height="1" fill="#00E47C"/><rect x="5" y="7" width="6" height="1" fill="#00E47C"/>
-        <rect x="5" y="8" width="6" height="1" fill="#00E47C"/><rect x="6" y="9" width="4" height="1" fill="#00E47C"/>
-        <rect x="4" y="7" width="1" height="2" fill="#FDBF60"/><rect x="11" y="7" width="1" height="2" fill="#FDBF60"/>
-        <rect x="6" y="10" width="1" height="2" fill="#002E3B"/><rect x="9" y="10" width="1" height="2" fill="#002E3B"/>
-        <rect x="3" y="8" width="1" height="3" fill="#ccc"/><rect x="2" y="8" width="1" height="1" fill="#ccc"/><rect x="2" y="10" width="2" height="1" fill="#ccc"/>
-      </svg>
-      <!-- Pixel Flask -->
-      <svg class="pixel-char" width="40" height="40" viewBox="0 0 16 16" style="image-rendering:pixelated">
-        <rect x="7" y="1" width="2" height="1" fill="#aaa"/><rect x="6" y="2" width="4" height="1" fill="#aaa"/>
-        <rect x="7" y="3" width="2" height="2" fill="#ddd"/>
-        <rect x="6" y="5" width="1" height="1" fill="#ddd"/><rect x="9" y="5" width="1" height="1" fill="#ddd"/>
-        <rect x="5" y="6" width="1" height="1" fill="#ddd"/><rect x="10" y="6" width="1" height="1" fill="#ddd"/>
-        <rect x="4" y="7" width="1" height="1" fill="#ddd"/><rect x="11" y="7" width="1" height="1" fill="#ddd"/>
-        <rect x="3" y="8" width="10" height="1" fill="#ddd"/>
-        <rect x="4" y="9" width="8" height="3" fill="#00E47C"/><rect x="3" y="9" width="1" height="3" fill="#ddd"/><rect x="12" y="9" width="1" height="3" fill="#ddd"/>
-        <rect x="4" y="12" width="8" height="1" fill="#ddd"/>
-        <rect x="6" y="10" width="2" height="1" fill="#00c96c"/><rect x="8" y="9" width="2" height="1" fill="#b6ffe0"/>
-      </svg>
-      <!-- Pixel Globe -->
-      <svg class="pixel-char" width="40" height="40" viewBox="0 0 16 16" style="image-rendering:pixelated">
-        <rect x="5" y="2" width="6" height="1" fill="#00E47C"/><rect x="3" y="3" width="10" height="1" fill="#00E47C"/>
-        <rect x="2" y="4" width="12" height="1" fill="#004455"/><rect x="4" y="4" width="3" height="1" fill="#00E47C"/><rect x="9" y="4" width="2" height="1" fill="#00E47C"/>
-        <rect x="2" y="5" width="12" height="1" fill="#004455"/><rect x="3" y="5" width="4" height="1" fill="#00E47C"/><rect x="10" y="5" width="2" height="1" fill="#00E47C"/>
-        <rect x="2" y="6" width="12" height="1" fill="#004455"/><rect x="4" y="6" width="3" height="1" fill="#00E47C"/>
-        <rect x="2" y="7" width="12" height="1" fill="#004455"/><rect x="5" y="7" width="2" height="1" fill="#00E47C"/><rect x="9" y="7" width="3" height="1" fill="#00E47C"/>
-        <rect x="2" y="8" width="12" height="1" fill="#004455"/><rect x="8" y="8" width="4" height="1" fill="#00E47C"/>
-        <rect x="3" y="9" width="10" height="1" fill="#004455"/><rect x="6" y="9" width="3" height="1" fill="#00E47C"/>
-        <rect x="4" y="10" width="8" height="1" fill="#004455"/><rect x="5" y="10" width="2" height="1" fill="#00E47C"/>
-        <rect x="5" y="11" width="6" height="1" fill="#00E47C"/>
-      </svg>
-    </div>
-    </div><!-- /hidden old icons -->
 
 <!-- ── CI Theme Selector ── -->
-<button class="ci-theme-btn" id="ciThemeBtn" title="CI Theme">🎨</button>
+<button class="ci-theme-btn" id="ciThemeBtn" title="CI Theme" aria-label="Open CI theme selector">🎨</button>
 <div class="ci-theme-panel" id="ciThemePanel">
   <h3>🎨 CI THEME</h3>
 
@@ -978,20 +883,20 @@ th .col-hide-btn{float:right;margin-top:1px}
     </h2>
     <div class="search-grid">
       <div class="field">
-        <label>Condition</label>
+        <label for="inputCond">Condition</label>
         <input type="text" id="inputCond" placeholder="e.g. lung cancer, MASH (comma = OR)">
       </div>
       <div class="field">
-        <label>Intervention (optional)</label>
+        <label for="inputIntr">Intervention (optional)</label>
         <input type="text" id="inputIntr" placeholder="e.g. pembrolizumab, survodutide">
       </div>
       <div class="field">
-        <label>Keyword (optional)</label>
+        <label for="inputTerm">Keyword (optional)</label>
         <input type="text" id="inputTerm" placeholder="e.g. NCT number, study title">
       </div>
       <div class="field">
-        <label>
-          <svg width="14" height="14" viewBox="0 0 16 16" style="image-rendering:pixelated;margin-right:4px"><rect x="3" y="2" width="10" height="1" fill="#00E47C"/><rect x="3" y="3" width="1" height="8" fill="#00E47C"/><rect x="4" y="3" width="3" height="2" fill="#dc2626"/><rect x="4" y="5" width="2" height="1" fill="#dc2626"/><rect x="3" y="11" width="1" height="3" fill="#888"/></svg>
+        <label for="filterCountry">
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style="image-rendering:pixelated;margin-right:4px"><rect x="3" y="2" width="10" height="1" fill="#00E47C"/><rect x="3" y="3" width="1" height="8" fill="#00E47C"/><rect x="4" y="3" width="3" height="2" fill="#dc2626"/><rect x="4" y="5" width="2" height="1" fill="#dc2626"/><rect x="3" y="11" width="1" height="3" fill="#888"/></svg>
           Country
         </label>
         <select id="filterCountry">
@@ -1134,13 +1039,13 @@ th .col-hide-btn{float:right;margin-top:1px}
         <div id="galaxyStatus" style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-size:.62rem;font-family:'Press Start 2P',monospace;color:rgba(0,228,124,.7);background:rgba(0,0,0,.55);padding:3px 12px;border-radius:4px;white-space:nowrap;pointer-events:none;z-index:5;letter-spacing:.3px"></div>
         <div class="galaxy-rotate-hint">📱↻ Rotate for better view</div>
         <div class="galaxy-zoom-controls">
-          <button class="galaxy-zoom-btn" onclick="galaxyZoom(1.3)" title="Zoom In">+</button>
-          <button class="galaxy-zoom-btn" onclick="galaxyZoom(1/1.3)" title="Zoom Out">−</button>
-          <button class="galaxy-zoom-btn" onclick="galaxyResetView()" title="Reset" style="font-size:.65rem">⟲</button>
+          <button class="galaxy-zoom-btn" onclick="galaxyZoom(1.3)" title="Zoom In" aria-label="Zoom in">+</button>
+          <button class="galaxy-zoom-btn" onclick="galaxyZoom(1/1.3)" title="Zoom Out" aria-label="Zoom out">−</button>
+          <button class="galaxy-zoom-btn" onclick="galaxyResetView()" title="Reset" aria-label="Reset view" style="font-size:.65rem">⟲</button>
         </div>
         <div class="galaxy-analytics" id="galaxyAnalytics"></div>
         <div class="galaxy-info-panel" id="galaxyPanel">
-          <button class="close-panel" onclick="document.getElementById('galaxyPanel').classList.remove('show')">X</button>
+          <button class="close-panel" aria-label="Close panel" onclick="document.getElementById('galaxyPanel').classList.remove('show')">X</button>
           <div id="galaxyPanelContent"></div>
         </div>
       </div>
@@ -1193,11 +1098,11 @@ th .col-hide-btn{float:right;margin-top:1px}
 
 <!-- Detail Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-header">
       <h3 id="modalTitle">Loading...</h3>
       <button class="alert-trigger-btn" id="alertTrialBtn" onclick="triggerTrialAlert(document.getElementById('modalTitle').textContent.split(' - ')[0])" style="margin-right:.5rem;font-size:.4rem"><em class="bell">🔔</em> WATCH</button>
-      <button class="modal-close" onclick="closeModal()">X</button>
+      <button class="modal-close" aria-label="Close" onclick="closeModal()">X</button>
     </div>
     <div class="modal-body" id="modalBody">
       <div class="modal-loading"><div class="spinner"></div><p>Loading details...</p></div>
@@ -1216,11 +1121,11 @@ th .col-hide-btn{float:right;margin-top:1px}
 
 <!-- Compare Modal -->
 <div class="compare-overlay" id="compareOverlay" onclick="if(event.target===this)closeCompare()">
-  <div class="compare-modal">
+  <div class="compare-modal" role="dialog" aria-modal="true" aria-labelledby="compareTitle">
     <div class="compare-header">
       <h3 id="compareTitle">TRIAL COMPARISON</h3>
       <button class="alert-trigger-btn" id="alertCompareBtn" onclick="triggerCompareAlert()" style="margin-right:.5rem" title="Watch these compared trials for updates"><em class="bell">🔔</em> WATCH TRIALS</button>
-        <button class="modal-close" onclick="closeCompare()">X</button>
+        <button class="modal-close" aria-label="Close" onclick="closeCompare()">X</button>
     </div>
     <div class="compare-body" id="compareBody">
       <div class="modal-loading"><div class="spinner"></div><p>Loading comparison data...</p></div>
@@ -1256,7 +1161,7 @@ th .col-hide-btn{float:right;margin-top:1px}
 <!-- Changelog Modal -->
 <div id="changelogOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;padding:2rem;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
 <div style="max-width:700px;margin:0 auto;background:#0a1929;border:2px solid var(--mint);border-radius:8px;padding:1.5rem;color:#fff;position:relative">
-  <button onclick="document.getElementById('changelogOverlay').style.display='none'" style="position:absolute;top:8px;right:12px;background:none;border:none;color:rgba(255,255,255,.5);font-size:1.2rem;cursor:pointer">✕</button>
+  <button aria-label="Close changelog" onclick="document.getElementById('changelogOverlay').style.display='none'" style="position:absolute;top:8px;right:12px;background:none;border:none;color:rgba(255,255,255,.5);font-size:1.2rem;cursor:pointer">✕</button>
   <h3 style="font-family:'Press Start 2P',monospace;font-size:.7rem;color:var(--mint);margin:0 0 1rem;letter-spacing:1px">📋 CHANGELOG</h3>
 
   <div style="border-left:2px solid rgba(0,228,124,.3);padding-left:1rem">
@@ -9301,7 +9206,7 @@ if(saved){try{const t=JSON.parse(saved);applyTheme(t.p,t.s);}catch(e){applyTheme
 
 <!-- Alert Confirmation Modal -->
 <div class="alert-modal-overlay" id="alertModalOverlay" onclick="if(event.target===this)hideAlertModal()">
-  <div class="alert-modal">
+  <div class="alert-modal" role="dialog" aria-modal="true" aria-labelledby="alertModalTitle">
     <h3><em class="bell">🔔</em> <span id="alertModalTitle">SET ALERT</span></h3>
     <p class="alert-desc" id="alertModalDesc">You will receive weekly email updates when new trials match these criteria.</p>
     <div class="alert-filters" id="alertModalFilters"></div>
@@ -9316,7 +9221,7 @@ if(saved){try{const t=JSON.parse(saved);applyTheme(t.p,t.s);}catch(e){applyTheme
 
 <!-- Alert Manager Modal -->
 <div class="alert-modal-overlay" id="alertManagerOverlay" onclick="if(event.target===this)closeAlertManager()">
-  <div class="alert-manage">
+  <div class="alert-manage" role="dialog" aria-modal="true" aria-label="My alerts">
     <h3><em class="bell" style="font-style:normal;font-size:.7rem">🔔</em> MY ALERTS</h3>
     <div class="am-usage" id="amUsage">Monthly usage: <strong>0 / 10</strong> emails (free tier)</div>
     <div id="amSlotList"></div>
@@ -9357,11 +9262,11 @@ if(saved){try{const t=JSON.parse(saved);applyTheme(t.p,t.s);}catch(e){applyTheme
 
 <!-- Auth Modal -->
 <div class="auth-modal-overlay" id="authModalOverlay" onclick="if(event.target===this)hideAuthModal()">
-  <div class="auth-modal">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
     <h3 id="authModalTitle">SIGN IN</h3>
     <p style="font-size:.75rem;color:var(--text-light);margin-bottom:1rem;line-height:1.6">We'll send a one-time login link to your email. No password needed.<br><span style="color:var(--danger);font-weight:600">Please double-check your email address</span> — the link can only be re-sent after 60 seconds.</p>
     <div class="field">
-      <label>Email</label>
+      <label for="authEmailInput">Email</label>
       <input type="email" id="authEmailInput" placeholder="your@email.com">
     </div>
     <button class="auth-submit" id="authSubmitBtn" onclick="handleAuthSubmit()">SEND MAGIC LINK</button>
