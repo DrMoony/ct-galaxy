@@ -298,8 +298,11 @@ body{font-family:'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--t
   /* Galaxy mobile */
   .galaxy-canvas-wrap{height:450px}
   .galaxy-header{padding:.5rem .8rem;flex-direction:column;align-items:flex-start}
-  .galaxy-sort-btns{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:.2rem;padding-bottom:.3rem}
+  .galaxy-sort-btns{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:.4rem;padding-bottom:.3rem}
   .galaxy-sort-btn{padding:.25rem .4rem;font-size:.38rem;white-space:nowrap;flex-shrink:0}
+  .gsb-group{flex-shrink:0;gap:.2rem}
+  .gsb-label{font-size:.34rem;padding-right:.25rem}
+  .galaxy-subbtn{font-size:.42rem;padding:.25rem .4rem}
   .galaxy-filters{width:100%;flex-wrap:wrap}
   .galaxy-filters select{font-size:.75rem;padding:.3rem}
   /* Modal mobile */
@@ -528,7 +531,7 @@ th .col-hide-btn{float:right;margin-top:1px}
 .galaxy-header h3{font-family:'Press Start 2P',monospace;font-size:.6rem;color:var(--mint)}
 .galaxy-header .hint-text{font-size:.72rem;color:rgba(255,255,255,.5)}
 .galaxy-filters{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
-.galaxy-sort-btns{display:flex;gap:.3rem}
+.galaxy-sort-btns{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}
 .galaxy-sort-btn{
   padding:.45rem .8rem;border:1px solid rgba(0,228,124,.3);border-radius:3px;
   background:transparent;color:rgba(255,255,255,.7);cursor:pointer;
@@ -536,6 +539,21 @@ th .col-hide-btn{float:right;margin-top:1px}
 }
 .galaxy-sort-btn:hover{border-color:var(--mint);color:#fff}
 .galaxy-sort-btn.active{background:var(--mint);color:var(--dark);border-color:var(--mint)}
+/* ── Galaxy mode groups (VIEW / ANALYZE / TOOL) ── */
+.gsb-group{display:flex;align-items:center;gap:.3rem}
+.gsb-label{font-family:'Press Start 2P',monospace;font-size:.42rem;letter-spacing:.5px;color:rgba(255,255,255,.4);padding-right:.35rem;border-right:1px solid rgba(255,255,255,.15);white-space:nowrap;align-self:stretch;display:flex;align-items:center}
+.gsb-group.g-view .gsb-label{color:rgba(0,228,124,.7);border-right-color:rgba(0,228,124,.25)}
+.gsb-group.g-tool .gsb-label{color:rgba(255,215,0,.7);border-right-color:rgba(255,215,0,.25)}
+.gsb-group.g-view .galaxy-sort-btn{border-color:rgba(0,228,124,.45);color:rgba(255,255,255,.85)}
+.gsb-group.g-analyze .galaxy-sort-btn{border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.6)}
+.gsb-group.g-tool .galaxy-sort-btn{border-color:rgba(255,215,0,.4);color:#FFD700}
+.gsb-group.g-tool .galaxy-sort-btn.active{background:#FFD700;color:var(--dark);border-color:#FFD700}
+/* ── Sponsor sub-view toggle (Bubble Map / Head-to-Head) ── */
+.galaxy-subtoggle{position:absolute;top:8px;right:8px;z-index:6;display:none;gap:.3rem;background:rgba(0,0,0,.55);padding:.25rem .3rem;border-radius:5px;border:1px solid rgba(0,228,124,.25)}
+.galaxy-subtoggle.show{display:flex}
+.galaxy-subbtn{padding:.3rem .55rem;border:1px solid rgba(0,228,124,.3);border-radius:3px;background:transparent;color:rgba(255,255,255,.7);cursor:pointer;font-family:'Press Start 2P',monospace;font-size:.5rem;letter-spacing:.4px;transition:all .15s;white-space:nowrap}
+.galaxy-subbtn:hover{border-color:var(--mint);color:#fff}
+.galaxy-subbtn.active{background:var(--mint);color:var(--dark);border-color:var(--mint)}
 .galaxy-canvas-wrap{position:relative;width:100%;height:650px;cursor:grab;overflow:hidden;background:radial-gradient(ellipse at center,#001018 0%,#000d14 100%)}
 .galaxy-canvas-wrap:active{cursor:grabbing}
 #galaxyCanvas{width:100%;height:100%;display:block}
@@ -999,19 +1017,25 @@ th .col-hide-btn{float:right;margin-top:1px}
       <div class="galaxy-header">
         <h3>MOLECULE GALAXY MAP</h3>
         <div class="galaxy-sort-btns">
-          <button class="galaxy-sort-btn active" data-sort="phase" onclick="setGalaxySort('phase',this)" title="Visualize trials grouped by clinical phase (P1/P2/P3) as orbital bubbles. Bubble size = enrollment count.">PHASE VORTEX</button>
-          <button class="galaxy-sort-btn" data-sort="molecule" onclick="setGalaxySort('molecule',this)" title="Group trials by drug/molecule name. Each bubble = one trial. Click a drug name to see its pipeline detail.">MOLECULES</button>
-          <button class="galaxy-sort-btn" data-sort="sponsor" onclick="setGalaxySort('sponsor',this)" title="Group trials by sponsor company. Shows each sponsor's trial count, phase distribution, and pipeline breadth.">SPONSORS</button>
-          <button class="galaxy-sort-btn" data-sort="country" onclick="setGalaxySort('country',this)" title="Interactive world map showing trial site locations. Color intensity = number of sites per country. Click a country to zoom in.">WORLD MAP</button>
-          <span style="border-left:1px solid rgba(0,228,124,.3);height:18px;margin:0 4px"></span>
-          <button class="galaxy-sort-btn" data-sort="trends" onclick="setGalaxySort('trends',this)" title="Timeline chart showing when trials started over time. Reveals acceleration or slowdown in clinical development.">TIME WARP</button>
-          <button class="galaxy-sort-btn" data-sort="enrollment" onclick="setGalaxySort('enrollment',this)" title="Enrollment analytics: total participants, trials by phase, top countries by trial count & sites, and global/regional site rankings.">HEADCOUNT</button>
-          <button class="galaxy-sort-btn" data-sort="failure" onclick="setGalaxySort('failure',this)" title="Termination & failure analysis by phase. Shows completion vs termination rates, top termination reasons, and withdrawn/suspended trials.">GRAVEYARD</button>
-          <button class="galaxy-sort-btn" data-sort="funnel" onclick="setGalaxySort('funnel',this)" title="Phase transition funnel: how many trials survive from Phase 1 → 2 → 3. Shows attrition rate at each stage.">SURVIVAL FUNNEL</button>
-          <button class="galaxy-sort-btn" data-sort="compare" onclick="setGalaxySort('compare',this)" title="Head-to-head comparison of top sponsors: trial counts, phase distribution, enrollment, and therapeutic areas side by side.">HEAD-TO-HEAD</button>
-          <button class="galaxy-sort-btn" data-sort="studytype" onclick="setGalaxySort('studytype',this)" title="Breakdown by study type: Interventional vs Observational, randomization, blinding, and primary purpose categories.">STUDY TYPE</button>
-          <span style="border-left:1px solid rgba(0,228,124,.3);height:18px;margin:0 4px"></span>
-          <button class="galaxy-sort-btn" data-sort="sitescout" onclick="setGalaxySort('sitescout',this)" title="Site Scout: Search a city to see all competing clinical trials, enrollment timelines, and patient competition analysis.">SITE SCOUT</button>
+          <div class="gsb-group g-view">
+            <span class="gsb-label" title="Different ways to arrange the trial bubbles">VIEW</span>
+            <button class="galaxy-sort-btn active" data-sort="phase" onclick="setGalaxySort('phase',this)" title="Visualize trials grouped by clinical phase (P1/P2/P3) as orbital bubbles. Bubble size = enrollment count.">PHASE VORTEX</button>
+            <button class="galaxy-sort-btn" data-sort="molecule" onclick="setGalaxySort('molecule',this)" title="Group trials by drug/molecule name. Each bubble = one trial. Click a drug name to see its pipeline detail.">MOLECULES</button>
+            <button class="galaxy-sort-btn" data-sort="sponsor" onclick="setGalaxySort('sponsor',this)" title="Group trials by sponsor company. Shows each sponsor's trial count, phase distribution, and pipeline breadth. Toggle to Head-to-Head for side-by-side sponsor comparison.">SPONSORS</button>
+            <button class="galaxy-sort-btn" data-sort="country" onclick="setGalaxySort('country',this)" title="Interactive world map showing trial site locations. Color intensity = number of sites per country. Click a country to zoom in.">WORLD MAP</button>
+          </div>
+          <div class="gsb-group g-analyze">
+            <span class="gsb-label" title="Analytics dashboards generated from the current results">ANALYZE</span>
+            <button class="galaxy-sort-btn" data-sort="trends" onclick="setGalaxySort('trends',this)" title="Timeline chart showing when trials started over time. Reveals acceleration or slowdown in clinical development.">TIME WARP</button>
+            <button class="galaxy-sort-btn" data-sort="enrollment" onclick="setGalaxySort('enrollment',this)" title="Enrollment analytics: total participants, trials by phase, top countries by trial count & sites, and global/regional site rankings.">HEADCOUNT</button>
+            <button class="galaxy-sort-btn" data-sort="failure" onclick="setGalaxySort('failure',this)" title="Termination & failure analysis by phase. Shows completion vs termination rates, top termination reasons, and withdrawn/suspended trials.">GRAVEYARD</button>
+            <button class="galaxy-sort-btn" data-sort="funnel" onclick="setGalaxySort('funnel',this)" title="Phase transition funnel: how many trials survive from Phase 1 → 2 → 3. Shows attrition rate at each stage.">SURVIVAL FUNNEL</button>
+            <button class="galaxy-sort-btn" data-sort="studytype" onclick="setGalaxySort('studytype',this)" title="Breakdown by study type: Interventional vs Observational, randomization, blinding, and primary purpose categories.">STUDY TYPE</button>
+          </div>
+          <div class="gsb-group g-tool">
+            <span class="gsb-label" title="Standalone tool with its own search">TOOL</span>
+            <button class="galaxy-sort-btn" data-sort="sitescout" onclick="setGalaxySort('sitescout',this)" title="Site Scout: Search a city to see all competing clinical trials, enrollment timelines, and patient competition analysis.">SITE SCOUT</button>
+          </div>
         </div>
         <span class="hint-text">Click body → Details</span>
         <div class="galaxy-filters">
@@ -1036,6 +1060,10 @@ th .col-hide-btn{float:right;margin-top:1px}
       </div>
       <div class="galaxy-canvas-wrap" id="galaxyCanvasWrap">
         <canvas id="galaxyCanvas"></canvas>
+        <div class="galaxy-subtoggle" id="sponsorSubToggle">
+          <button class="galaxy-subbtn active" data-sub="sponsor" onclick="setSponsorSub('sponsor')" title="Sponsor bubble map">BUBBLE MAP</button>
+          <button class="galaxy-subbtn" data-sub="compare" onclick="setSponsorSub('compare')" title="Side-by-side comparison of top sponsors">HEAD-TO-HEAD</button>
+        </div>
         <div id="galaxyStatus" style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-size:.62rem;font-family:'Press Start 2P',monospace;color:rgba(0,228,124,.7);background:rgba(0,0,0,.55);padding:3px 12px;border-radius:4px;white-space:nowrap;pointer-events:none;z-index:5;letter-spacing:.3px"></div>
         <div class="galaxy-rotate-hint">📱↻ Rotate for better view</div>
         <div class="galaxy-zoom-controls">
@@ -2934,7 +2962,24 @@ function galaxyRestoreAll(){
 
 function galaxyZoom(factor){gZoom=Math.max(.3,Math.min(5,gZoom*factor));}
 function galaxyResetView(){gZoom=1;gPanX=0;gPanY=0;}
-function setGalaxySort(mode,btn){galaxySortMode=mode;document.querySelectorAll('.galaxy-sort-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');galaxyResetView();renderGalaxy();}
+function setGalaxySort(mode,btn){
+  galaxySortMode=mode;
+  document.querySelectorAll('.galaxy-sort-btn').forEach(b=>b.classList.remove('active'));
+  /* SPONSORS owns both the bubble ('sponsor') and head-to-head ('compare') sub-views */
+  const topKey=(mode==='compare')?'sponsor':mode;
+  const topBtn=(btn&&btn.dataset.sort===topKey)?btn:document.querySelector('.galaxy-sort-btn[data-sort="'+topKey+'"]');
+  if(topBtn)topBtn.classList.add('active');
+  _updateSponsorSubToggle();
+  galaxyResetView();renderGalaxy();
+}
+/* Sponsor sub-view switch (bubble ↔ head-to-head), keeps SPONSORS highlighted */
+function setSponsorSub(sub){setGalaxySort(sub,null);}
+function _updateSponsorSubToggle(){
+  const st=document.getElementById('sponsorSubToggle');if(!st)return;
+  const on=(galaxySortMode==='sponsor'||galaxySortMode==='compare');
+  st.classList.toggle('show',on);
+  if(on)st.querySelectorAll('.galaxy-subbtn').forEach(b=>b.classList.toggle('active',b.dataset.sub===galaxySortMode));
+}
 
 /* ── Mobile Galaxy Fullscreen Overlay ── */
 let _galaxyFullscreenActive=false;
@@ -2947,14 +2992,13 @@ function openGalaxyFullscreen(){
     {key:'phase',label:'PHASE'},
     {key:'molecule',label:'MOLECULES'},
     {key:'sponsor',label:'SPONSORS'},
+    {key:'compare',label:'SPONSOR H2H'},
     {key:'country',label:'WORLD MAP'},
     {key:'trends',label:'TIME WARP'},
     {key:'enrollment',label:'HEADCOUNT'},
     {key:'failure',label:'GRAVEYARD'},
     {key:'funnel',label:'FUNNEL'},
-    {key:'compare',label:'HEAD-TO-HEAD'},
     {key:'studytype',label:'STUDY TYPE'},
-    {key:'sitescout',label:'SITE SCOUT'},
     {key:'sitescout',label:'SITE SCOUT'}
   ];
   const ov=document.createElement('div');
