@@ -7127,8 +7127,8 @@ const AI_PROVIDERS={
           endpoint:'https://api.openai.com/v1/chat/completions',authHeader:k=>({'Authorization':'Bearer '+k})},
   claude:{name:'Claude',model:'claude-sonnet-4-5-20250929',placeholder:'sk-ant-api03-...',tag:'Paid',
           endpoint:'https://api.anthropic.com/v1/messages',authHeader:k=>({'x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'})},
-  gemini:{name:'Gemini',model:'gemini-2.5-flash-lite',placeholder:'AIza... (Google AI Studio)',tag:'Free',
-          endpoint:'https://generativelanguage.googleapis.com/v1beta/chat/completions',authHeader:k=>({'Authorization':'Bearer '+k})},
+  gemini:{name:'Gemini',model:'gemini-3.1-flash-lite',placeholder:'AIza... or AQ... (Google AI Studio)',tag:'Free',
+          endpoint:'https://generativelanguage.googleapis.com/v1beta/models/',authHeader:k=>({})},
   github:{name:'GitHub Copilot',model:'openai/gpt-4.1',placeholder:'ghp_... (PAT + models:read)',tag:'Subscription',
           endpoint:'https://models.github.ai/inference/chat/completions',authHeader:k=>({'Authorization':'Bearer '+k})}
 };
@@ -7155,8 +7155,18 @@ async function callLLMAPI(systemPrompt,userContent){
     if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`${prov.name} Error ${res.status}`);}
     return (await res.json()).content[0].text;
 
+  } else if(provider==='gemini'){
+    /* Gemini: native generateContent API (key in URL, not header) */
+    const url=prov.endpoint+prov.model+':generateContent?key='+encodeURIComponent(key);
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({systemInstruction:{parts:[{text:systemPrompt}]},
+        contents:[{role:'user',parts:[{text:userContent}]}],
+        generationConfig:{maxOutputTokens:4096,temperature:0.1}})});
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`Gemini Error ${res.status}`);}
+    const d=await res.json();return d.candidates[0].content.parts[0].text;
+
   } else {
-    /* OpenAI / Gemini / GitHub — all OpenAI-compatible chat/completions */
+    /* OpenAI / GitHub — OpenAI-compatible chat/completions */
     const res=await fetch(prov.endpoint,{method:'POST',headers,
       body:JSON.stringify({model:prov.model,max_tokens:4096,temperature:0.1,
         messages:[{role:'system',content:systemPrompt},{role:'user',content:userContent}]})});
