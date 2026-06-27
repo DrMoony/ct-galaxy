@@ -2755,7 +2755,7 @@ function renderDetail(study){
     <div id="detailMap"></div>
     ${renderPublicationsSection(refsMod,nctId,idMod.briefTitle||'')}
     <div style="display:flex;gap:.6rem;align-items:center;margin-top:.8rem">
-      <button onclick="addToCart('${nctId}','${jsAttr((idMod.briefTitle||'').substring(0,50))}')" style="background:${compareSet.has(nctId)?'#ff6b6b':'var(--mint)'};color:${compareSet.has(nctId)?'#fff':'var(--dark)'};border:2px solid var(--dark);padding:.4rem 1rem;border-radius:4px;font-size:.8rem;cursor:pointer;font-weight:700;font-family:'Press Start 2P',monospace;font-size:.55rem">${compareSet.has(nctId)?'✓ Remove':'+ Add to Compare'}</button>
+      <button onclick="addToCart('${nctId}','${jsAttr((idMod.briefTitle||'').substring(0,50))}','${jsAttr(interventions.filter(iv=>iv.type!=="PLACEBO").map(iv=>iv.name).filter(Boolean).join(", ").substring(0,60))}')" style="background:${compareSet.has(nctId)?'#ff6b6b':'var(--mint)'};color:${compareSet.has(nctId)?'#fff':'var(--dark)'};border:2px solid var(--dark);padding:.4rem 1rem;border-radius:4px;font-size:.8rem;cursor:pointer;font-weight:700;font-family:'Press Start 2P',monospace;font-size:.55rem">${compareSet.has(nctId)?'✓ Remove':'+ Add to Compare'}</button>
       <a class="detail-link trial-link" href="https://clinicaltrials.gov/study/${nctId}" target="_blank">View full details on ClinicalTrials.gov →</a>
     </div>`;
   /* ICD-10 mapping for conditions */
@@ -6947,7 +6947,7 @@ function _renderGpTrials(trials){
     if(t.startDate)h+=`<span style="color:rgba(255,255,255,.45)" title="Start date">🚀${t.startDate}</span>`;
     if(t.lastUpdate)h+=`<span style="color:rgba(255,255,255,.55)" title="Last updated">📅${t.lastUpdate}</span>`;
     const inCart=compareSet.has(t.nctId);
-    h+=`</div><div style="margin-top:.3rem"><button onclick="event.stopPropagation();addToCart('${t.nctId}','${jsAttr((t.title||'').substring(0,50))}')" style="background:${inCart?'#ff6b6b':'var(--mint)'};color:${inCart?'#fff':'var(--dark)'};border:none;padding:.15rem .5rem;border-radius:2px;font-size:.65rem;cursor:pointer;font-weight:700">${inCart?'✓ Remove':'+ Compare'}</button></div></div>`;
+    h+=`</div><div style="margin-top:.3rem"><button onclick="event.stopPropagation();addToCart('${t.nctId}','${jsAttr((t.title||'').substring(0,50))}','${jsAttr((t.drug||'').substring(0,60))}')" style="background:${inCart?'#ff6b6b':'var(--mint)'};color:${inCart?'#fff':'var(--dark)'};border:none;padding:.15rem .5rem;border-radius:2px;font-size:.65rem;cursor:pointer;font-weight:700">${inCart?'✓ Remove':'+ Compare'}</button></div></div>`;
   });
   if(trials.length>50)h+=`<div style="color:rgba(255,255,255,.55);font-size:.75rem;margin-top:.3rem">... +${trials.length-50} more</div>`;
   return h;
@@ -7085,16 +7085,17 @@ function toggleCompare(cb){
   const nctId=cb.dataset.nct, idx=+cb.dataset.idx;
   if(cb.checked){
     if(compareSet.size>=4){cb.checked=false;alert('Maximum 4 trials can be compared.');return;}
-    compareSet.set(nctId,{title:allResults[idx]?allResults[idx].title:'',nctId});
+    const r=allResults[idx]||{};
+    compareSet.set(nctId,{title:r.title||'',drug:r.drug||'',nctId});
   }else{compareSet.delete(nctId);}
   saveCart();updateCmpBar();
 }
 
 /* Add from anywhere (Galaxy, detail modal, etc.) */
-function addToCart(nctId,title){
+function addToCart(nctId,title,drug){
   if(compareSet.has(nctId)){compareSet.delete(nctId);saveCart();updateCmpBar();syncCheckboxes();return;}
   if(compareSet.size>=4){alert('Maximum 4 trials can be compared.');return;}
-  compareSet.set(nctId,{title:title||'',nctId});
+  compareSet.set(nctId,{title:title||'',drug:drug||'',nctId});
   saveCart();updateCmpBar();syncCheckboxes();
 }
 
@@ -7105,7 +7106,7 @@ function syncCheckboxes(){
 function updateCmpBar(){
   const bar=document.getElementById('cmpBar'),list=document.getElementById('cmpSelList'),btn=document.getElementById('btnCompare');
   if(compareSet.size>0){bar.classList.add('show');}else{bar.classList.remove('show');}
-  list.innerHTML=[...compareSet.entries()].map(([id,d])=>`<span class="sel-tag"><span class="sel-tag-id">${id}</span><span class="sel-tag-title">${escHtml((d.title||'').substring(0,35))}${(d.title||'').length>35?'…':''}</span><span class="remove" onclick="removeCmp('${id}')">&times;</span></span>`).join('');
+  list.innerHTML=[...compareSet.entries()].map(([id,d])=>{const drugStr=d.drug?` · ${escHtml(d.drug.split(', ')[0])}`:'';return`<span class="sel-tag"><span class="sel-tag-id">${id}</span><span class="sel-tag-title">${escHtml((d.title||'').substring(0,30))}${(d.title||'').length>30?'…':''}${drugStr}</span><span class="remove" onclick="removeCmp('${id}')">&times;</span></span>`;}).join('');
   btn.textContent=`Compare (${compareSet.size}/4)`;
   btn.disabled=compareSet.size<2;
   syncCheckboxes();

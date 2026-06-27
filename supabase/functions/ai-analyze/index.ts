@@ -442,8 +442,8 @@ Your output MUST be at least ${trials.slice(0,4).length * 1700} tokens. That mea
     const headers = { "Content-Type": "application/json" };
 
     const models = [
-      { id: "gemini-3.1-flash-lite-preview", name: "Gemini 3.1 Flash-Lite", thinking: false },
-      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash", thinking: true },
+      { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite", thinking: false },
+      { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash-Lite", thinking: false },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", thinking: true },
     ];
     let geminiRes!: Response;
