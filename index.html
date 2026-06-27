@@ -2853,7 +2853,7 @@ async function fetchEUCTISPI(title,sponsor){
 
 /* 식약처: search by title keyword, get PI info (via Supabase edge function proxy) */
 async function _mfdsProxy(endpoint,params){
-  const res=await fetch('https://zgoyiwviyyextelsotyd.supabase.co/functions/v1/dynamic-responder',{
+  const res=await fetch('https://zgoyiwviyyextelsotyd.supabase.co/functions/v1/mfds-proxy',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({endpoint,params}),signal:AbortSignal.timeout(12000)
   });

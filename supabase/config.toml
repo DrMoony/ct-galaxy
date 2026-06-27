@@ -397,3 +397,8 @@ entrypoint = "./functions/push-alert/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/mfds-proxy/index.ts"
+
+[functions.ai-analyze]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/ai-analyze/index.ts"
