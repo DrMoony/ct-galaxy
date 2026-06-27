@@ -9046,83 +9046,23 @@ window.runQuickCompare=async function(){
   const btn=document.getElementById('aiQuickCompareBtn');
   const statusEl=document.getElementById('aiQuickStatus');
   if(!btn||!statusEl)return;
-  const provider=getAIProvider();
-  const key=getAIKey(provider);
-  if(!key){statusEl.textContent='Please set an API key in AI Settings';statusEl.style.color='#f59e0b';return;}
+  if(!_currentUser){statusEl.textContent='Please sign in first';statusEl.style.color='#f59e0b';return;}
   const studies=window._cmpStudiesRaw;
   if(!studies||studies.length<2){statusEl.textContent='Need at least 2 trials to compare';statusEl.style.color='#f59e0b';return;}
   btn.disabled=true;btn.style.opacity='.6';
   statusEl.innerHTML='<span style="display:inline-flex;align-items:center;gap:6px"><span class="spinner" style="width:14px;height:14px;border:2px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;display:inline-block"></span><span style="color:#3b82f6;font-size:.72rem">Quick Compare running...</span></span>';
   const startTime=Date.now();
   try{
-    // Build trial summaries for the prompt
-    const trialSummaries=studies.map((s,i)=>{
-      const ps=s.protocolSection||{};
-      const id=ps.identificationModule||{};
-      const status=ps.statusModule||{};
-      const design=ps.designModule||{};
-      const elig=ps.eligibilityModule||{};
-      const arms=ps.armsInterventionsModule||{};
-      const outcomes=ps.outcomesModule||{};
-      const contacts=ps.sponsorCollaboratorsModule||{};
-      const desc=ps.descriptionModule||{};
-      const interventions=(arms.interventions||[]).map(iv=>iv.name).join(', ');
-      const primaryOuts=(outcomes.primaryOutcomes||[]).map(o=>o.measure).join('; ');
-      const secondaryOuts=(outcomes.secondaryOutcomes||[]).map(o=>o.measure).join('; ');
-      return `=== Trial ${i} ===
-NCT ID: ${id.nctId||'N/A'}
-Title: ${id.officialTitle||id.briefTitle||'N/A'}
-Sponsor: ${(contacts.leadSponsor||{}).name||'N/A'}
-Phase: ${(design.phases||[]).join(', ')||'N/A'}
-Status: ${status.overallStatus||'N/A'}
-Enrollment: ${(design.enrollmentInfo||{}).count||'N/A'}
-Study Type: ${design.studyType||'N/A'}
-Masking: ${(design.maskingInfo||{}).masking||'N/A'}
-Allocation: ${(design.designInfo||{}).allocation||'N/A'}
-Interventions: ${interventions||'N/A'}
-Start Date: ${(status.startDateStruct||{}).date||'N/A'}
-Primary Completion: ${(status.primaryCompletionDateStruct||{}).date||'N/A'}
-Completion Date: ${(status.completionDateStruct||{}).date||'N/A'}
-Brief Summary: ${(desc.briefSummary||'').substring(0,600)}
-Primary Endpoints: ${primaryOuts||'N/A'}
-Secondary Endpoints: ${secondaryOuts.substring(0,500)||'N/A'}
-Eligibility Criteria: ${(elig.eligibilityCriteria||'').substring(0,800)}`;
-    }).join('\n\n');
-
-    const systemPrompt=`You are a clinical trial protocol analyst. Extract and compare these trials.
-Return ONLY valid JSON (no markdown fences, no commentary) with this exact structure:
-{
-  "trials": [
-    {
-      "nctId": "NCT...",
-      "drugName": "drug name(s)",
-      "studyName": "short study name/acronym",
-      "sponsor": "lead sponsor",
-      "phase": "Phase X",
-      "enrollment": 123,
-      "status": "Recruiting|Completed|etc",
-      "masking": "Double|Single|Open Label|etc",
-      "allocation": "Randomized|Non-Randomized|etc",
-      "primaryEndpointType": "surrogate|hard|mixed",
-      "primaryEndpoints": ["endpoint 1","endpoint 2"],
-      "secondaryEndpoints": ["endpoint 1","endpoint 2"],
-      "targetPopulation": "brief description of target population",
-      "fibrosisStage": "F0-F1|F2-F3|F3-F4|All|N/A",
-      "diagnosisMethod": "biopsy|NIT|both|N/A",
-      "startDate": "YYYY-MM",
-      "primaryCompletion": "YYYY-MM",
-      "studyCompletion": "YYYY-MM",
-      "regulatoryPath": "accelerated|standard|conditional|unknown"
-    }
-  ],
-  "keyDifferences": [
-    {"category": "category name", "insight": "clear explanation of the difference", "significance": "high|medium|low"}
-  ]
-}
-Include 3-5 key differences. For enrollment, use the number only. For endpoints, be concise.`;
-
-    const raw=await callLLMAPI(systemPrompt,trialSummaries);
-    const jsonStr=raw.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
+    const{data:{session}}=await _sb.auth.getSession();
+    if(!session)throw new Error('Not logged in');
+    const res=await fetch(SUPABASE_URL+'/functions/v1/ai-analyze',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json'},
+      body:JSON.stringify({trials:studies,lang:window._aiLang||'en',mode:'quick'})
+    });
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error||'Server error '+res.status);}
+    const result=await res.json();
+    const jsonStr=(result.data||'').replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
     const data=JSON.parse(jsonStr);
     const elapsed=Math.round((Date.now()-startTime)/1000);
     statusEl.innerHTML=`<span style="color:#3b82f6;font-size:.72rem">Quick Compare done (${elapsed}s)</span>`;

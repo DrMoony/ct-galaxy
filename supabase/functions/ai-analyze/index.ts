@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { trials, lang } = await req.json();
+    const { trials, lang, mode } = await req.json();
     const LANG_MAP: Record<string,string> = {
       en:'English',ko:'Korean',ja:'Japanese',zh:'Chinese (Simplified)',
       es:'Spanish',pt:'Portuguese',de:'German',fr:'French',ar:'Arabic'
@@ -130,6 +130,87 @@ TRIAL ${i + 1}: ${id.nctId || ""}
   Eligibility Criteria:
 ${eligText || "N/A"}`;
     }).join("\n\n" + "=".repeat(80) + "\n");
+
+    // ── Quick Compare mode: fast structured JSON response ──
+    if (mode === "quick") {
+      const quickPrompt = `You are a clinical trial protocol analyst. Extract and compare these trials.
+RULES:
+- ONLY state facts explicitly present in the data below
+- Do NOT fabricate or infer any details
+- Return ONLY valid JSON, no markdown fences
+
+${trialSummaries}
+
+Return this exact JSON structure:
+{
+  "trials": [
+    {
+      "nctId": "string",
+      "drugName": "string (non-placebo intervention name)",
+      "studyName": "string (from briefTitle, e.g. LIVERAGE)",
+      "sponsor": "string",
+      "phase": "string",
+      "enrollment": number,
+      "status": "string",
+      "masking": "string",
+      "allocation": "string",
+      "primaryEndpointType": "surrogate|hard|mixed",
+      "primaryEndpoints": ["string array"],
+      "secondaryEndpoints": ["string array, max 3"],
+      "targetPopulation": "string",
+      "fibrosisStage": "string",
+      "diagnosisMethod": "biopsy|NIT|both|unknown",
+      "startDate": "string",
+      "primaryCompletion": "string",
+      "studyCompletion": "string",
+      "regulatoryPath": "accelerated|standard|conditional|dual"
+    }
+  ],
+  "keyDifferences": [
+    {"category": "string", "insight": "string (1-2 sentences, ${langName})", "significance": "high|medium|low"}
+  ]
+}
+Write keyDifferences insights in ${langName}. Keep trial field values in English. Return 4-6 key differences.`;
+
+      const quickRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${GEMINI_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: quickPrompt }] }],
+            generationConfig: { maxOutputTokens: 4096, temperature: 0.0 },
+          }),
+        }
+      );
+      const quickData = await quickRes.json();
+      if (!quickRes.ok) {
+        return new Response(JSON.stringify({ error: "AI API error", detail: quickData }), {
+          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      let quickText = quickData.candidates?.[0]?.content?.parts?.slice(-1)[0]?.text || "";
+      quickText = quickText.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+      const quickUsage = quickData.usageMetadata || {};
+
+      // Log
+      const qNctIds = trials.slice(0, 4).map((t: any) => t?.protocolSection?.identificationModule?.nctId || "").filter(Boolean);
+      if (user.email !== "mftsky@gmail.com") {
+        await supabase.from("activity_logs").insert({
+          user_id: user.id, email: user.email, type: "ai_quick_compare",
+          detail: { nctIds: qNctIds, model: "gemini-3.1-flash-lite", tokens: { input: quickUsage.promptTokenCount, output: quickUsage.candidatesTokenCount } },
+        });
+      }
+
+      return new Response(JSON.stringify({
+        mode: "quick",
+        data: quickText,
+        model: "Gemini 3.1 Flash-Lite",
+        tokens: { input: quickUsage.promptTokenCount, output: quickUsage.candidatesTokenCount },
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // ── Phase 2 data lookup for Phase 3 trials ──
     // For each P3 drug, find completed P2 trials with results
