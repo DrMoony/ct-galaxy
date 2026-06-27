@@ -7667,7 +7667,8 @@ function renderCompare(studies){
 
   /* ── AI Comparison Settings Bar (prepended before table) ── */
   html=`<div class="ai-settings-bar" id="aiSettingsBar" style="margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-    <button class="ai-btn" id="aiQuickBtn" onclick="window.runQuickAI()" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:.4rem 1rem;border-radius:5px;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap">AI Analysis</button>
+    <button class="ai-btn" id="aiQuickCompareBtn" onclick="window.runQuickCompare()" style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;padding:.4rem 1rem;border-radius:5px;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap">⚡ Quick Compare</button>
+    <button class="ai-btn" id="aiQuickBtn" onclick="window.runQuickAI()" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:.4rem 1rem;border-radius:5px;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap">🔬 Deep Analysis</button>
     <div id="aiLangBar" style="display:inline-flex;gap:1px;align-items:center"><button onclick="window._setAILang('en',this)" data-lang="en" style="background:rgba(16,185,129,.25);border:1px solid #10b981;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#e2e8f0;line-height:1;font-family:monospace">ENG</button><button onclick="window._setAILang('ko',this)" data-lang="ko" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">KOR</button><button onclick="window._setAILang('ja',this)" data-lang="ja" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">JPN</button><button onclick="window._setAILang('zh',this)" data-lang="zh" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">CHN</button><button onclick="window._setAILang('es',this)" data-lang="es" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">ESP</button><button onclick="window._setAILang('pt',this)" data-lang="pt" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">POR</button><button onclick="window._setAILang('de',this)" data-lang="de" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">DEU</button><button onclick="window._setAILang('fr',this)" data-lang="fr" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">FRA</button><button onclick="window._setAILang('ar',this)" data-lang="ar" style="background:transparent;border:1px solid transparent;border-radius:3px;padding:3px 6px;cursor:pointer;font-size:.72rem;font-weight:700;color:#94a3b8;line-height:1;font-family:monospace">ARA</button></div>
     <span class="ai-status" id="aiQuickStatus" style="font-size:.7rem;color:#94a3b8"></span>
     <span style="font-size:.65rem;color:#718096;margin-left:auto" id="aiQuickInfo">Gemini AI</span>
@@ -9036,6 +9037,233 @@ window.runQuickAI=async function(){
     clearInterval(window._aiCatInterval);
     const tr=document.getElementById('aiCatTrack');if(tr)tr.remove();
     statusEl.textContent='Error: '+e.message;statusEl.style.color='#ef4444';
+  }finally{btn.disabled=false;btn.style.opacity='1';}
+};
+
+// ── Quick Compare (Client-side LLM via callLLMAPI) ──
+window.runQuickCompare=async function(){
+  console.log('[AI] runQuickCompare called');
+  const btn=document.getElementById('aiQuickCompareBtn');
+  const statusEl=document.getElementById('aiQuickStatus');
+  if(!btn||!statusEl)return;
+  const provider=getAIProvider();
+  const key=getAIKey(provider);
+  if(!key){statusEl.textContent='Please set an API key in AI Settings';statusEl.style.color='#f59e0b';return;}
+  const studies=window._cmpStudiesRaw;
+  if(!studies||studies.length<2){statusEl.textContent='Need at least 2 trials to compare';statusEl.style.color='#f59e0b';return;}
+  btn.disabled=true;btn.style.opacity='.6';
+  statusEl.innerHTML='<span style="display:inline-flex;align-items:center;gap:6px"><span class="spinner" style="width:14px;height:14px;border:2px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;display:inline-block"></span><span style="color:#3b82f6;font-size:.72rem">Quick Compare running...</span></span>';
+  const startTime=Date.now();
+  try{
+    // Build trial summaries for the prompt
+    const trialSummaries=studies.map((s,i)=>{
+      const ps=s.protocolSection||{};
+      const id=ps.identificationModule||{};
+      const status=ps.statusModule||{};
+      const design=ps.designModule||{};
+      const elig=ps.eligibilityModule||{};
+      const arms=ps.armsInterventionsModule||{};
+      const outcomes=ps.outcomesModule||{};
+      const contacts=ps.sponsorCollaboratorsModule||{};
+      const desc=ps.descriptionModule||{};
+      const interventions=(arms.interventions||[]).map(iv=>iv.name).join(', ');
+      const primaryOuts=(outcomes.primaryOutcomes||[]).map(o=>o.measure).join('; ');
+      const secondaryOuts=(outcomes.secondaryOutcomes||[]).map(o=>o.measure).join('; ');
+      return `=== Trial ${i} ===
+NCT ID: ${id.nctId||'N/A'}
+Title: ${id.officialTitle||id.briefTitle||'N/A'}
+Sponsor: ${(contacts.leadSponsor||{}).name||'N/A'}
+Phase: ${(design.phases||[]).join(', ')||'N/A'}
+Status: ${status.overallStatus||'N/A'}
+Enrollment: ${(design.enrollmentInfo||{}).count||'N/A'}
+Study Type: ${design.studyType||'N/A'}
+Masking: ${(design.maskingInfo||{}).masking||'N/A'}
+Allocation: ${(design.designInfo||{}).allocation||'N/A'}
+Interventions: ${interventions||'N/A'}
+Start Date: ${(status.startDateStruct||{}).date||'N/A'}
+Primary Completion: ${(status.primaryCompletionDateStruct||{}).date||'N/A'}
+Completion Date: ${(status.completionDateStruct||{}).date||'N/A'}
+Brief Summary: ${(desc.briefSummary||'').substring(0,600)}
+Primary Endpoints: ${primaryOuts||'N/A'}
+Secondary Endpoints: ${secondaryOuts.substring(0,500)||'N/A'}
+Eligibility Criteria: ${(elig.eligibilityCriteria||'').substring(0,800)}`;
+    }).join('\n\n');
+
+    const systemPrompt=`You are a clinical trial protocol analyst. Extract and compare these trials.
+Return ONLY valid JSON (no markdown fences, no commentary) with this exact structure:
+{
+  "trials": [
+    {
+      "nctId": "NCT...",
+      "drugName": "drug name(s)",
+      "studyName": "short study name/acronym",
+      "sponsor": "lead sponsor",
+      "phase": "Phase X",
+      "enrollment": 123,
+      "status": "Recruiting|Completed|etc",
+      "masking": "Double|Single|Open Label|etc",
+      "allocation": "Randomized|Non-Randomized|etc",
+      "primaryEndpointType": "surrogate|hard|mixed",
+      "primaryEndpoints": ["endpoint 1","endpoint 2"],
+      "secondaryEndpoints": ["endpoint 1","endpoint 2"],
+      "targetPopulation": "brief description of target population",
+      "fibrosisStage": "F0-F1|F2-F3|F3-F4|All|N/A",
+      "diagnosisMethod": "biopsy|NIT|both|N/A",
+      "startDate": "YYYY-MM",
+      "primaryCompletion": "YYYY-MM",
+      "studyCompletion": "YYYY-MM",
+      "regulatoryPath": "accelerated|standard|conditional|unknown"
+    }
+  ],
+  "keyDifferences": [
+    {"category": "category name", "insight": "clear explanation of the difference", "significance": "high|medium|low"}
+  ]
+}
+Include 3-5 key differences. For enrollment, use the number only. For endpoints, be concise.`;
+
+    const raw=await callLLMAPI(systemPrompt,trialSummaries);
+    const jsonStr=raw.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
+    const data=JSON.parse(jsonStr);
+    const elapsed=Math.round((Date.now()-startTime)/1000);
+    statusEl.innerHTML=`<span style="color:#3b82f6;font-size:.72rem">Quick Compare done (${elapsed}s)</span>`;
+
+    // Remove existing report if any
+    const existing=document.getElementById('aiQuickReport');
+    if(existing)existing.remove();
+
+    // Build visual dashboard
+    const trials=data.trials||[];
+    const diffs=data.keyDifferences||[];
+    const maxEnroll=Math.max(...trials.map(t=>t.enrollment||0),1);
+    const trialColors=['#3b82f6','#ef4444','#f59e0b','#8b5cf6','#ec4899','#14b8a6'];
+
+    let html='';
+
+    // === OVERVIEW CARDS ===
+    html+=`<div style="margin-bottom:1.2rem"><div style="font-size:.85rem;font-weight:700;color:#e2e8f0;margin-bottom:.6rem;display:flex;align-items:center;gap:6px">📋 Trial Overview</div>`;
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.6rem">`;
+    trials.forEach((t,i)=>{
+      const color=trialColors[i%trialColors.length];
+      const enrollPct=Math.round(((t.enrollment||0)/maxEnroll)*100);
+      html+=`<div style="background:linear-gradient(135deg,#0f172a,#1e293b);border:1px solid ${color}44;border-radius:8px;padding:.8rem;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:${color}"></div>
+        <div style="padding-left:8px">
+          <div style="font-size:.65rem;color:${color};font-weight:700;letter-spacing:.5px;margin-bottom:2px">${escHtml(t.nctId||'')}</div>
+          <div style="font-size:.82rem;font-weight:700;color:#f1f5f9;margin-bottom:4px">${escHtml(t.drugName||'N/A')}</div>
+          <div style="font-size:.68rem;color:#94a3b8;margin-bottom:6px">${escHtml(t.studyName||'')}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="background:${color}22;color:${color};padding:2px 6px;border-radius:3px;font-size:.6rem;font-weight:600">${escHtml(t.phase||'')}</span>
+            <span style="background:${t.status==='Recruiting'?'#10b98122':'#64748b22'};color:${t.status==='Recruiting'?'#10b981':'#94a3b8'};padding:2px 6px;border-radius:3px;font-size:.6rem;font-weight:600">${escHtml(t.status||'')}</span>
+            <span style="background:#f59e0b22;color:#f59e0b;padding:2px 6px;border-radius:3px;font-size:.6rem;font-weight:600">${escHtml(t.sponsor||'')}</span>
+          </div>
+          <div style="font-size:.62rem;color:#64748b;margin-bottom:3px">Enrollment: ${(t.enrollment||0).toLocaleString()}</div>
+          <div style="height:6px;background:#1e3a5f;border-radius:3px;overflow:hidden"><div style="height:100%;width:${enrollPct}%;background:linear-gradient(90deg,${color},${color}88);border-radius:3px"></div></div>
+        </div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+
+    // === ENDPOINT STRATEGY TABLE ===
+    html+=`<div style="margin-bottom:1.2rem"><div style="font-size:.85rem;font-weight:700;color:#e2e8f0;margin-bottom:.6rem;display:flex;align-items:center;gap:6px">🎯 Endpoint Strategy</div>`;
+    html+=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.72rem">`;
+    html+=`<thead><tr style="background:#0f172a"><th style="padding:6px 8px;text-align:left;color:#94a3b8;border-bottom:1px solid #334155;font-size:.65rem">Trial</th><th style="padding:6px 8px;text-align:left;color:#94a3b8;border-bottom:1px solid #334155;font-size:.65rem">Type</th><th style="padding:6px 8px;text-align:left;color:#94a3b8;border-bottom:1px solid #334155;font-size:.65rem">Primary Endpoints</th><th style="padding:6px 8px;text-align:left;color:#94a3b8;border-bottom:1px solid #334155;font-size:.65rem">Regulatory Path</th></tr></thead><tbody>`;
+    trials.forEach((t,i)=>{
+      const color=trialColors[i%trialColors.length];
+      const epTypeColors={surrogate:'#3b82f6',hard:'#ef4444',mixed:'#8b5cf6'};
+      const epColor=epTypeColors[t.primaryEndpointType]||'#94a3b8';
+      html+=`<tr style="border-bottom:1px solid #1e293b">
+        <td style="padding:6px 8px;color:${color};font-weight:600">${escHtml(t.drugName||t.nctId||'')}</td>
+        <td style="padding:6px 8px"><span style="background:${epColor}22;color:${epColor};padding:2px 8px;border-radius:10px;font-size:.62rem;font-weight:700;text-transform:uppercase">${escHtml(t.primaryEndpointType||'N/A')}</span></td>
+        <td style="padding:6px 8px;color:#cbd5e1;font-size:.68rem">${(t.primaryEndpoints||[]).map(e=>escHtml(e)).join('<br>')}</td>
+        <td style="padding:6px 8px"><span style="color:${t.regulatoryPath==='accelerated'?'#f59e0b':t.regulatoryPath==='conditional'?'#8b5cf6':'#94a3b8'};font-weight:600;font-size:.65rem">${escHtml(t.regulatoryPath||'N/A')}</span></td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+
+    // === POPULATION COMPARISON ===
+    html+=`<div style="margin-bottom:1.2rem"><div style="font-size:.85rem;font-weight:700;color:#e2e8f0;margin-bottom:.6rem;display:flex;align-items:center;gap:6px">👥 Population & Design</div>`;
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.6rem">`;
+    trials.forEach((t,i)=>{
+      const color=trialColors[i%trialColors.length];
+      const enrollPct=Math.round(((t.enrollment||0)/maxEnroll)*100);
+      html+=`<div style="background:#0f172a;border:1px solid #1e293b;border-radius:6px;padding:.7rem">
+        <div style="font-size:.72rem;font-weight:700;color:${color};margin-bottom:6px">${escHtml(t.drugName||t.nctId||'')}</div>
+        <div style="font-size:.65rem;color:#94a3b8;margin-bottom:3px">Target: <span style="color:#e2e8f0">${escHtml(t.targetPopulation||'N/A')}</span></div>
+        <div style="font-size:.65rem;color:#94a3b8;margin-bottom:3px">Fibrosis: <span style="color:#f59e0b;font-weight:600">${escHtml(t.fibrosisStage||'N/A')}</span></div>
+        <div style="font-size:.65rem;color:#94a3b8;margin-bottom:3px">Diagnosis: <span style="color:#e2e8f0">${escHtml(t.diagnosisMethod||'N/A')}</span></div>
+        <div style="font-size:.65rem;color:#94a3b8;margin-bottom:3px">Masking: <span style="color:#e2e8f0">${escHtml(t.masking||'N/A')}</span> · Allocation: <span style="color:#e2e8f0">${escHtml(t.allocation||'N/A')}</span></div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+          <div style="flex:1;height:8px;background:#1e3a5f;border-radius:4px;overflow:hidden"><div style="height:100%;width:${enrollPct}%;background:${color};border-radius:4px"></div></div>
+          <span style="font-size:.6rem;color:${color};font-weight:700">${(t.enrollment||0).toLocaleString()}</span>
+        </div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+
+    // === KEY DIFFERENCES ===
+    html+=`<div style="margin-bottom:1.2rem"><div style="font-size:.85rem;font-weight:700;color:#e2e8f0;margin-bottom:.6rem;display:flex;align-items:center;gap:6px">⚡ Key Differences</div>`;
+    const sigIcons={high:'🔴',medium:'🟡',low:'🟢'};
+    const sigColors={high:'#ef4444',medium:'#f59e0b',low:'#10b981'};
+    diffs.forEach((d,i)=>{
+      const icon=sigIcons[d.significance]||'⚪';
+      const sColor=sigColors[d.significance]||'#94a3b8';
+      html+=`<div style="display:flex;align-items:flex-start;gap:8px;padding:.5rem .6rem;margin-bottom:4px;background:#0f172a;border-left:3px solid ${sColor};border-radius:0 6px 6px 0">
+        <span style="font-size:.9rem;flex-shrink:0;margin-top:1px">${icon}</span>
+        <div>
+          <span style="font-size:.68rem;font-weight:700;color:${sColor};text-transform:uppercase;letter-spacing:.3px">${escHtml(d.category||'')}</span>
+          <div style="font-size:.72rem;color:#cbd5e1;margin-top:2px">${escHtml(d.insight||'')}</div>
+        </div>
+        <span style="margin-left:auto;font-size:.55rem;color:#475569;font-weight:600;background:#1e293b;padding:2px 6px;border-radius:3px;white-space:nowrap">#${i+1}</span>
+      </div>`;
+    });
+    html+=`</div>`;
+
+    // === TIMELINE ===
+    html+=`<div style="margin-bottom:.8rem"><div style="font-size:.85rem;font-weight:700;color:#e2e8f0;margin-bottom:.6rem;display:flex;align-items:center;gap:6px">📅 Timeline</div>`;
+    // Compute date range for timeline
+    const allDates=trials.flatMap(t=>[t.startDate,t.primaryCompletion,t.studyCompletion].filter(Boolean).map(d=>new Date(d+'-01')));
+    const minDate=allDates.length?new Date(Math.min(...allDates)):new Date();
+    const maxDate=allDates.length?new Date(Math.max(...allDates)):new Date();
+    const totalSpan=Math.max(maxDate-minDate,1);
+    trials.forEach((t,i)=>{
+      const color=trialColors[i%trialColors.length];
+      const toDate=d=>d?new Date(d+'-01'):null;
+      const sd=toDate(t.startDate),pc=toDate(t.primaryCompletion),sc=toDate(t.studyCompletion);
+      const pctPos=d=>d?Math.round(((d-minDate)/totalSpan)*100):0;
+      const startPct=sd?pctPos(sd):0;
+      const endPct=sc?pctPos(sc):(pc?pctPos(pc):100);
+      const pcPct=pc?pctPos(pc):endPct;
+      html+=`<div style="margin-bottom:8px;padding:6px 8px;background:#0f172a;border-radius:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:.68rem;font-weight:700;color:${color}">${escHtml(t.drugName||t.nctId||'')}</span>
+          <span style="font-size:.58rem;color:#64748b">${escHtml(t.startDate||'?')} → ${escHtml(t.studyCompletion||'?')}</span>
+        </div>
+        <div style="position:relative;height:16px;background:#1e293b;border-radius:8px;overflow:visible">
+          <div style="position:absolute;left:${startPct}%;width:${Math.max(endPct-startPct,2)}%;height:100%;background:${color}44;border-radius:8px"></div>
+          <div style="position:absolute;left:${startPct}%;width:${Math.max(pcPct-startPct,2)}%;height:100%;background:${color};border-radius:8px"></div>
+          ${pc?`<div style="position:absolute;left:${pcPct}%;top:-2px;width:2px;height:20px;background:#f1f5f9" title="Primary Completion: ${t.primaryCompletion}"></div>`:''}
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:2px">
+          <span style="font-size:.52rem;color:#64748b">Start: ${escHtml(t.startDate||'N/A')}</span>
+          <span style="font-size:.52rem;color:#f59e0b">Primary: ${escHtml(t.primaryCompletion||'N/A')}</span>
+          <span style="font-size:.52rem;color:#64748b">End: ${escHtml(t.studyCompletion||'N/A')}</span>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+
+    // Create report div
+    const reportDiv=document.createElement('div');
+    reportDiv.id='aiQuickReport';
+    reportDiv.style.cssText='padding:1.2rem;margin:.8rem 0;background:linear-gradient(135deg,#0d1b2a,#1a2332);border:1px solid #3b82f644;border-radius:8px;font-size:.82rem;line-height:1.6;color:#e2e8f0';
+    const pptxLeft=_pptxRemaining();
+    const pptxBtn=pptxLeft>0?`<button onclick="exportReportPPTX()" style="background:#7c3aed;color:#fff;border:none;padding:.3rem .6rem;border-radius:4px;font-size:.65rem;cursor:pointer;font-weight:600">📊 PPTX <span style="font-size:.55rem;opacity:.7">(${pptxLeft}/3)</span></button>`:`<button disabled style="background:#4b5563;color:#9ca3af;border:none;padding:.3rem .6rem;border-radius:4px;font-size:.65rem;cursor:default;font-weight:600">📊 PPTX (0/3)</button>`;
+    reportDiv.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;gap:.4rem"><span style="font-weight:700;color:#3b82f6;font-size:.85rem">⚡ Quick Compare Dashboard</span><div style="display:flex;gap:.4rem;align-items:center"><button onclick="exportReportPDF()" style="background:#3b82f6;color:#fff;border:none;padding:.3rem .6rem;border-radius:4px;font-size:.65rem;cursor:pointer;font-weight:600">📄 PDF</button>${pptxBtn}<button onclick="this.closest('#aiQuickReport').remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1rem">✕</button></div></div>`+html;
+    const settingsBar=document.getElementById('aiSettingsBar');
+    if(settingsBar){settingsBar.after(reportDiv);}
+  }catch(e){
+    console.error('[AI] Quick Compare error:',e);
+    statusEl.innerHTML=`<span style="color:#ef4444;font-size:.72rem">Error: ${e.message}</span>`;
   }finally{btn.disabled=false;btn.style.opacity='1';}
 };
 
