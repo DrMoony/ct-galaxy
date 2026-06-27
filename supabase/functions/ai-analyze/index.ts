@@ -418,7 +418,8 @@ Be concrete with dates (e.g., "Q3 2027") rather than vague ("in the coming years
 If no relevant publications or FDA data were found, state that and rely on your knowledge.</p>
 
 Rules:
-- NEVER cite an NCT ID alone. ALWAYS pair it with the drug name, e.g., "survodutide (NCT06789012)" or "NCT06789012 (survodutide)". A standalone NCT ID without the drug name is FORBIDDEN.
+- NEVER cite an NCT ID alone. ALWAYS lead with the DRUG NAME followed by the study name or NCT ID in parentheses, e.g., "survodutide (LIVERAGE, NCT06632457)" or "semaglutide (ESSENCE, NCT04822181)". When referring to a trial in running text, use the drug name as the subject, NOT the NCT ID. A standalone NCT ID without the drug name is ABSOLUTELY FORBIDDEN. The reader must always know WHICH DRUG is being discussed without having to look up NCT IDs.
+- ONLY state facts that are EXPLICITLY present in the trial data provided above. Do NOT infer, assume, or fabricate endpoint details, patient populations, or design features. If the primary endpoint says "MASH resolution" in the data, report it as MASH resolution — do NOT reinterpret it as a hard endpoint. Accuracy to the source data is paramount.
 - CRITICAL LINKING RULE: NCT IDs MUST link to ClinicalTrials.gov, NEVER to PubMed. Format: <a href="https://clinicaltrials.gov/study/NCTXXXXXXXX" target="_blank" style="color:#0284c7;text-decoration:none">NCTXXXXXXXX</a>. PubMed links (pubmed.ncbi.nlm.nih.gov) are ONLY for PMIDs (numeric IDs like 12345678), never for NCT IDs.
 - Be specific: cite exact numbers, drug names, country percentages
 - Be opinionated: give clear assessments and verdicts, not balanced-both-sides descriptions
@@ -442,9 +443,9 @@ Your output MUST be at least ${trials.slice(0,4).length * 1700} tokens. That mea
     const headers = { "Content-Type": "application/json" };
 
     const models = [
-      { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite", thinking: false },
-      { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash-Lite", thinking: false },
       { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", thinking: true },
+      { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash-Lite", thinking: false },
+      { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite", thinking: false },
     ];
     let geminiRes!: Response;
     let usedModel = models[0].name;
