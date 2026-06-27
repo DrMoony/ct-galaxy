@@ -3879,7 +3879,7 @@ async function batchFetchMoA(drugNames){
 
 /* ── helper: is this a real drug molecule? ── */
 /* Types that are actual therapeutic interventions */
-const THERAPEUTIC_TYPES=new Set(['DRUG','BIOLOGICAL']);
+const THERAPEUTIC_TYPES=new Set(['DRUG','BIOLOGICAL','COMBINATION_PRODUCT']);
 /* Name-based exclusions (within DRUG/BIOLOGICAL types) */
 const NON_DRUG_NAMES=['placebo','sham','normal saline','saline','standard of care','usual care',
   'no intervention','best supportive','observation','no treatment','watchful waiting',
