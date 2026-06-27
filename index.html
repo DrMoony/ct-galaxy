@@ -32,6 +32,17 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,[t
 .ss-kpi .lbl{color:rgba(255,255,255,.7)}
 .ss-trial-info .sponsor{color:rgba(255,255,255,.7)}
 
+/* ── Result Tabs ── */
+.result-tabs{display:none;margin-bottom:0}
+.result-tabs.show{display:flex;gap:0;border-bottom:2px solid var(--mint);margin-top:.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--dark);border-radius:6px 6px 0 0;padding:0 .5rem;padding-top:.3rem}
+.result-tab{padding:.5rem 1.2rem;border:1px solid rgba(0,228,124,.3);border-bottom:none;border-radius:6px 6px 0 0;background:transparent;color:rgba(255,255,255,.7);cursor:pointer;font-family:'Press Start 2P',monospace;font-size:.55rem;letter-spacing:.5px;transition:all .15s;display:flex;align-items:center;gap:.4rem;white-space:nowrap;flex-shrink:0}
+.result-tab:hover{border-color:var(--mint);color:#fff;background:rgba(0,228,124,.05)}
+.result-tab.active{background:var(--dark);color:var(--mint);border-color:var(--mint);position:relative}
+.result-tab.active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:var(--dark)}
+.result-tab .tab-badge{font-size:.5rem;background:rgba(0,228,124,.15);color:var(--mint);padding:.15rem .35rem;border-radius:3px;font-weight:700}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
 /* ── Auth UI ── */
 .auth-bar{position:absolute;top:12px;right:16px;z-index:10;display:flex;align-items:center;gap:.5rem}
 .auth-bar .auth-btn{
@@ -1007,11 +1018,8 @@ th .col-hide-btn{float:right;margin-top:1px}
         Search
       </button>
       <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
-      <label class="galaxy-toggle" style="margin-left:1rem">
-        <input type="checkbox" id="galaxyViewToggle" checked>
-        <svg width="16" height="16" viewBox="0 0 16 16" style="image-rendering:pixelated"><circle cx="8" cy="8" r="3" fill="#00E47C"/><circle cx="8" cy="8" r="5" fill="none" stroke="#00E47C" stroke-width=".5" opacity=".6"/><circle cx="8" cy="8" r="7" fill="none" stroke="#00E47C" stroke-width=".3" opacity=".3"/><rect x="3" y="3" width="1" height="1" fill="#fff" opacity=".4"/><rect x="12" y="5" width="1" height="1" fill="#fff" opacity=".3"/><rect x="5" y="12" width="1" height="1" fill="#fff" opacity=".5"/></svg>
-        Galaxy Map
-      </label>
+      <!-- galaxyViewToggle kept hidden for backward compat -->
+      <input type="checkbox" id="galaxyViewToggle" checked style="display:none">
     </div>
     <p class="hint">Enter a condition name to search. Abbreviations (MASH, NSCLC, etc.) auto-expand to related terms. Click a row for details.</p>
   </div>
@@ -1020,7 +1028,14 @@ th .col-hide-btn{float:right;margin-top:1px}
   <div id="errorArea" style="display:none" class="error-msg"></div>
 
   <div id="resultsArea" style="display:none">
-    <!-- Galaxy View -->
+    <!-- Result Tabs -->
+    <div class="result-tabs" id="resultTabs">
+      <button class="result-tab active" data-tab="tabList" onclick="switchResultTab('tabList',this)">📋 LIST <span class="tab-badge" id="tabListBadge"></span></button>
+      <button class="result-tab" data-tab="tabGalaxy" onclick="switchResultTab('tabGalaxy',this)">🌌 GALAXY</button>
+      <button class="result-tab" data-tab="tabCompare" onclick="switchResultTab('tabCompare',this)">📊 COMPARE <span class="tab-badge" id="tabCompareBadge"></span></button>
+    </div>
+    <!-- Galaxy Tab Panel -->
+    <div class="tab-panel" id="tabGalaxy">
     <!-- Mobile: tap to open Galaxy fullscreen -->
     <div class="galaxy-mobile-btn" id="galaxyMobileBtn" onclick="openGalaxyFullscreen()">
       <span class="gm-icon">🌌</span>
@@ -1091,6 +1106,9 @@ th .col-hide-btn{float:right;margin-top:1px}
         </div>
       </div>
     </div>
+    </div><!-- /tabGalaxy -->
+    <!-- List Tab Panel -->
+    <div class="tab-panel active" id="tabList">
     <div class="results-header">
       <span class="results-count" id="resultsCount"></span>
         <button class="alert-trigger-btn" id="alertSearchBtn" onclick="triggerSearchAlert()" title="Get weekly email alerts for this search"><em class="bell">🔔</em> ALERT</button>
@@ -1131,6 +1149,13 @@ th .col-hide-btn{float:right;margin-top:1px}
       </table>
     </div>
     <div class="pagination" id="paginationArea"></div>
+    </div><!-- /tabList -->
+    <!-- Compare Tab Panel (inline) -->
+    <div class="tab-panel" id="tabCompare">
+      <div id="tabCompareBody" style="padding:1rem;background:#fff;border-radius:4px;border:2px solid var(--dark);margin-top:.5rem">
+        <p style="color:var(--text-light);font-size:.8rem;text-align:center;padding:2rem 0">Select 2-4 trials using checkboxes, then switch to this tab to compare them side by side.</p>
+      </div>
+    </div>
   </div>
 
   <div id="loadingArea" style="display:none" class="loading"><div class="spinner"></div><p>Searching ClinicalTrials.gov...</p></div>
@@ -2155,7 +2180,7 @@ async function searchTrials(pageToken){
       const origLen=(data.studies||[]).length;
       const exNote=origLen>studies.length?` (${origLen-studies.length} excluded)`:'';
       document.getElementById('resultsCount').innerHTML=`Showing ${allResults.length} of <strong>${totalCount.toLocaleString()}</strong> total${exNote}`;
-      renderTable();renderPagination(nextPageToken,pageToken);document.getElementById('resultsArea').style.display='block';
+      renderTable();renderPagination(nextPageToken,pageToken);document.getElementById('resultsArea').style.display='block';document.getElementById('resultTabs').classList.add('show');const listBadge=document.getElementById('tabListBadge');if(listBadge)listBadge.textContent=allResults.length||'';
       /* Background fetch MoA from RxClass API */
       const allDrugNames2=allResults.flatMap(r=>r.drug?r.drug.split(', ').filter(Boolean):[]);
       batchFetchMoA(allDrugNames2);
@@ -2363,7 +2388,38 @@ function getStatusBadgeClass(s){s=(s||'').toUpperCase();if(s.includes('RECRUITIN
 function formatPhase(p){if(!p||!p.length)return'<span class="badge badge-default">N/A</span>';return p.map(x=>{let s=x.replace('EARLY_PHASE1','E1').replace('PHASE','');return`<span class="phase-badge">${s}</span>`;}).join('');}
 function formatStatus(s){const m={'RECRUITING':'Recruiting','ACTIVE_NOT_RECRUITING':'Active','COMPLETED':'Completed','ENROLLING_BY_INVITATION':'Enrolling','NOT_YET_RECRUITING':'Not Yet','SUSPENDED':'Suspended','TERMINATED':'Terminated','WITHDRAWN':'Withdrawn','UNKNOWN':'Unknown'};return m[s]||s;}
 
-function renderTable(){document.getElementById('resultsBody').innerHTML=allResults.map((r,i)=>{const chk=compareSet.has(r.nctId)?'checked':'';const drugList=r.drug?r.drug.split(', ').filter(Boolean):[];const moaBadges=drugList.length?drugList.map(d=>{const moa=getDrugMoA(d);if(moa)return`<span style="display:inline-block;padding:.1rem .35rem;border-radius:3px;font-size:.65rem;font-weight:600;background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25);margin:1px;white-space:nowrap">${escHtml(moa)}</span>`;const lw=d.toLowerCase().trim();if(_moaApiCache[lw]===undefined)return`<span style="display:inline-block;padding:.1rem .35rem;border-radius:3px;font-size:.6rem;color:#888;margin:1px;white-space:nowrap" title="Loading MoA...">⏳</span>`;return'';}).filter(Boolean).join('')||'<span style="color:#666;font-size:.65rem">—</span>':'<span style="color:#666;font-size:.65rem">—</span>';const condBadges=r.conditions?r.conditions.split(', ').slice(0,3).map(c=>`<span style="display:inline-block;padding:.1rem .3rem;border-radius:3px;font-size:.6rem;background:rgba(0,228,124,.08);color:#4ecdc4;border:1px solid rgba(78,205,196,.2);margin:1px">${escHtml(c.length>30?c.substring(0,28)+'..':c)}</span>`).join('')+(r.conditions.split(', ').length>3?`<span style="font-size:.55rem;color:#888"> +${r.conditions.split(', ').length-3}</span>`:''):'<span style="color:#666;font-size:.65rem">—</span>';return`<tr class="clickable" data-idx="${i}"><td data-label="CMP" onclick="event.stopPropagation();const cb=this.querySelector('input');cb.checked=!cb.checked;toggleCompare(cb)" style="cursor:pointer;text-align:center"><input type="checkbox" class="cmp-check" data-nct="${r.nctId}" data-idx="${i}" ${chk} onchange="toggleCompare(this)" onclick="event.stopPropagation()"></td><td data-label="Type" data-col="type" onclick="openDetail(${i})" style="white-space:nowrap">${getCategoryBadge(r.category)}</td><td data-label="NCT ID" data-col="nctId" onclick="openDetail(${i})"><span class="trial-link">${r.nctId}</span></td><td data-label="Title" data-col="title" onclick="openDetail(${i})" style="min-width:200px;max-width:320px">${escHtml(r.title)}</td><td data-label="Conditions" data-col="conditions" onclick="openDetail(${i})" style="max-width:220px;white-space:normal" title="${escHtml(r.conditions)}">${condBadges}</td><td data-label="MoA" data-col="moa" onclick="openDetail(${i})" style="max-width:140px;white-space:normal">${moaBadges}</td><td data-label="Drug" data-col="drug" style="max-width:180px;white-space:normal">${r.drug?r.drug.split(', ').map(d=>`<span style="cursor:pointer;color:var(--mint);text-decoration:underline dotted;text-underline-offset:2px;display:inline-block;margin:1px 0" onclick="event.stopPropagation();showDrugPopup('${jsAttr(d)}')">${escHtml(d)}</span>`).join(', '):'<span style="color:#666;font-size:.65rem">—</span>'}</td><td data-label="Status" data-col="status" onclick="openDetail(${i})" style="padding:0 .3rem"><span class="badge ${getStatusBadgeClass(r.status)}">${formatStatus(r.status)}</span></td><td data-label="Phase" data-col="phase" onclick="openDetail(${i})" style="white-space:nowrap;padding:0 .3rem"><div class="phase-badges">${formatPhase(r.phases)}</div></td><td data-label="Sponsor" data-col="sponsor" onclick="openDetail(${i})" style="max-width:180px" title="${r.sponsorOrig&&r.sponsorOrig!==r.sponsor?escHtml('Originally: '+r.sponsorOrig):''}">${getSponsorFlag(r.sponsor,r.countries)} ${escHtml(r.sponsor)}${r.sponsorOrig&&r.sponsorOrig!==r.sponsor?'<span style=\"font-size:.6rem;color:var(--text-light)\"> ←'+escHtml(r.sponsorOrig.substring(0,15))+'</span>':''}</td><td data-label="Countries" data-col="countries">${r.countries.length>0?`<span class="country-toggle" onclick="event.stopPropagation();this.nextElementSibling.classList.toggle('show');this.querySelector('.ct-arrow').textContent=this.nextElementSibling.classList.contains('show')?'▾':'▸'" style="cursor:pointer;white-space:nowrap;font-size:.72rem;color:var(--dark-mid);font-weight:600;user-select:none"><span class="ct-arrow" style="font-size:.6rem;margin-right:2px">▸</span>${r.countries.length===1?'1 nation':r.countries.length+' nations'}</span><div class="ct-dropdown" style="display:none;margin-top:3px;max-height:120px;overflow-y:auto">${r.countries.map(c=>`<span class="country-badge" onclick="event.stopPropagation();openDetail(${i})">${escHtml(c)}</span>`).join('')}</div>`:`<span style="color:#888;font-size:.7rem">—</span>`}</td><td data-label="Started" data-col="started" onclick="openDetail(${i})" style="font-size:.75rem">${r.startDate||'—'}</td><td data-label="Updated" data-col="updated" onclick="openDetail(${i})" style="font-size:.75rem">${r.lastUpdate}</td><td data-label="" onclick="event.stopPropagation()" style="text-align:center"><button onclick="deleteTrialRow(${i})" class="btn-del-row" title="Remove from list">✕</button></td></tr>`;}).join('');initColResize();if(_hiddenCols.size>0){applyHiddenCols();showColRestoreBtn();}}
+/* ── Tab Switching ── */
+function switchResultTab(tabId,btn){
+  document.querySelectorAll('#resultsArea > .tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.result-tab').forEach(t=>t.classList.remove('active'));
+  const panel=document.getElementById(tabId);
+  if(panel)panel.classList.add('active');
+  if(btn)btn.classList.add('active');
+  else{const b=document.querySelector('.result-tab[data-tab="'+tabId+'"]');if(b)b.classList.add('active');}
+  if(tabId==='tabGalaxy')renderGalaxy();
+  if(tabId==='tabCompare'&&compareSet.size>=2)loadInlineCompare();
+}
+async function loadInlineCompare(){
+  const body=document.getElementById('tabCompareBody');
+  if(!body||compareSet.size<2)return;
+  body.innerHTML='<div class="modal-loading"><div class="spinner"></div><p>Loading comparison data...</p></div>';
+  const ids=[...compareSet.keys()];
+  try{
+    const studies=await Promise.all(ids.map(id=>fetch('https://clinicaltrials.gov/api/v2/studies/'+id+'?format=json').then(r=>{if(!r.ok)throw new Error(id);return r.json();})));
+    if(window._logActivity)_logActivity('compare_inline',{nctIds:ids});
+    /* Reuse renderCompare but target inline body */
+    const origBody=document.getElementById('compareBody');
+    const tmpDiv=document.createElement('div');
+    tmpDiv.id='compareBody';tmpDiv.className='compare-body';
+    body.innerHTML='';body.appendChild(tmpDiv);
+    renderCompare(studies);
+    /* Move content back: renderCompare writes to #compareBody, now inside tabCompareBody */
+  }catch(err){
+    body.innerHTML='<p style="color:var(--danger);padding:1rem">Failed to load comparison data: '+err.message+'</p>';
+  }
+}
+
+function renderTable(){document.getElementById('resultsBody').innerHTML=allResults.map((r,i)=>{const chk=compareSet.has(r.nctId)?'checked':'';const drugList=r.drug?r.drug.split(', ').filter(Boolean):[];const moaBadges=drugList.length?drugList.map(d=>{const moa=getDrugMoA(d);if(moa)return`<span style="display:inline-block;padding:.1rem .35rem;border-radius:3px;font-size:.65rem;font-weight:600;background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25);margin:1px;white-space:nowrap">${escHtml(moa)}</span>`;const lw=d.toLowerCase().trim();if(_moaApiCache[lw]===undefined)return`<span style="display:inline-block;padding:.1rem .35rem;border-radius:3px;font-size:.6rem;color:#888;margin:1px;white-space:nowrap" title="Loading MoA...">⏳</span>`;return'';}).filter(Boolean).join('')||'<span style="color:#666;font-size:.65rem">—</span>':'<span style="color:#666;font-size:.65rem">—</span>';const condBadges=r.conditions?r.conditions.split(', ').slice(0,3).map(c=>`<span style="display:inline-block;padding:.1rem .3rem;border-radius:3px;font-size:.6rem;background:rgba(0,228,124,.08);color:#4ecdc4;border:1px solid rgba(78,205,196,.2);margin:1px">${escHtml(c.length>30?c.substring(0,28)+'..':c)}</span>`).join('')+(r.conditions.split(', ').length>3?`<span style="font-size:.55rem;color:#888"> +${r.conditions.split(', ').length-3}</span>`:''):'<span style="color:#666;font-size:.65rem">—</span>';return`<tr class="clickable" data-idx="${i}"><td data-label="CMP" onclick="event.stopPropagation();const cb=this.querySelector('input');cb.checked=!cb.checked;toggleCompare(cb)" style="cursor:pointer;text-align:center"><input type="checkbox" class="cmp-check" data-nct="${r.nctId}" data-idx="${i}" ${chk} onchange="toggleCompare(this)" onclick="event.stopPropagation()"></td><td data-label="Type" data-col="type" onclick="openDetail(${i})" style="white-space:nowrap">${getCategoryBadge(r.category)}</td><td data-label="NCT ID" data-col="nctId" onclick="openDetail(${i})"><span class="trial-link">${r.nctId}</span></td><td data-label="Title" data-col="title" onclick="openDetail(${i})" style="min-width:200px;max-width:320px">${escHtml(r.title)}</td><td data-label="Conditions" data-col="conditions" onclick="openDetail(${i})" style="max-width:220px;white-space:normal" title="${escHtml(r.conditions)}">${condBadges}</td><td data-label="MoA" data-col="moa" onclick="openDetail(${i})" style="max-width:140px;white-space:normal">${moaBadges}</td><td data-label="Drug" data-col="drug" style="max-width:180px;white-space:normal">${r.drug?r.drug.split(', ').map(d=>`<span style="cursor:pointer;color:var(--mint);text-decoration:underline dotted;text-underline-offset:2px;display:inline-block;margin:1px 0" onclick="event.stopPropagation();showDrugPopup('${jsAttr(d)}')">${escHtml(d)}</span>`).join(', '):'<span style="color:#666;font-size:.65rem">—</span>'}</td><td data-label="Status" data-col="status" onclick="openDetail(${i})" style="padding:0 .3rem"><span class="badge ${getStatusBadgeClass(r.status)}">${formatStatus(r.status)}</span></td><td data-label="Phase" data-col="phase" onclick="openDetail(${i})" style="white-space:nowrap;padding:0 .3rem"><div class="phase-badges">${formatPhase(r.phases)}</div></td><td data-label="Sponsor" data-col="sponsor" onclick="openDetail(${i})" style="max-width:180px" title="${r.sponsorOrig&&r.sponsorOrig!==r.sponsor?escHtml('Originally: '+r.sponsorOrig):''}">${getSponsorFlag(r.sponsor,r.countries)} ${escHtml(r.sponsor)}${r.sponsorOrig&&r.sponsorOrig!==r.sponsor?'<span style=\"font-size:.6rem;color:var(--text-light)\"> ←'+escHtml(r.sponsorOrig.substring(0,15))+'</span>':''}</td><td data-label="Countries" data-col="countries">${r.countries.length>0?`<span class="country-toggle" onclick="event.stopPropagation();this.nextElementSibling.classList.toggle('show');this.querySelector('.ct-arrow').textContent=this.nextElementSibling.classList.contains('show')?'▾':'▸'" style="cursor:pointer;white-space:nowrap;font-size:.72rem;color:var(--dark-mid);font-weight:600;user-select:none"><span class="ct-arrow" style="font-size:.6rem;margin-right:2px">▸</span>${r.countries.length===1?'1 nation':r.countries.length+' nations'}</span><div class="ct-dropdown" style="display:none;margin-top:3px;max-height:120px;overflow-y:auto">${r.countries.map(c=>`<span class="country-badge" onclick="event.stopPropagation();openDetail(${i})">${escHtml(c)}</span>`).join('')}</div>`:`<span style="color:#888;font-size:.7rem">—</span>`}</td><td data-label="Started" data-col="started" onclick="openDetail(${i})" style="font-size:.75rem">${r.startDate||'—'}</td><td data-label="Updated" data-col="updated" onclick="openDetail(${i})" style="font-size:.75rem">${r.lastUpdate}</td><td data-label="" onclick="event.stopPropagation()" style="text-align:center"><button onclick="deleteTrialRow(${i})" class="btn-del-row" title="Remove from list">✕</button></td></tr>`;}).join('');initColResize();if(_hiddenCols.size>0){applyHiddenCols();showColRestoreBtn();}const _lb=document.getElementById('tabListBadge');if(_lb)_lb.textContent=allResults.length||'';}
 
 function renderPagination(next,cur){const a=document.getElementById('paginationArea');a.innerHTML='';if(cur){const b=document.createElement('button');b.className='btn btn-secondary btn-sm';b.textContent='← Previous';b.onclick=()=>searchTrials(pageTokenStack.pop()||undefined);a.appendChild(b);}if(next){const b=document.createElement('button');b.className='btn btn-primary btn-sm';b.textContent='Next →';b.onclick=()=>{if(cur)pageTokenStack.push(cur);searchTrials(next);};a.appendChild(b);}}
 function sortBy(field){if(sortField===field)sortAsc=!sortAsc;else{sortField=field;sortAsc=true;}allResults.sort((a,b)=>{let va=a[field],vb=b[field];if(Array.isArray(va))va=va.join(',');if(Array.isArray(vb))vb=vb.join(',');return sortAsc?(va<vb?-1:va>vb?1:0):(va>vb?-1:va<vb?1:0);});renderTable();}
@@ -4300,7 +4356,9 @@ function renderGalaxy(){
   const wrap=document.getElementById('galaxyWrap');
   const mBtn=document.getElementById('galaxyMobileBtn');
   if(!_galaxyFullscreenActive){
-    const show=document.getElementById('galaxyViewToggle').checked;
+    const galaxyTabEl=document.getElementById('tabGalaxy');
+    const galaxyTabActive=galaxyTabEl&&galaxyTabEl.classList.contains('active');
+    const show=galaxyTabActive;
     if(mBtn){if(show)mBtn.removeAttribute('style');else mBtn.style.display='none';}
     if(!show){wrap.classList.remove('show');if(galaxyAnimId){cancelAnimationFrame(galaxyAnimId);galaxyAnimId=null;}return;}
     wrap.classList.add('show');
@@ -7078,7 +7136,7 @@ function openGalaxyTrial(nctId){
   fetch(`https://clinicaltrials.gov/api/v2/studies/${nctId}?format=json`).then(r=>{if(!r.ok)throw new Error('Failed');return r.json();}).then(data=>{document.getElementById('modalTitle').textContent=`${nctId} - ${((data.protocolSection||{}).identificationModule||{}).briefTitle||''}`;renderDetail(data);}).catch(err=>{document.getElementById('modalBody').innerHTML=`<p style="color:var(--danger)">Failed to load details: ${err.message}</p>`;});
 }
 document.getElementById('galaxyViewToggle').addEventListener('change',()=>{if(allResults.length>0){galaxyResetView();renderGalaxy();}});
-window.addEventListener('resize',()=>{if(document.getElementById('galaxyViewToggle').checked&&allResults.length>0){if(galaxyAnimId){cancelAnimationFrame(galaxyAnimId);galaxyAnimId=null;}renderGalaxy();}});
+window.addEventListener('resize',()=>{const gTab=document.getElementById('tabGalaxy');const gActive=gTab&&gTab.classList.contains('active');if(gActive&&allResults.length>0){if(galaxyAnimId){cancelAnimationFrame(galaxyAnimId);galaxyAnimId=null;}renderGalaxy();}});
 
 // ── Compare Feature (Persistent Cart) ──
 const compareSet=new Map(); // nctId -> {title, nctId}
@@ -7117,6 +7175,8 @@ function updateCmpBar(){
   list.innerHTML=[...compareSet.entries()].map(([id,d])=>{const drugStr=d.drug?` · ${escHtml(d.drug.split(', ')[0])}`:'';return`<span class="sel-tag"><span class="sel-tag-id">${id}</span><span class="sel-tag-title">${escHtml((d.title||'').substring(0,30))}${(d.title||'').length>30?'…':''}${drugStr}</span><span class="remove" onclick="removeCmp('${id}')">&times;</span></span>`;}).join('');
   btn.textContent=`Compare (${compareSet.size}/4)`;
   btn.disabled=compareSet.size<2;
+  const cmpBadge=document.getElementById('tabCompareBadge');
+  if(cmpBadge)cmpBadge.textContent=compareSet.size>0?compareSet.size:'';
   syncCheckboxes();
 }
 
@@ -8094,7 +8154,7 @@ function deleteTrialRow(idx){
   renderTable();
   const ce=document.getElementById('resultsCount');
   if(ce)ce.innerHTML=ce.innerHTML.replace(/Showing \d+/,'Showing '+allResults.length);
-  if(document.getElementById('galaxyViewToggle').checked)renderGalaxy();
+  const gTab=document.getElementById('tabGalaxy');if(gTab&&gTab.classList.contains('active'))renderGalaxy();
 }
 
 // ── Column Resize ──
