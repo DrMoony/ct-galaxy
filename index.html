@@ -3879,8 +3879,7 @@ async function batchFetchMoA(drugNames){
 
 /* ── helper: is this a real drug molecule? ── */
 /* Types that are actual therapeutic interventions */
-const THERAPEUTIC_TYPES=new Set(['DRUG','BIOLOGICAL','COMBINATION_PRODUCT']);
-/* Name-based exclusions (within therapeutic types) */
+/* Name-based exclusions (placebos, controls, non-therapeutic interventions) */
 const NON_DRUG_NAMES=['placebo','sham','normal saline','saline','standard of care','usual care',
   'no intervention','best supportive','observation','no treatment','watchful waiting',
   'laboratory biomarker','laboratory testing',"physician's choice",'investigator choice',
@@ -3888,11 +3887,11 @@ const NON_DRUG_NAMES=['placebo','sham','normal saline','saline','standard of car
 function isRealDrug(name,ivType){
   if(!name)return false;const lw=name.toLowerCase().trim();
   if(lw.length<2||lw.length>80)return false;
-  /* Whitelist: only DRUG, BIOLOGICAL, COMBINATION_PRODUCT */
-  if(ivType){
-    if(!THERAPEUTIC_TYPES.has(ivType))return false;
-  }
-  /* Name-based exclusion for things labeled DRUG/BIOLOGICAL but are actually controls */
+  /* Study-level drug filter is already applied by getFilteredStudies().
+     Here we only exclude non-drug interventions within drug studies
+     (e.g. a PROCEDURE arm inside a DRUG study) */
+  if(ivType&&(ivType==='PROCEDURE'||ivType==='DEVICE'||ivType==='BEHAVIORAL'||ivType==='RADIATION'))return false;
+  /* Name-based exclusion for controls */
   for(const w of NON_DRUG_NAMES){if(lw.includes(w))return false;}
   return true;
 }
