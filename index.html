@@ -13,6 +13,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgenjs.bundle.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -9024,7 +9027,9 @@ window.runQuickAI=async function(){
       costLine=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.8rem;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:.65rem;color:#64748b;flex-wrap:wrap;gap:4px"><span>${modelName} · In: ${tIn.toLocaleString()} · Out: ${tOut.toLocaleString()}</span><span style="font-weight:600;color:#059669">≈ $${costUSD.toFixed(4)} (₩${costKRW}) · 월10건 ≈ ₩${(costKRW*10).toLocaleString()}</span></div>`;
     }
     const safeAnalysis=typeof DOMPurify!=='undefined'?DOMPurify.sanitize(result.analysis,{ALLOWED_TAGS:['div','span','p','br','b','strong','i','em','ul','ol','li','h1','h2','h3','h4','h5','h6','table','thead','tbody','tr','th','td','hr','sup','sub','small','a','img'],ALLOWED_ATTR:['style','class','href','target','src','alt','title','colspan','rowspan'],ALLOW_DATA_ATTR:false}):escHtml(result.analysis);
-    reportDiv.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem"><span style="font-weight:700;color:#059669;font-size:.85rem">AI Competitive Analysis</span><button onclick="this.closest('#aiQuickReport').remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1rem">x</button></div>`+safeAnalysis+costLine;
+    const pptxLeft=_pptxRemaining();
+    const pptxBtn=pptxLeft>0?`<button onclick="exportReportPPTX()" style="background:#7c3aed;color:#fff;border:none;padding:.3rem .6rem;border-radius:4px;font-size:.65rem;cursor:pointer;font-weight:600">📊 PPTX <span style="font-size:.55rem;opacity:.7">(${pptxLeft}/3)</span></button>`:`<button disabled style="background:#4b5563;color:#9ca3af;border:none;padding:.3rem .6rem;border-radius:4px;font-size:.65rem;cursor:default;font-weight:600" title="Monthly PPTX limit reached (3/3)">📊 PPTX (0/3)</button>`;
+    reportDiv.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;gap:.4rem"><span style="font-weight:700;color:#059669;font-size:.85rem">AI Competitive Analysis</span><div style="display:flex;gap:.4rem;align-items:center"><button onclick="exportReportPDF()" style="background:#059669;color:#fff;border:none;padding:.3rem .6rem;border-radius:4px;font-size:.65rem;cursor:pointer;font-weight:600">📄 PDF</button>${pptxBtn}<button onclick="this.closest('#aiQuickReport').remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1rem">✕</button></div></div>`+safeAnalysis+costLine;
     const settingsBar=document.getElementById('aiSettingsBar');
     if(settingsBar){settingsBar.after(reportDiv);}
   }catch(e){
@@ -9033,6 +9038,132 @@ window.runQuickAI=async function(){
     statusEl.textContent='Error: '+e.message;statusEl.style.color='#ef4444';
   }finally{btn.disabled=false;btn.style.opacity='1';}
 };
+
+// ── PPTX monthly usage tracking ──
+let _pptxMonthlyUsed=JSON.parse(localStorage.getItem('pptx_monthly')||'{"month":0,"count":0}');
+function _pptxRemaining(){const now=new Date().getMonth()+1;if(_pptxMonthlyUsed.month!==now){_pptxMonthlyUsed={month:now,count:0};localStorage.setItem('pptx_monthly',JSON.stringify(_pptxMonthlyUsed));}return Math.max(0,3-_pptxMonthlyUsed.count);}
+function _pptxIncrement(){_pptxMonthlyUsed.count++;localStorage.setItem('pptx_monthly',JSON.stringify(_pptxMonthlyUsed));}
+
+// ── Export Compare Report as PDF ──
+async function exportReportPDF(){
+  const el=document.getElementById('aiQuickReport');
+  if(!el){alert('No report to export');return;}
+  try{
+    /* Build a printable clone with header/footer */
+    const clone=el.cloneNode(true);
+    /* Remove export buttons from clone */
+    clone.querySelectorAll('button').forEach(b=>b.remove());
+    const wrapper=document.createElement('div');
+    wrapper.style.cssText='position:fixed;top:-9999px;left:0;width:800px;padding:40px;background:#fff;font-family:Segoe UI,system-ui,sans-serif;color:#1a2b3c;font-size:14px;line-height:1.6';
+    /* Header with logo */
+    const header=document.createElement('div');
+    header.style.cssText='display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #00E47C;padding-bottom:12px;margin-bottom:20px';
+    header.innerHTML=`<div><span style="font-family:'Press Start 2P',monospace;font-size:14px;color:#002E3B;letter-spacing:1px">CLINICAL TRIAL GALAXY</span><br><span style="font-size:11px;color:#64748b">Competitive Intelligence Report</span></div><div style="text-align:right;font-size:10px;color:#94a3b8">${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</div>`;
+    wrapper.appendChild(header);
+    /* Report content */
+    wrapper.appendChild(clone);
+    /* AI Disclaimer footer */
+    const footer=document.createElement('div');
+    footer.style.cssText='margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;line-height:1.5';
+    footer.innerHTML=`<strong>AI Disclaimer:</strong> This report was generated by AI (Gemini) based on publicly available clinical trial data from ClinicalTrials.gov. It is intended for informational purposes only and does not constitute medical, regulatory, or investment advice. AI-generated content may contain inaccuracies. Always verify critical data against primary sources.<br><br><span style="color:#64748b">Generated by Clinical Trial Galaxy · drmoony.github.io/ct-galaxy · ${new Date().toISOString().slice(0,10)}</span>`;
+    wrapper.appendChild(footer);
+    document.body.appendChild(wrapper);
+    const canvas=await html2canvas(wrapper,{scale:2,useCORS:true,logging:false,width:800});
+    document.body.removeChild(wrapper);
+    const imgData=canvas.toDataURL('image/jpeg',0.92);
+    const pdf=new jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pdfW=pdf.internal.pageSize.getWidth();
+    const pdfH=pdf.internal.pageSize.getHeight();
+    const imgW=pdfW-20;
+    const imgH=(canvas.height*imgW)/canvas.width;
+    let yOff=10;
+    /* Multi-page support */
+    if(imgH<=pdfH-20){
+      pdf.addImage(imgData,'JPEG',10,yOff,imgW,imgH);
+    }else{
+      const pageH=pdfH-20;
+      let srcY=0;
+      const ratio=canvas.width/imgW;
+      while(srcY<canvas.height){
+        const sliceH=Math.min(pageH*ratio,canvas.height-srcY);
+        const sliceCanvas=document.createElement('canvas');
+        sliceCanvas.width=canvas.width;sliceCanvas.height=sliceH;
+        const ctx=sliceCanvas.getContext('2d');
+        ctx.drawImage(canvas,0,srcY,canvas.width,sliceH,0,0,canvas.width,sliceH);
+        pdf.addImage(sliceCanvas.toDataURL('image/jpeg',0.92),'JPEG',10,10,imgW,sliceH/ratio);
+        srcY+=sliceH;
+        if(srcY<canvas.height)pdf.addPage();
+      }
+    }
+    const nctIds=(window._cmpStudiesRaw||[]).map(s=>(s.protocolSection?.identificationModule?.nctId||'').substring(3,11)).join('_');
+    pdf.save(`CTGalaxy_Report_${nctIds||'compare'}_${new Date().toISOString().slice(0,10)}.pdf`);
+  }catch(e){alert('PDF export failed: '+e.message);console.error(e);}
+}
+
+// ── Export Compare Report as PPTX ──
+async function exportReportPPTX(){
+  if(_pptxRemaining()<=0){alert('Monthly PPTX limit reached (3/3). Resets next month.');return;}
+  const el=document.getElementById('aiQuickReport');
+  if(!el){alert('No report to export');return;}
+  try{
+    const pptx=new PptxGenJS();
+    pptx.layout='LAYOUT_WIDE';
+    pptx.author='Clinical Trial Galaxy';
+    pptx.subject='AI Competitive Analysis';
+    /* Color scheme */
+    const MINT='00E47C',DARK='002E3B',WHITE='FFFFFF',GRAY='64748B';
+    /* Title slide */
+    const s1=pptx.addSlide();
+    s1.background={fill:DARK};
+    s1.addText('CLINICAL TRIAL GALAXY',{x:.8,y:1.5,w:8,h:.8,fontSize:28,fontFace:'Arial',color:MINT,bold:true});
+    s1.addText('AI Competitive Analysis Report',{x:.8,y:2.3,w:8,h:.5,fontSize:16,fontFace:'Arial',color:WHITE});
+    const nctIds=(window._cmpStudiesRaw||[]).map(s=>s.protocolSection?.identificationModule?.nctId||'').filter(Boolean);
+    const drugNames=(window._cmpStudiesRaw||[]).map(s=>{const ivs=(s.protocolSection?.armsInterventionsModule?.interventions||[]);return ivs.filter(iv=>iv.name&&!iv.name.toLowerCase().includes('placebo')).map(iv=>iv.name).join(', ');}).filter(Boolean);
+    s1.addText(drugNames.join(' vs '),{x:.8,y:3.0,w:8,h:.5,fontSize:14,fontFace:'Arial',color:MINT,bold:true});
+    s1.addText(nctIds.join(' · '),{x:.8,y:3.5,w:8,h:.4,fontSize:10,fontFace:'Arial',color:GRAY});
+    s1.addText(new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),{x:.8,y:4.2,w:8,h:.3,fontSize:10,fontFace:'Arial',color:GRAY});
+    /* Parse report sections from HTML */
+    const sections=el.querySelectorAll('h3');
+    sections.forEach((h3,idx)=>{
+      const slide=pptx.addSlide();
+      slide.background={fill:WHITE};
+      /* Green header bar */
+      slide.addShape(pptx.ShapeType.rect,{x:0,y:0,w:'100%',h:.6,fill:{color:DARK}});
+      slide.addText('CLINICAL TRIAL GALAXY',{x:.3,y:.1,w:4,h:.4,fontSize:10,fontFace:'Arial',color:MINT,bold:true});
+      slide.addText(`${idx+1}/${sections.length}`,{x:11,y:.1,w:1.5,h:.4,fontSize:9,fontFace:'Arial',color:GRAY,align:'right'});
+      /* Section title */
+      const titleText=h3.textContent||`Section ${idx+1}`;
+      slide.addText(titleText,{x:.5,y:.8,w:12,h:.5,fontSize:18,fontFace:'Arial',color:DARK,bold:true});
+      /* Section content — collect text until next h3 */
+      let content='';
+      let node=h3.nextElementSibling;
+      while(node&&node.tagName!=='H3'){
+        content+=(node.innerText||node.textContent||'')+'\n';
+        node=node.nextElementSibling;
+      }
+      content=content.trim().substring(0,2500);/* limit per slide */
+      if(content){
+        slide.addText(content,{x:.5,y:1.5,w:12,h:5.5,fontSize:10,fontFace:'Arial',color:'333333',valign:'top',wrap:true,lineSpacingMultiple:1.3});
+      }
+    });
+    /* Disclaimer slide */
+    const dSlide=pptx.addSlide();
+    dSlide.background={fill:DARK};
+    dSlide.addText('AI Disclaimer',{x:.8,y:1,w:8,h:.6,fontSize:20,fontFace:'Arial',color:MINT,bold:true});
+    dSlide.addText('This report was generated by AI (Gemini) based on publicly available clinical trial data from ClinicalTrials.gov. It is intended for informational purposes only and does not constitute medical, regulatory, or investment advice. AI-generated content may contain inaccuracies. Always verify critical data against primary sources.',{x:.8,y:2,w:11,h:2,fontSize:12,fontFace:'Arial',color:WHITE,wrap:true,lineSpacingMultiple:1.5});
+    dSlide.addText('Generated by Clinical Trial Galaxy\ndrmoony.github.io/ct-galaxy\n'+new Date().toISOString().slice(0,10),{x:.8,y:4.5,w:8,h:1,fontSize:10,fontFace:'Arial',color:GRAY});
+    const fileName=`CTGalaxy_Report_${drugNames[0]||'compare'}_${new Date().toISOString().slice(0,10)}`;
+    await pptx.writeFile({fileName});
+    _pptxIncrement();
+    /* Update button */
+    const remaining=_pptxRemaining();
+    const pptxBtns=el.querySelectorAll('button');
+    pptxBtns.forEach(b=>{if(b.textContent.includes('PPTX')){
+      if(remaining<=0){b.disabled=true;b.style.background='#4b5563';b.style.color='#9ca3af';b.innerHTML='📊 PPTX (0/3)';}
+      else{b.innerHTML=`📊 PPTX <span style="font-size:.55rem;opacity:.7">(${remaining}/3)</span>`;}
+    }});
+  }catch(e){alert('PPTX export failed: '+e.message);console.error(e);}
+}
 
 // ── Activity Logging ──
 window._logActivity=async function(type,detail){
