@@ -8925,6 +8925,10 @@ window.pushAlertNow=async function(idx){
 let _aiMonthlyUsed=JSON.parse(localStorage.getItem('ai_monthly')||'{"month":0,"count":0}');
 function _aiCanUse(){const now=new Date().getMonth()+1;if(_aiMonthlyUsed.month!==now){_aiMonthlyUsed={month:now,count:0};localStorage.setItem('ai_monthly',JSON.stringify(_aiMonthlyUsed));}return _aiMonthlyUsed.count<10;}
 function _aiIncrement(){_aiMonthlyUsed.count++;localStorage.setItem('ai_monthly',JSON.stringify(_aiMonthlyUsed));}
+let _qcMonthlyUsed=JSON.parse(localStorage.getItem('qc_monthly')||'{"month":0,"count":0}');
+function _qcCanUse(){const now=new Date().getMonth()+1;if(_qcMonthlyUsed.month!==now){_qcMonthlyUsed={month:now,count:0};localStorage.setItem('qc_monthly',JSON.stringify(_qcMonthlyUsed));}return _qcMonthlyUsed.count<20;}
+function _qcIncrement(){_qcMonthlyUsed.count++;localStorage.setItem('qc_monthly',JSON.stringify(_qcMonthlyUsed));}
+function _qcRemaining(){_qcCanUse();return Math.max(0,20-_qcMonthlyUsed.count);}
 
 window._aiLang='en';
 window._setAILang=function(lang,el){
@@ -9047,6 +9051,7 @@ window.runQuickCompare=async function(){
   const statusEl=document.getElementById('aiQuickStatus');
   if(!btn||!statusEl)return;
   if(!_currentUser){statusEl.textContent='Please sign in first';statusEl.style.color='#f59e0b';return;}
+  if(!_isMaster()&&!_qcCanUse()){statusEl.textContent='Monthly Quick Compare limit reached (20/20)';statusEl.style.color='#ef4444';return;}
   const studies=window._cmpStudiesRaw;
   if(!studies||studies.length<2){statusEl.textContent='Need at least 2 trials to compare';statusEl.style.color='#f59e0b';return;}
   btn.disabled=true;btn.style.opacity='.6';
@@ -9065,7 +9070,9 @@ window.runQuickCompare=async function(){
     const jsonStr=(result.data||'').replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
     const data=JSON.parse(jsonStr);
     const elapsed=Math.round((Date.now()-startTime)/1000);
-    statusEl.innerHTML=`<span style="color:#3b82f6;font-size:.72rem">Quick Compare done (${elapsed}s)</span>`;
+    _qcIncrement();
+    const qcLeft=_qcRemaining();
+    statusEl.innerHTML=`<span style="color:#3b82f6;font-size:.72rem">Quick Compare done (${elapsed}s)${_isMaster()?'':' · '+qcLeft+'/20 left'}</span>`;
 
     // Remove existing report if any
     const existing=document.getElementById('aiQuickReport');
