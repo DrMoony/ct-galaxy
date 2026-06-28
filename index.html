@@ -1025,6 +1025,13 @@ th .col-hide-btn{float:right;margin-top:1px}
       <input type="checkbox" id="galaxyViewToggle" checked style="display:none">
     </div>
     <p class="hint">Enter a condition name to search. Abbreviations (MASH, NSCLC, etc.) auto-expand to related terms. Click a row for details.</p>
+    <div id="searchHistoryBar" style="display:none;margin-top:.5rem;padding:.4rem .6rem;background:rgba(0,46,59,.05);border:1px solid var(--border);border-radius:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
+        <span style="font-size:.7rem;color:var(--text-light);font-weight:600">Recent Searches</span>
+        <button onclick="clearSearchHistory()" style="font-size:.6rem;color:var(--text-light);background:none;border:none;cursor:pointer;text-decoration:underline">Clear</button>
+      </div>
+      <div id="searchHistoryList" style="display:flex;gap:.3rem;flex-wrap:wrap"></div>
+    </div>
   </div>
 
   <div class="synonym-info" id="synonymInfo"></div>
@@ -1059,7 +1066,7 @@ th .col-hide-btn{float:right;margin-top:1px}
             <span class="gsb-label" title="Analytics dashboards generated from the current results">ANALYZE</span>
             <button class="galaxy-sort-btn" data-sort="trends" onclick="setGalaxySort('trends',this)" title="Timeline chart showing when trials started over time. Reveals acceleration or slowdown in clinical development.">TIME WARP<span class="gsb-sub">Timeline</span></button>
             <button class="galaxy-sort-btn" data-sort="enrollment" onclick="setGalaxySort('enrollment',this)" title="Enrollment analytics: total participants, trials by phase, top countries by trial count & sites, and global/regional site rankings.">HEADCOUNT<span class="gsb-sub">Enrollment</span></button>
-            <button class="galaxy-sort-btn" data-sort="failure" onclick="setGalaxySort('failure',this)" title="Termination & failure analysis by phase. Shows completion vs termination rates, top termination reasons, and withdrawn/suspended trials.">GRAVEYARD<span class="gsb-sub">Failures</span></button>
+            <button class="galaxy-sort-btn" data-sort="failure" onclick="setGalaxySort('failure',this)" title="Trial completion and discontinuation analysis">OUTCOMES<span class="gsb-sub">Completion</span></button>
             <button class="galaxy-sort-btn" data-sort="funnel" onclick="setGalaxySort('funnel',this)" title="Phase transition funnel: how many trials survive from Phase 1 → 2 → 3. Shows attrition rate at each stage.">SURVIVAL FUNNEL<span class="gsb-sub">Phase Funnel</span></button>
             <button class="galaxy-sort-btn" data-sort="studytype" onclick="setGalaxySort('studytype',this)" title="Breakdown by study type: Interventional vs Observational, randomization, blinding, and primary purpose categories.">STUDY TYPE<span class="gsb-sub">Design</span></button>
           </div>
@@ -1070,11 +1077,11 @@ th .col-hide-btn{float:right;margin-top:1px}
         </div>
         <span class="hint-text">Click body → Details</span>
         <div class="galaxy-filters">
-          <select id="galaxyStatusFilter" onchange="renderGalaxy()" style="font-size:.7rem;padding:2px 6px;background:var(--dark);color:var(--mint);border:1px solid var(--mint);border-radius:3px;cursor:pointer">
+          <select id="galaxyStatusFilter" onchange="updateGalaxyFilterBadge();renderGalaxy()" style="font-size:.7rem;padding:2px 6px;background:var(--dark);color:var(--mint);border:1px solid var(--mint);border-radius:3px;cursor:pointer">
             <option value="all">All Status</option>
             <option value="ongoing" selected>Ongoing Only</option>
           </select>
-          <select id="galaxyTimeFilter" onchange="renderGalaxy()" style="font-size:.7rem;padding:2px 6px;background:var(--dark);color:var(--mint);border:1px solid var(--mint);border-radius:3px;cursor:pointer">
+          <select id="galaxyTimeFilter" onchange="updateGalaxyFilterBadge();renderGalaxy()" style="font-size:.7rem;padding:2px 6px;background:var(--dark);color:var(--mint);border:1px solid var(--mint);border-radius:3px;cursor:pointer">
             <option value="0">Any Update</option>
             <option value="0.038">Updated ≤ 2wk</option>
             <option value="0.083">Updated ≤ 1mo</option>
@@ -1087,6 +1094,10 @@ th .col-hide-btn{float:right;margin-top:1px}
           </select>
           <span style="font-size:.6rem;color:rgba(0,228,124,.6);font-family:'Press Start 2P',monospace;letter-spacing:.5px;padding:2px 8px;border:1px solid rgba(0,228,124,.2);border-radius:3px">💊 DRUG STUDIES</span>
           <span id="galaxyFilterCount" style="font-size:.72rem;color:rgba(255,255,255,.7);margin-left:4px"></span>
+        </div>
+        <div id="galaxyFilterBadge" style="display:none;font-size:.68rem;color:#f59e0b;padding:4px 10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:4px;align-items:center;gap:6px;flex-wrap:wrap">
+          <span id="galaxyFilterText">Filtered</span>
+          <button onclick="resetGalaxyFilters()" style="background:none;border:1px solid rgba(245,158,11,.4);color:#f59e0b;padding:1px 6px;border-radius:3px;font-size:.6rem;cursor:pointer">Show All</button>
         </div>
       </div>
       <div class="galaxy-canvas-wrap" id="galaxyCanvasWrap">
@@ -1133,7 +1144,7 @@ th .col-hide-btn{float:right;margin-top:1px}
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th style="width:36px;cursor:default">CMP</th>
+          <th style="width:36px;cursor:default" title="Select trials to compare (max 4)">⚖️</th>
           <th onclick="sortBy('category')" class="col-resizable" data-col="type" style="min-width:65px">Type<span class="col-hide-btn" onclick="event.stopPropagation();hideCol('type')" title="Hide column">✕</span></th>
           <th onclick="sortBy('nctId')" class="col-resizable" data-col="nctId">NCT ID</th>
           <th onclick="sortBy('title')" class="col-resizable" data-col="title">Title</th>
@@ -1156,7 +1167,15 @@ th .col-hide-btn{float:right;margin-top:1px}
     <!-- Compare Tab Panel (inline) -->
     <div class="tab-panel" id="tabCompare">
       <div id="tabCompareBody" style="padding:1rem;background:#fff;border-radius:4px;border:2px solid var(--dark);margin-top:.5rem">
-        <p style="color:var(--text-light);font-size:.8rem;text-align:center;padding:2rem 0">Select 2-4 trials using checkboxes, then switch to this tab to compare them side by side.</p>
+        <div id="compareEmptyState" style="text-align:center;padding:3rem 1rem;color:rgba(255,255,255,.6)">
+          <div style="font-size:2rem;margin-bottom:.8rem">⚖️</div>
+          <div style="font-size:.9rem;font-weight:600;color:#e2e8f0;margin-bottom:1rem">Trial Comparison</div>
+          <div style="font-size:.78rem;line-height:1.8;max-width:400px;margin:0 auto">
+            <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:.5rem"><span style="background:var(--mint);color:var(--dark);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700">1</span> Search for trials in the LIST tab</div>
+            <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:.5rem"><span style="background:var(--mint);color:var(--dark);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700">2</span> Check ⚖️ on 2-4 trials to compare</div>
+            <div style="display:flex;align-items:center;gap:8px;justify-content:center"><span style="background:var(--mint);color:var(--dark);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700">3</span> Click Compare in the bottom bar</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -2125,6 +2144,14 @@ async function searchTrials(pageToken){
   const status=statuses.join(','); /* backward compat: comma-separated for API */
   if(!condRaw&&!intrRaw&&!termRaw){showError('Please enter at least one search term.');return;}
 
+  /* Direct NCT ID lookup */
+  const allInputs = [condRaw, intrRaw, termRaw].join(' ');
+  const nctMatch = allInputs.match(/NCT\d{8}/i);
+  if (nctMatch && !pageToken) {
+    openDetailByNctId(nctMatch[0].toUpperCase());
+    return;
+  }
+
   /* Cancel any background galaxy fetch */
   if(_galaxyFetchAbort){_galaxyFetchAbort.abort();_galaxyFetchAbort=null;}
   if(_galaxyPhaseAbort){_galaxyPhaseAbort.abort();_galaxyPhaseAbort=null;}_galaxyAllPhaseStudies=null;
@@ -2156,6 +2183,15 @@ async function searchTrials(pageToken){
   if(country)advParts.push(`AREA[LocationCountry]${country}`);
   if(advParts.length>0)params.set('filter.advanced',advParts.join(' AND '));
   if(pageToken)params.set('pageToken',pageToken);
+  if(!pageToken){
+    const searchEntry={cond:condRaw,intr:intrRaw,term:termRaw,country,phases,ts:Date.now()};
+    let history=JSON.parse(localStorage.getItem('ct_search_history')||'[]');
+    history=history.filter(h=>!(h.cond===condRaw&&h.intr===intrRaw&&h.term===termRaw));
+    history.unshift(searchEntry);
+    if(history.length>10)history=history.slice(0,10);
+    localStorage.setItem('ct_search_history',JSON.stringify(history));
+    renderSearchHistory();
+  }
   try{
     const resp=await fetch(`https://clinicaltrials.gov/api/v2/studies?${params.toString()}`);if(!resp.ok)throw new Error(`API Error: ${resp.status}`);const data=await resp.json();
     let studies=data.studies||[];const totalCount=data.totalCount||0,nextPageToken=data.nextPageToken||null;
@@ -2405,6 +2441,8 @@ function switchResultTab(tabId,btn){
 async function loadInlineCompare(){
   const body=document.getElementById('tabCompareBody');
   if(!body||compareSet.size<2)return;
+  const emptyState = document.getElementById('compareEmptyState');
+  if (emptyState) emptyState.style.display = 'none';
   body.innerHTML='<div class="modal-loading"><div class="spinner"></div><p>Loading comparison data...</p></div>';
   const ids=[...compareSet.keys()];
   try{
@@ -3066,7 +3104,7 @@ function openGalaxyFullscreen(){
     {key:'country',label:'WORLD MAP'},
     {key:'trends',label:'TIME WARP'},
     {key:'enrollment',label:'HEADCOUNT'},
-    {key:'failure',label:'GRAVEYARD'},
+    {key:'failure',label:'OUTCOMES'},
     {key:'funnel',label:'FUNNEL'},
     {key:'studytype',label:'STUDY TYPE'},
     {key:'sitescout',label:'SITE SCOUT'}
@@ -4355,7 +4393,26 @@ function placeNonOverlap(bodies,W,H){
   });
 }
 
+function resetGalaxyFilters(){
+  document.getElementById('galaxyStatusFilter').value='all';
+  document.getElementById('galaxyTimeFilter').value='0';
+  updateGalaxyFilterBadge();
+  renderGalaxy();
+}
+function updateGalaxyFilterBadge(){
+  const status=document.getElementById('galaxyStatusFilter')?.value||'all';
+  const time=document.getElementById('galaxyTimeFilter')?.value||'0';
+  const badge=document.getElementById('galaxyFilterBadge');
+  if(!badge)return;
+  if(status==='all'&&time==='0'){badge.style.display='none';return;}
+  const parts=[];
+  if(status!=='all')parts.push(status==='ongoing'?'Ongoing only':'Status: '+status);
+  if(time!=='0')parts.push('Updated \u2264 '+({'0.038':'2wk','0.083':'1mo','0.25':'3mo','0.5':'6mo','1':'1yr','3':'3yr','5':'5yr','10':'10yr'}[time]||time));
+  document.getElementById('galaxyFilterText').textContent='\u26a0 Filtered: '+parts.join(' + ');
+  badge.style.display='flex';
+}
 function renderGalaxy(){
+  updateGalaxyFilterBadge();
   const wrap=document.getElementById('galaxyWrap');
   const mBtn=document.getElementById('galaxyMobileBtn');
   if(!_galaxyFullscreenActive){
@@ -6459,7 +6516,7 @@ function renderFailureChart(el,studies){
     const psKey=pk+'_'+sk;if(!phaseStatusStudies.has(psKey))phaseStatusStudies.set(psKey,[]);phaseStatusStudies.get(psKey).push(s);
   });
   window._gvPhaseStudies=phaseStudies;window._gvPSStudies=phaseStatusStudies;window._gvTermReasonStudies=termReasonStudies;
-  let html=`<div class="ga-title">💀 GRAVEYARD</div><div class="ga-subtitle">Trial completion vs termination/withdrawal by phase</div>`;
+  let html=`<div class="ga-title">\ud83d\udcca OUTCOMES</div><div class="ga-subtitle">Trial completion & discontinuation by phase</div>`;
   /* Phase funnel */
   const phaseLabels=[['p1','Phase 1','#45B7D1'],['p2','Phase 2','#FFD700'],['p3','Phase 3','#FF6B6B'],['p4','Phase 4','#A855F7']];
   html+=`<div class="ga-chart"><div style="font-size:.7rem;color:var(--mint);margin-bottom:.6rem;font-weight:700">Status Breakdown by Phase</div>`;
@@ -7153,7 +7210,7 @@ loadCart(); /* restore on page load */
 function toggleCompare(cb){
   const nctId=cb.dataset.nct, idx=+cb.dataset.idx;
   if(cb.checked){
-    if(compareSet.size>=4){cb.checked=false;alert('Maximum 4 trials can be compared.');return;}
+    if(compareSet.size>=4){cb.checked=false;showAlertToast('Maximum 4 trials can be compared.');return;}
     const r=allResults[idx]||{};
     compareSet.set(nctId,{title:r.title||'',drug:r.drug||'',nctId});
   }else{compareSet.delete(nctId);}
@@ -7163,7 +7220,7 @@ function toggleCompare(cb){
 /* Add from anywhere (Galaxy, detail modal, etc.) */
 function addToCart(nctId,title,drug){
   if(compareSet.has(nctId)){compareSet.delete(nctId);saveCart();updateCmpBar();syncCheckboxes();return;}
-  if(compareSet.size>=4){alert('Maximum 4 trials can be compared.');return;}
+  if(compareSet.size>=4){showAlertToast('Maximum 4 trials can be compared.');return;}
   compareSet.set(nctId,{title:title||'',drug:drug||'',nctId});
   saveCart();updateCmpBar();syncCheckboxes();
 }
@@ -9634,6 +9691,39 @@ const saved=localStorage.getItem('ct-galaxy-ci-theme');
 if(saved){try{const t=JSON.parse(saved);applyTheme(t.p,t.s);}catch(e){applyTheme(saved);}}
 
 })();
+
+function renderSearchHistory(){
+  const history=JSON.parse(localStorage.getItem('ct_search_history')||'[]');
+  const bar=document.getElementById('searchHistoryBar');
+  const list=document.getElementById('searchHistoryList');
+  if(!bar||!list)return;
+  if(history.length===0){bar.style.display='none';return;}
+  bar.style.display='block';
+  list.innerHTML=history.slice(0,8).map(h=>{
+    const label=[h.cond,h.intr,h.term].filter(Boolean).join(' + ')||'empty search';
+    const countryTag=h.country?' \u00b7 '+h.country.split(',')[0]:'';
+    const phaseTag=h.phases&&h.phases.length?' \u00b7 P'+h.phases.map(p=>p.replace(/[^0-9]/g,'')).join('/'):'';
+    return '<button onclick="replaySearch('+escHtml(JSON.stringify(JSON.stringify(h)))+')" style="background:rgba(0,228,124,.06);border:1px solid rgba(0,228,124,.2);color:var(--dark);padding:.25rem .5rem;border-radius:4px;font-size:.68rem;cursor:pointer;white-space:nowrap">'+escHtml(label)+countryTag+phaseTag+'</button>';
+  }).join('');
+}
+function replaySearch(jsonStr){
+  const h=JSON.parse(jsonStr);
+  document.getElementById('inputCond').value=h.cond||'';
+  document.getElementById('inputIntr').value=h.intr||'';
+  document.getElementById('inputTerm').value=h.term||'';
+  if(h.country){
+    const sel=document.getElementById('filterCountry');
+    if([...sel.options].some(o=>o.value===h.country)){sel.value=h.country;}
+    else{sel.value='__custom__';document.getElementById('customCountry').style.display='';document.getElementById('customCountry').value=h.country;}
+  }
+  searchTrials();
+}
+function clearSearchHistory(){
+  localStorage.removeItem('ct_search_history');
+  renderSearchHistory();
+}
+/* Init search history on page load */
+renderSearchHistory();
 </script>
 
 <!-- Alert Confirmation Modal -->
