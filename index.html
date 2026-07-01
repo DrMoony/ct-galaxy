@@ -4378,7 +4378,9 @@ function buildGalaxyBodies(){
 
 /* ── Collision-free placement with spatial grid ── */
 function placeNonOverlap(bodies,W,H){
-  const PAD=4,cx=W/2,cy=H/2;
+  /* Gap scales with bubble size so spacing stays clean at any count */
+  const avgBR=bodies.length?bodies.reduce((s,b)=>s+b.r,0)/bodies.length:10;
+  const PAD=Math.max(6,Math.min(avgBR*0.35,28)),cx=W/2,cy=H/2;
   /* Spatial grid for O(1) neighbor lookup */
   const CELL=80;
   const cols=Math.ceil(W*3/CELL),rows=Math.ceil(H*3/CELL);
@@ -4468,10 +4470,15 @@ function renderGalaxy(){
   const ctx=canvas.getContext('2d');
   const mode=galaxySortMode;
 
-  /* Size bodies — auto-scale radius based on total count */
+  /* Size bodies — area-based responsive scaling.
+     Bubbles fill a target fraction of the canvas, so few items -> large,
+     many items -> small. Always proportional to the available space. */
   const n=data.length;
-  const minR=n>200?8:n>100?10:n>50?14:n>30?16:20;
-  const maxR=n>200?24:n>100?32:n>50?42:n>30?52:65;
+  const fillFrac=n<=12?0.42:n<=30?0.36:n<=60?0.30:n<=120?0.24:0.20;
+  const avgR=Math.sqrt((fillFrac*gW*gH)/(n*Math.PI));
+  const dimCap=Math.min(gW,gH);
+  const maxR=Math.min(avgR*2.1,dimCap*0.30);
+  const minR=Math.max(Math.min(avgR*0.5,maxR*0.55),9);
   let sizeKey='totalEnroll';
   if(mode==='country')sizeKey='trialCount';
   if(mode==='phase')sizeKey='count';
@@ -4632,11 +4639,11 @@ function renderGalaxy(){
       const pulseR=dense?b.baseR:b.baseR+Math.sin(time*1.5+b.pulse)*1.5;
       b.r=pulseR;
 
-      /* Outer atmosphere glow */
+      /* Outer atmosphere glow — kept tight so neighbouring bodies stay distinct */
       if(!dense||pulseR>14){
-        const atmoR=pulseR*2.8;
-        const atmo=ctx.createRadialGradient(b.x,b.y,pulseR*.6,b.x,b.y,atmoR);
-        atmo.addColorStop(0,b.color+'18');atmo.addColorStop(.5,b.color+'08');atmo.addColorStop(1,'transparent');
+        const atmoR=pulseR*1.32;
+        const atmo=ctx.createRadialGradient(b.x,b.y,pulseR*.88,b.x,b.y,atmoR);
+        atmo.addColorStop(0,b.color+'24');atmo.addColorStop(1,'transparent');
         ctx.fillStyle=atmo;ctx.beginPath();ctx.arc(b.x,b.y,atmoR,0,Math.PI*2);ctx.fill();
       }
 
@@ -4746,18 +4753,20 @@ function renderGalaxy(){
           ctx.fillStyle='#fff';ctx.fillText(nm,sx,sy);
         });
       } else {
-        /* ── Stellar body with concentric atmosphere ── */
-        /* Outer shell */
-        ctx.fillStyle=b.color+'66';ctx.beginPath();ctx.arc(b.x,b.y,pulseR,0,Math.PI*2);ctx.fill();
-        /* Surface ring */
-        if(!dense||pulseR>10){
-          ctx.strokeStyle=b.color+'30';ctx.lineWidth=.8;ctx.beginPath();ctx.arc(b.x,b.y,pulseR*.82,0,Math.PI*2);ctx.stroke();
-          ctx.fillStyle=b.color+'AA';ctx.beginPath();ctx.arc(b.x,b.y,pulseR*.62,0,Math.PI*2);ctx.fill();
+        /* ── Stellar body: opaque sphere with a crisp rim so adjacent bodies stay distinct ── */
+        /* Solid body — radial shading for a 3D sphere look */
+        const bodyGrd=ctx.createRadialGradient(b.x-pulseR*.32,b.y-pulseR*.32,pulseR*.1,b.x,b.y,pulseR);
+        bodyGrd.addColorStop(0,b.color+'FF');bodyGrd.addColorStop(.65,b.color+'F0');bodyGrd.addColorStop(1,b.color+'CC');
+        ctx.fillStyle=bodyGrd;ctx.beginPath();ctx.arc(b.x,b.y,pulseR,0,Math.PI*2);ctx.fill();
+        /* Crisp white rim — clear boundary even when colours are similar */
+        ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=Math.max(1.5,pulseR*.025);
+        ctx.beginPath();ctx.arc(b.x,b.y,pulseR,0,Math.PI*2);ctx.stroke();
+        /* Specular highlight (top-left) for depth */
+        if(!dense||pulseR>12){
+          const hl=ctx.createRadialGradient(b.x-pulseR*.35,b.y-pulseR*.35,0,b.x-pulseR*.2,b.y-pulseR*.2,pulseR*.72);
+          hl.addColorStop(0,'rgba(255,255,255,.4)');hl.addColorStop(1,'rgba(255,255,255,0)');
+          ctx.fillStyle=hl;ctx.beginPath();ctx.arc(b.x,b.y,pulseR*.9,0,Math.PI*2);ctx.fill();
         }
-        /* Core */
-        const coreGrd=ctx.createRadialGradient(b.x-pulseR*.15,b.y-pulseR*.15,0,b.x,b.y,pulseR*.35);
-        coreGrd.addColorStop(0,'#ffffffDD');coreGrd.addColorStop(.5,b.color+'EE');coreGrd.addColorStop(1,b.color+'CC');
-        ctx.fillStyle=coreGrd;ctx.beginPath();ctx.arc(b.x,b.y,pulseR*.32,0,Math.PI*2);ctx.fill();
       }
 
       /* Hover ring — double ring with glow */
