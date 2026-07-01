@@ -8326,16 +8326,24 @@ window.toggleAuthMode=function(){
 
 window.handleAuthSubmit=async function(){
   const email=document.getElementById('authEmailInput').value.trim();
+  const pw=document.getElementById('authPwInput')?.value||'';
   if(!email||!email.includes('@')){showAuthMsg('Please enter a valid email.','error');return;}
   const btn=document.getElementById('authSubmitBtn');
-  btn.disabled=true;btn.textContent='SENDING...';
+  btn.disabled=true;btn.textContent=pw?'SIGNING IN...':'SENDING...';
   try{
-    const redirectUrl=window.location.href.split('?')[0].split('#')[0];
-    const{error}=await _sb.auth.signInWithOtp({email,options:{emailRedirectTo:redirectUrl}});
-    if(error)throw error;
-    showAuthMsg('Magic link sent! Check your email inbox.','success');
+    if(pw){
+      /* Password login (no magic link needed) */
+      const{error}=await _sb.auth.signInWithPassword({email,password:pw});
+      if(error)throw error;
+      showAuthMsg('Signed in!','success');
+    }else{
+      const redirectUrl=window.location.href.split('?')[0].split('#')[0];
+      const{error}=await _sb.auth.signInWithOtp({email,options:{emailRedirectTo:redirectUrl}});
+      if(error)throw error;
+      showAuthMsg('Magic link sent! Check your email inbox.','success');
+    }
   }catch(err){showAuthMsg('Error: '+err.message,'error');}
-  finally{btn.disabled=false;btn.textContent='SEND MAGIC LINK';}
+  finally{btn.disabled=false;btn.textContent='SIGN IN';}
 };
 
 function showAuthMsg(msg,type){
@@ -8344,6 +8352,9 @@ function showAuthMsg(msg,type){
 }
 
 document.getElementById('authEmailInput')?.addEventListener('keydown',e=>{
+  if(e.key==='Enter')handleAuthSubmit();
+});
+document.getElementById('authPwInput')?.addEventListener('keydown',e=>{
   if(e.key==='Enter')handleAuthSubmit();
 });
 
@@ -9818,12 +9829,16 @@ renderSearchHistory();
 <div class="auth-modal-overlay" id="authModalOverlay" onclick="if(event.target===this)hideAuthModal()">
   <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
     <h3 id="authModalTitle">SIGN IN</h3>
-    <p style="font-size:.75rem;color:var(--text-light);margin-bottom:1rem;line-height:1.6">We'll send a one-time login link to your email. No password needed.<br><span style="color:var(--danger);font-weight:600">Please double-check your email address</span> — the link can only be re-sent after 60 seconds.</p>
+    <p style="font-size:.75rem;color:var(--text-light);margin-bottom:1rem;line-height:1.6">Enter your email to get a one-time login link, or sign in directly with a password if you have one.<br><span style="color:var(--danger);font-weight:600">Please double-check your email address</span> — the link can only be re-sent after 60 seconds.</p>
     <div class="field">
       <label for="authEmailInput">Email</label>
       <input type="email" id="authEmailInput" placeholder="your@email.com">
     </div>
-    <button class="auth-submit" id="authSubmitBtn" onclick="handleAuthSubmit()">SEND MAGIC LINK</button>
+    <div class="field">
+      <label for="authPwInput">Password <span style="color:var(--text-light);font-weight:400">(optional — leave blank for magic link)</span></label>
+      <input type="password" id="authPwInput" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="auth-submit" id="authSubmitBtn" onclick="handleAuthSubmit()">SIGN IN</button>
     <div class="auth-msg" id="authMsg"></div>
     <div class="auth-footer">
       <span id="authToggleText">No account? </span>

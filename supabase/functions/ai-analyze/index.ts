@@ -56,6 +56,34 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Server-side monthly usage limit (master account exempt)
+    const MASTER_EMAIL = "mftsky@gmail.com";
+    if (user.email !== MASTER_EMAIL) {
+      const d = new Date();
+      const month = d.getUTCFullYear() * 100 + d.getUTCMonth() + 1;
+      const isQuick = mode === "quick";
+      const { data: newCount, error: usageError } = await supabase.rpc("ai_usage_try", {
+        p_user: user.id,
+        p_month: month,
+        p_mode: isQuick ? "quick" : "deep",
+        p_limit: isQuick ? 20 : 10,
+      });
+      if (usageError) {
+        return new Response(JSON.stringify({ error: "Usage check failed" }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (newCount === null) {
+        return new Response(JSON.stringify({
+          error: isQuick
+            ? "Monthly Quick Compare limit reached (20/20)"
+            : "Monthly Deep Analysis limit reached (10/10)",
+        }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // Build comprehensive trial summary
     const trialSummaries = trials.slice(0, 4).map((t: any, i: number) => {
       const p = t.protocolSection || {};
