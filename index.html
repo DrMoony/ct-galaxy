@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js" integrity="sha512-Y1p/STLW/B+l+MPJ5K5OdILMwJa2gMFXXmC/qsyDuGH9uc1MZMUo6/8YQUg9Ut4ns8KGCrCtt+58UwmNFFiVvA==" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgenjs.bundle.js"></script>
@@ -2205,7 +2205,7 @@ async function searchTrials(pageToken){
   if(pageToken)params.set('pageToken',pageToken);
   if(!pageToken){
     const searchEntry={cond:condRaw,intr:intrRaw,term:termRaw,country,phases,ts:Date.now()};
-    let history=JSON.parse(localStorage.getItem('ct_search_history')||'[]');
+    let history=_lsJSON('ct_search_history',[]);
     history=history.filter(h=>!(h.cond===condRaw&&h.intr===intrRaw&&h.term===termRaw));
     history.unshift(searchEntry);
     if(history.length>10)history=history.slice(0,10);
@@ -2485,6 +2485,8 @@ function renderTable(){document.getElementById('resultsBody').innerHTML=allResul
 function renderPagination(next,cur){const a=document.getElementById('paginationArea');a.innerHTML='';if(cur){const b=document.createElement('button');b.className='btn btn-secondary btn-sm';b.textContent='← Previous';b.onclick=()=>searchTrials(pageTokenStack.pop()||undefined);a.appendChild(b);}if(next){const b=document.createElement('button');b.className='btn btn-primary btn-sm';b.textContent='Next →';b.onclick=()=>{if(cur)pageTokenStack.push(cur);searchTrials(next);};a.appendChild(b);}}
 function sortBy(field){if(sortField===field)sortAsc=!sortAsc;else{sortField=field;sortAsc=true;}allResults.sort((a,b)=>{let va=a[field],vb=b[field];if(Array.isArray(va))va=va.join(',');if(Array.isArray(vb))vb=vb.join(',');return sortAsc?(va<vb?-1:va>vb?1:0):(va>vb?-1:va<vb?1:0);});renderTable();}
 function escHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+/* Safe localStorage JSON read — corrupted values fall back instead of crashing the whole script */
+function _lsJSON(key,fb){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fb;}catch(e){return fb;}}
 function jsAttr(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 /* ── Column Hide/Show ── */
@@ -2807,7 +2809,7 @@ function renderICD10Badges(containerId,conditions){
 }
 
 // ── Detail Modal ──
-async function openDetail(idx,nctIdDirect){const nctId=allResults[idx].nctId;document.getElementById('modalTitle').textContent=`${nctId} - ${allResults[idx].title}`;document.getElementById('modalBody').innerHTML='<div class="modal-loading"><div class="spinner"></div><p>Loading details...</p></div>';document.getElementById('modalOverlay').classList.add('active');document.body.style.overflow='hidden';try{const resp=await fetch(`https://clinicaltrials.gov/api/v2/studies/${nctId}?format=json`);if(!resp.ok)throw new Error('Failed');renderDetail(await resp.json());}catch(err){document.getElementById('modalBody').innerHTML=`<p style="color:var(--danger)">Failed to load details: ${err.message}</p>`;}}
+async function openDetail(idx,nctIdDirect){const nctId=allResults[idx].nctId;document.getElementById('modalTitle').textContent=`${nctId} - ${allResults[idx].title}`;document.getElementById('modalBody').innerHTML='<div class="modal-loading"><div class="spinner"></div><p>Loading details...</p></div>';document.getElementById('modalOverlay').classList.add('active');document.body.style.overflow='hidden';try{const resp=await fetch(`https://clinicaltrials.gov/api/v2/studies/${nctId}?format=json`);if(!resp.ok)throw new Error('Failed');renderDetail(await resp.json());}catch(err){document.getElementById('modalBody').innerHTML=`<p style="color:var(--danger)">Failed to load details: ${escHtml(err.message)}</p>`;}}
 function closeModal(){document.getElementById('modalOverlay').classList.remove('active');document.body.style.overflow='';if(detailMap){detailMap.remove();detailMap=null;}}
 function toggleFacilityList(cid,country){const el=document.getElementById(cid);const arrow=document.getElementById('arrow_'+cid);if(!el)return;if(el.style.display==='none'){el.style.display='block';if(arrow){arrow.classList.add('open');arrow.textContent='▶';}if(country)zoomToCountry(country,null);}else{el.style.display='none';if(arrow){arrow.classList.remove('open');arrow.textContent='▶';}}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(_galaxyFullscreenActive)closeGalaxyFullscreen();else closeModal();}});
@@ -2980,7 +2982,8 @@ async function fetchEUCTISPI(title,sponsor){
 /* 식약처: search by title keyword, get PI info (via Supabase edge function proxy) */
 async function _mfdsProxy(endpoint,params){
   const res=await fetch('https://zgoyiwviyyextelsotyd.supabase.co/functions/v1/mfds-proxy',{
-    method:'POST',headers:{'Content-Type':'application/json'},
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY,'apikey':SUPABASE_ANON_KEY},
     body:JSON.stringify({endpoint,params}),signal:AbortSignal.timeout(12000)
   });
   if(!res.ok)throw new Error('MFDS proxy error '+res.status);
@@ -3877,7 +3880,7 @@ function getDrugMoA(drugName){
 }
 
 /* ── RxClass API-based MoA lookup with localStorage cache (7-day expiry) ── */
-const _moaApiRaw=JSON.parse(localStorage.getItem('moaApiCache')||'{}');
+const _moaApiRaw=_lsJSON('moaApiCache',{});
 const _MOA_CACHE_TTL=7*24*60*60*1000; /* 7 days */
 const _moaApiCache=(function(){
   const now=Date.now(),clean={};let dirty=false;
@@ -7222,7 +7225,7 @@ function openGalaxyTrial(nctId){
   document.getElementById('modalTitle').textContent=nctId;
   document.getElementById('modalBody').innerHTML='<div class="modal-loading"><div class="spinner"></div><p>Loading details...</p></div>';
   document.getElementById('modalOverlay').classList.add('active');document.body.style.overflow='hidden';
-  fetch(`https://clinicaltrials.gov/api/v2/studies/${nctId}?format=json`).then(r=>{if(!r.ok)throw new Error('Failed');return r.json();}).then(data=>{document.getElementById('modalTitle').textContent=`${nctId} - ${((data.protocolSection||{}).identificationModule||{}).briefTitle||''}`;renderDetail(data);}).catch(err=>{document.getElementById('modalBody').innerHTML=`<p style="color:var(--danger)">Failed to load details: ${err.message}</p>`;});
+  fetch(`https://clinicaltrials.gov/api/v2/studies/${nctId}?format=json`).then(r=>{if(!r.ok)throw new Error('Failed');return r.json();}).then(data=>{document.getElementById('modalTitle').textContent=`${nctId} - ${((data.protocolSection||{}).identificationModule||{}).briefTitle||''}`;renderDetail(data);}).catch(err=>{document.getElementById('modalBody').innerHTML=`<p style="color:var(--danger)">Failed to load details: ${escHtml(err.message)}</p>`;});
 }
 document.getElementById('galaxyViewToggle').addEventListener('change',()=>{if(allResults.length>0){galaxyResetView();renderGalaxy();}});
 window.addEventListener('resize',()=>{const gTab=document.getElementById('tabGalaxy');const gActive=gTab&&gTab.classList.contains('active');if(gActive&&allResults.length>0){if(galaxyAnimId){cancelAnimationFrame(galaxyAnimId);galaxyAnimId=null;}renderGalaxy();}});
@@ -7811,8 +7814,8 @@ function renderCompare(studies){
     if(infoEl&&typeof window._isMaster==='function'){
       if(window._currentUser){
         if(!window._isMaster()){
-          const mo=JSON.parse(localStorage.getItem('ai_monthly')||'{"month":0,"count":0}');
-          const now=new Date().getMonth()+1;
+          const mo=_lsJSON('ai_monthly',{month:0,count:0});
+          const now=new Date().getFullYear()*100+new Date().getMonth()+1;
           const used=mo.month===now?mo.count:0;
           infoEl.textContent=`${10-used}/10 remaining`;
         } else { infoEl.textContent=''; }
@@ -9008,11 +9011,11 @@ window.pushAlertNow=async function(idx){
 };
 
 // ── Quick AI Analysis (Server-side Gemini) ──
-let _aiMonthlyUsed=JSON.parse(localStorage.getItem('ai_monthly')||'{"month":0,"count":0}');
-function _aiCanUse(){const now=new Date().getMonth()+1;if(_aiMonthlyUsed.month!==now){_aiMonthlyUsed={month:now,count:0};localStorage.setItem('ai_monthly',JSON.stringify(_aiMonthlyUsed));}return _aiMonthlyUsed.count<10;}
+let _aiMonthlyUsed=_lsJSON('ai_monthly',{month:0,count:0});
+function _aiCanUse(){const now=new Date().getFullYear()*100+new Date().getMonth()+1;if(_aiMonthlyUsed.month!==now){_aiMonthlyUsed={month:now,count:0};localStorage.setItem('ai_monthly',JSON.stringify(_aiMonthlyUsed));}return _aiMonthlyUsed.count<10;}
 function _aiIncrement(){_aiMonthlyUsed.count++;localStorage.setItem('ai_monthly',JSON.stringify(_aiMonthlyUsed));}
-let _qcMonthlyUsed=JSON.parse(localStorage.getItem('qc_monthly')||'{"month":0,"count":0}');
-function _qcCanUse(){const now=new Date().getMonth()+1;if(_qcMonthlyUsed.month!==now){_qcMonthlyUsed={month:now,count:0};localStorage.setItem('qc_monthly',JSON.stringify(_qcMonthlyUsed));}return _qcMonthlyUsed.count<20;}
+let _qcMonthlyUsed=_lsJSON('qc_monthly',{month:0,count:0});
+function _qcCanUse(){const now=new Date().getFullYear()*100+new Date().getMonth()+1;if(_qcMonthlyUsed.month!==now){_qcMonthlyUsed={month:now,count:0};localStorage.setItem('qc_monthly',JSON.stringify(_qcMonthlyUsed));}return _qcMonthlyUsed.count<20;}
 function _qcIncrement(){_qcMonthlyUsed.count++;localStorage.setItem('qc_monthly',JSON.stringify(_qcMonthlyUsed));}
 function _qcRemaining(){_qcCanUse();return Math.max(0,20-_qcMonthlyUsed.count);}
 
@@ -9301,8 +9304,8 @@ window.runQuickCompare=async function(){
 };
 
 // ── PPTX monthly usage tracking ──
-let _pptxMonthlyUsed=JSON.parse(localStorage.getItem('pptx_monthly')||'{"month":0,"count":0}');
-function _pptxRemaining(){const now=new Date().getMonth()+1;if(_pptxMonthlyUsed.month!==now){_pptxMonthlyUsed={month:now,count:0};localStorage.setItem('pptx_monthly',JSON.stringify(_pptxMonthlyUsed));}return Math.max(0,3-_pptxMonthlyUsed.count);}
+let _pptxMonthlyUsed=_lsJSON('pptx_monthly',{month:0,count:0});
+function _pptxRemaining(){const now=new Date().getFullYear()*100+new Date().getMonth()+1;if(_pptxMonthlyUsed.month!==now){_pptxMonthlyUsed={month:now,count:0};localStorage.setItem('pptx_monthly',JSON.stringify(_pptxMonthlyUsed));}return Math.max(0,3-_pptxMonthlyUsed.count);}
 function _pptxIncrement(){_pptxMonthlyUsed.count++;localStorage.setItem('pptx_monthly',JSON.stringify(_pptxMonthlyUsed));}
 
 // ── Export Compare Report as PDF ──
@@ -9722,7 +9725,7 @@ if(saved){try{const t=JSON.parse(saved);applyTheme(t.p,t.s);}catch(e){applyTheme
 })();
 
 function renderSearchHistory(){
-  const history=JSON.parse(localStorage.getItem('ct_search_history')||'[]');
+  const history=_lsJSON('ct_search_history',[]);
   const bar=document.getElementById('searchHistoryBar');
   const list=document.getElementById('searchHistoryList');
   if(!bar||!list)return;

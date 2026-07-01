@@ -395,7 +395,7 @@ entrypoint = "./functions/push-alert/index.ts"
 
 [functions.mfds-proxy]
 enabled = true
-verify_jwt = false
+verify_jwt = true
 entrypoint = "./functions/mfds-proxy/index.ts"
 
 [functions.ai-analyze]

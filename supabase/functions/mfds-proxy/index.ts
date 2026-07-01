@@ -32,11 +32,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    /* Build query string: inject serviceKey server-side, pass through other params */
+    /* Build query string: pass through params, then force serviceKey/type server-side */
     const qs = new URLSearchParams({
+      ...params,
       serviceKey: MFDS_API_KEY,
       type: "json",
-      ...params,
     });
 
     const res = await fetch(`${baseUrl}?${qs}`, {
